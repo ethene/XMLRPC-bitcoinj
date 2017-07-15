@@ -5,6 +5,8 @@ import traceback
 import xmlrpc.client
 
 import coloredlogs
+import matplotlib as mpl
+import pandas as pd
 from sqlalchemy import (create_engine, Table, Column, Integer,
                         String, MetaData)
 from sqlalchemy.sql import select
@@ -12,6 +14,15 @@ from telegram import ReplyKeyboardMarkup, KeyboardButton
 from telegram.error import (TelegramError)
 from telegram.ext import CommandHandler
 from telegram.ext import Updater
+
+mpl.use('Agg')
+import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
+import sys
+
+sys.path.insert(0, '../BitMEX-trader/db/')
+from settings import MYSQL_CONNECTION, TELEGRAM_BOT_TOKEN
+from SizedTimedRotatingFileHandler import SizedTimedRotatingFileHandler
 
 
 def error_callback(bot, update, error):
@@ -24,25 +35,30 @@ def error_callback(bot, update, error):
 
 XMLRPCServer = xmlrpc.client.ServerProxy('http://localhost:8000')
 
-import sys
+useraccounts_table = 'useraccounts'
+admin_table = 'adminusers'
+balance_table = 'mercury_balance'
+pic_folder = './pictures'
+pic_1_filename = 'balance.png'
+pic_2_filename = 'cumulative.png'
 
-sys.path.insert(0, '../BitMEX-trader/db/')
-from settings import MYSQL_CONNECTION, TELEGRAM_BOT_TOKEN
-
-# MYSQL_CONNECTION = 'mysql+mysqlconnector://mercurybot:123QWEasdzxc@localhost:3306/mercury_db'
 level = logging.DEBUG
-# TELEGRAM_BOT_TOKEN = '410462581:AAGhrsRrw2pn0-nrr2HVUVjNoFzxamQsLZc'
 
+script_name = 'mercury-telegram'
 formatter = logging.Formatter(fmt='%(asctime)s - %(levelname)s - %(module)s - %(message)s')
 logger = logging.getLogger('admin-telegram-bot')
 logger.setLevel(level)
+log_handler = logging.StreamHandler()
+log_handler.setFormatter(formatter)
+logger.addHandler(log_handler)
+log_filename = './log/' + script_name + '.log'
+log_handler = SizedTimedRotatingFileHandler(log_filename, maxBytes=0, backupCount=5, when='D',
+                                            interval=1)  # encoding='bz2',  # uncomment for bz2 compression)
+logger.addHandler(log_handler)
 
 coloredlogs.install(level=level)
-
 db_engine = create_engine(MYSQL_CONNECTION, echo=False)
 
-useraccounts_table = 'useraccounts'
-admin_table = 'adminusers'
 metadata = MetaData(db_engine)
 
 if not db_engine.dialect.has_table(db_engine, admin_table):
@@ -83,7 +99,7 @@ def userlist(bot, update):
                 upd = useraccounts.update().values(invalue=invalue).where(useraccounts.c.ID == userID)
                 con.execute(upd)
             message += "%s %s %s %s %.8f %.8f\n" % (
-            u.username, u.firstname, u.lastname, u.address, u.invalue or 0, u.outvalue or 0)
+                u.username, u.firstname, u.lastname, u.address, u.invalue or 0, u.outvalue or 0)
         if len(response) > 0:
             bot.send_message(chat_id=update.message.chat_id,
                              text="User / InValue / OutValue\n" + message)
@@ -117,14 +133,47 @@ def start(bot, update):
         else:
             bot.send_message(chat_id=update.message.chat_id,
                              text="Hello, %s!\nWelcome back to use the bot" % (username),
-                             reply_markup=ReplyKeyboardMarkup(keyboard=[[KeyboardButton(text="/userlist")]]))
+                             reply_markup=ReplyKeyboardMarkup(keyboard=[[KeyboardButton(text="/statistics")]]))
 
+
+def stats(bot, update):
+    df = pd.read_sql_query(sql='SELECT * FROM ' + balance_table, con=db_engine, index_col='index')
+    df_groupped = df.groupby(df.timestamp.dt.date)['totalbalance'].mean()
+    daily_pc = df_groupped.pct_change().dropna() * 365 * 100
+    cumulative_pc = (df_groupped - df_groupped.ix[0]) / df_groupped.ix[0]
+
+    plot_graph(daily_pc, pic_1_filename, 'Yearly %')
+    plot_graph(cumulative_pc, pic_2_filename, 'Cumulative growth %')
+
+    picture_1 = open(pic_folder + pic_1_filename, 'rb')
+    bot.send_photo(chat_id=update.message.chat_id, photo=picture_1)
+    picture_2 = open(pic_folder + pic_2_filename, 'rb')
+    bot.send_photo(chat_id=update.message.chat_id, photo=picture_2)
+
+
+def plot_graph(df, name, label):
+    fig, ax = plt.subplots()
+    ax.plot(df.index, df, label=label)
+
+    myFmt = mdates.DateFormatter('%d %b %y')
+    ax.xaxis.set_major_formatter(myFmt)
+
+    ax.set_xlim(df.index.min(), df.index.max())
+    ax.grid(True)
+    fig.autofmt_xdate()
+
+    plt.title(label)
+    plt.legend()
+
+    plt.plot(df)
+    plt.savefig(pic_folder + name)
 
 start_handler = CommandHandler('start', start)
-userlist_handler = CommandHandler('userlist', userlist)
+stats_handler = CommandHandler('statistics', stats)
+# userlist_handler = CommandHandler('userlist', userlist)
+# dispatcher.add_handler(userlist_handler)
 dispatcher.add_handler(start_handler)
-dispatcher.add_handler(userlist_handler)
+dispatcher.add_handler(stats_handler)
 
 dispatcher.add_error_handler(error_callback)
-
 updater.start_polling()
