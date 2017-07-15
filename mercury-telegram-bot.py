@@ -45,17 +45,6 @@ pic_2_filename = 'cumulative.png'
 level = logging.DEBUG
 
 script_name = 'mercury-telegram'
-formatter = logging.Formatter(fmt='%(asctime)s - %(levelname)s - %(module)s - %(message)s')
-logger = logging.getLogger(script_name)
-log_handler = logging.StreamHandler()
-log_handler.setFormatter(formatter)
-logger.addHandler(log_handler)
-log_filename = './log/' + script_name + '.log'
-log_handler = SizedTimedRotatingFileHandler(log_filename, maxBytes=0, backupCount=5, when='D',
-                                            interval=1)  # encoding='bz2',  # uncomment for bz2 compression)
-logger.addHandler(log_handler)
-logger.setLevel(level)
-coloredlogs.install(level=level)
 
 db_engine = create_engine(MYSQL_CONNECTION, echo=False)
 metadata = MetaData(db_engine)
@@ -70,8 +59,20 @@ if not db_engine.dialect.has_table(db_engine, admin_table):
     # Implement the creation
     metadata.create_all()
 
+logging.basicConfig(format='%(asctime)s - %(levelname)s - %(module)s - %(message)s', level=level)
 updater = Updater(token=TELEGRAM_BOT_TOKEN)
 dispatcher = updater.dispatcher
+# formatter = logging.Formatter(fmt='%(asctime)s - %(levelname)s - %(module)s - %(message)s')
+# logger = logging.getLogger(script_name)
+# log_handler = logging.StreamHandler()
+# log_handler.setFormatter(formatter)
+# logger.addHandler(log_handler)
+log_filename = './log/' + script_name + '.log'
+log_handler = SizedTimedRotatingFileHandler(log_filename, maxBytes=0, backupCount=5, when='D',
+                                            interval=1)  # encoding='bz2',  # uncomment for bz2 compression)
+dispatcher.addHandler(log_handler)
+# logger.setLevel(level)
+coloredlogs.install(level=level)
 
 
 def userlist(bot, update):
@@ -166,6 +167,7 @@ def plot_graph(df, name, label):
 
     plt.plot(df)
     plt.savefig(pic_folder + name)
+
 
 start_handler = CommandHandler('start', start)
 stats_handler = CommandHandler('statistics', stats)
