@@ -1,3 +1,5 @@
+#!/home/strky/jython/bin/jython
+# -*- coding: utf-8 -*-
 import sys
 
 sys.path.append("bitcoinj-core-0.14.4-bundled.jar")
@@ -21,15 +23,24 @@ from com.google.common.util.concurrent import Futures
 from SimpleXMLRPCServer import SimpleXMLRPCServer
 from SimpleXMLRPCServer import SimpleXMLRPCRequestHandler
 
+from SizedTimedRotatingFileHandler import SizedTimedRotatingFileHandler
+
 import logging
 import traceback
 
 level = logging.DEBUG
 
+script_name = 'XMLRPC-bitcoinj'
+
 formatter = logging.Formatter(fmt='%(asctime)s - %(levelname)s - %(module)s - %(message)s')
 logger = logging.getLogger('bitcoinj-rpc')
 log_handler = logging.StreamHandler()
 log_handler.setFormatter(formatter)
+
+log_filename = './log/' + script_name + '.log'
+log_handler = SizedTimedRotatingFileHandler(log_filename, maxBytes=0, backupCount=5, when='D',
+                                            interval=1)  # encoding='bz2',  # uncomment for bz2 compression)
+
 logger.addHandler(log_handler)
 logger.setLevel(level)
 
@@ -135,7 +146,6 @@ class RPCFunctions:
             return False
 
     '''
-
 
 class SenderListener(AbstractWalletEventListener):
     def __init__(self, pg):
