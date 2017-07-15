@@ -33,7 +33,7 @@ level = logging.DEBUG
 script_name = 'XMLRPC-bitcoinj'
 
 formatter = logging.Formatter(fmt='%(asctime)s - %(levelname)s - %(module)s - %(message)s')
-logger = logging.getLogger('bitcoinj-rpc')
+logger = logging.getLogger(script_name)
 log_handler = logging.StreamHandler()
 log_handler.setFormatter(formatter)
 logger.addHandler(log_handler)

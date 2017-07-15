@@ -46,8 +46,7 @@ level = logging.DEBUG
 
 script_name = 'mercury-telegram'
 formatter = logging.Formatter(fmt='%(asctime)s - %(levelname)s - %(module)s - %(message)s')
-logger = logging.getLogger('admin-telegram-bot')
-logger.setLevel(level)
+logger = logging.getLogger(script_name)
 log_handler = logging.StreamHandler()
 log_handler.setFormatter(formatter)
 logger.addHandler(log_handler)
@@ -55,10 +54,10 @@ log_filename = './log/' + script_name + '.log'
 log_handler = SizedTimedRotatingFileHandler(log_filename, maxBytes=0, backupCount=5, when='D',
                                             interval=1)  # encoding='bz2',  # uncomment for bz2 compression)
 logger.addHandler(log_handler)
-
+logger.setLevel(level)
 coloredlogs.install(level=level)
-db_engine = create_engine(MYSQL_CONNECTION, echo=False)
 
+db_engine = create_engine(MYSQL_CONNECTION, echo=False)
 metadata = MetaData(db_engine)
 
 if not db_engine.dialect.has_table(db_engine, admin_table):
