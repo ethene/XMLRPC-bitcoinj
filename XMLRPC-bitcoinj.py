@@ -36,11 +36,11 @@ formatter = logging.Formatter(fmt='%(asctime)s - %(levelname)s - %(module)s - %(
 logger = logging.getLogger('bitcoinj-rpc')
 log_handler = logging.StreamHandler()
 log_handler.setFormatter(formatter)
+logger.addHandler(log_handler)
 
 log_filename = './log/' + script_name + '.log'
 log_handler = SizedTimedRotatingFileHandler(log_filename, maxBytes=0, backupCount=5, when='D',
                                             interval=1)  # encoding='bz2',  # uncomment for bz2 compression)
-
 logger.addHandler(log_handler)
 logger.setLevel(level)
 
