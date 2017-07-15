@@ -146,9 +146,9 @@ def stats(bot, update):
     plot_graph(daily_pc, pic_1_filename, 'Yearly %')
     plot_graph(cumulative_pc, pic_2_filename, 'Cumulative growth %')
 
-    picture_1 = open(pic_folder + pic_1_filename, 'rb')
+    picture_1 = open(pic_folder + '/' + pic_1_filename, 'rb')
     bot.send_photo(chat_id=update.message.chat_id, photo=picture_1)
-    picture_2 = open(pic_folder + pic_2_filename, 'rb')
+    picture_2 = open(pic_folder + '/' + pic_2_filename, 'rb')
     bot.send_photo(chat_id=update.message.chat_id, photo=picture_2)
 
 
@@ -167,8 +167,7 @@ def plot_graph(df, name, label):
     plt.legend()
 
     plt.plot(df)
-    plt.savefig(pic_folder + name)
-
+    plt.savefig(pic_folder + '/' + name)
 
 start_handler = CommandHandler('start', start)
 stats_handler = CommandHandler('statistics', stats)
