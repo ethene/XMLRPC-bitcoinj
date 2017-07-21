@@ -141,7 +141,7 @@ def stats(bot, update):
     df = pd.read_sql_query(sql='SELECT * FROM ' + balance_table, con=db_engine, index_col='index')
     df_groupped = df.groupby(df.timestamp.dt.date)['totalbalance'].mean()
     daily_pc = df_groupped.pct_change().dropna() * 365 * 100
-    cumulative_pc = (df_groupped - df_groupped.ix[0]) / df_groupped.ix[0]
+    cumulative_pc = ((df_groupped - df_groupped.ix[0]) / df_groupped.ix[0]) * 100
 
     plot_graph(daily_pc, pic_1_filename, 'Yearly %')
     plot_graph(cumulative_pc, pic_2_filename, 'Cumulative growth %')
