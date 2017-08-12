@@ -33,7 +33,8 @@ def error_callback(bot, update, error):
         logger.error(traceback.format_exc())
 
 
-def admin_only(*args, **kwargs):
+def admin_only(*args):
+    print(args)
     def wrapper(fun):
         def wrapped(bot, update):
             useraccounts = Table(useraccounts_table, metadata, autoload=True)
