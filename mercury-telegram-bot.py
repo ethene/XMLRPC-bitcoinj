@@ -169,7 +169,7 @@ def start(bot, update):
         '''
 
 
-@admin_only
+@admin_only()
 def stats(bot, update):
     df = pd.read_sql_query(sql='SELECT * FROM ' + balance_table, con=db_engine, index_col='index')
     df_groupped = df.groupby(df.timestamp.dt.date)['totalbalance'].mean()
