@@ -32,6 +32,24 @@ def error_callback(bot, update, error):
         logger.error(traceback.format_exc())
 
 
+def admin_only():
+    def wrapper(fun):
+        def wrapped(bot, update):
+            useraccounts = Table(useraccounts_table, metadata, autoload=True)
+            stm = select([useraccounts]).where(useraccounts.c.ID == update.effective_user.id)
+            with db_engine.connect() as con:
+                rs = con.execute(stm)
+                response = rs.fetchall()
+                if len(response) == 1:
+                    for u in response:
+                        if u.isadmin == 1:
+                            logger.debug("admin privilege confirmed, %s" % update.effective_user.id)
+                            return fun(bot, update)
+
+        return wrapped
+
+
+
 XMLRPCServer = xmlrpc.client.ServerProxy('http://localhost:8000')
 
 useraccounts_table = 'telegram_useraccounts'
@@ -100,6 +118,7 @@ def userlist(bot, update):
 
 '''
 
+
 def start(bot, update):
     with db_engine.connect() as con:
         userfrom = update.effective_user
@@ -113,6 +132,7 @@ def start(bot, update):
         stm = select([useraccounts]).where(useraccounts.c.ID == userID)
         rs = con.execute(stm)
         response = rs.fetchall()
+        isadmin = False
 
         if len(response) == 0:
             logger.debug("user not found in db, creating new user %s" % userfrom)
@@ -124,7 +144,14 @@ def start(bot, update):
             return
         else:
             for u in response:
-                logger.debug("user found in db, admin: %s" % u.isadmin)
+                isadmin = u.isadmin == 1
+                logger.debug("user found in db, admin: %s" % isadmin)
+
+        if isadmin:
+            bot.send_message(chat_id=update.message.chat_id,
+                             text="Hello, admin %s!\nWelcome back to use the bot" % (username),
+                             reply_markup=ReplyKeyboardMarkup(
+                                 keyboard=[[KeyboardButton(text="/statistics"), KeyboardButton(text="/transfers")]]))
 
         '''
         stm = select([adminaccounts]).where(adminaccounts.c.ID == userID)
@@ -142,6 +169,7 @@ def start(bot, update):
         '''
 
 
+@admin_only
 def stats(bot, update):
     df = pd.read_sql_query(sql='SELECT * FROM ' + balance_table, con=db_engine, index_col='index')
     df_groupped = df.groupby(df.timestamp.dt.date)['totalbalance'].mean()
@@ -176,11 +204,11 @@ def plot_graph(df, name, label):
 
 
 start_handler = CommandHandler('start', start)
-# stats_handler = CommandHandler('statistics', stats)
+stats_handler = CommandHandler('statistics', stats)
 # userlist_handler = CommandHandler('userlist', userlist)
 # dispatcher.add_handler(userlist_handler)
 dispatcher.add_handler(start_handler)
-#dispatcher.add_handler(stats_handler)
+dispatcher.add_handler(stats_handler)
 
 dispatcher.add_error_handler(error_callback)
 updater.start_polling()
