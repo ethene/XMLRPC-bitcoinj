@@ -32,26 +32,6 @@ def error_callback(bot, update, error):
         logger.error(e)
         logger.error(traceback.format_exc())
 
-
-def admin_only(*args):
-    print(args)
-    def wrapper(fun):
-        def wrapped(bot, update):
-            useraccounts = Table(useraccounts_table, metadata, autoload=True)
-            stm = select([useraccounts]).where(useraccounts.c.ID == update.effective_user.id)
-            with db_engine.connect() as con:
-                rs = con.execute(stm)
-                response = rs.fetchall()
-                if len(response) == 1:
-                    for u in response:
-                        if u.isadmin == 1:
-                            logger.debug("admin privilege confirmed, %s" % update.effective_user.id)
-                            return fun(bot, update)
-
-        return wrapped
-
-
-
 XMLRPCServer = xmlrpc.client.ServerProxy('http://localhost:8000')
 
 useraccounts_table = 'telegram_useraccounts'
@@ -171,8 +151,10 @@ def start(bot, update):
         '''
 
 
-@admin_only
 def stats(bot, update):
+    isadmin = check_admin_privilege(update)
+    if not isadmin:
+        return
     df = pd.read_sql_query(sql='SELECT * FROM ' + balance_table, con=db_engine, index_col='index')
     df_groupped = df.groupby(df.timestamp.dt.date)['totalbalance'].mean()
     daily_pc = df_groupped.pct_change().dropna() * 365 * 100
@@ -186,6 +168,21 @@ def stats(bot, update):
     picture_2 = open(pic_folder + '/' + pic_2_filename, 'rb')
     bot.send_photo(chat_id=update.message.chat_id, photo=picture_2)
 
+
+def check_admin_privilege(update):
+    isadmin = False
+    useraccounts = Table(useraccounts_table, metadata, autoload=True)
+    stm = select([useraccounts]).where(useraccounts.c.ID == update.effective_user.id)
+    with db_engine.connect() as con:
+        rs = con.execute(stm)
+        response = rs.fetchall()
+        if len(response) == 1:
+            for u in response:
+                isadmin = u.isadmin == 1
+                if isadmin:
+                    logger.debug("admin privilege confirmed, %s" % update.effective_user.id)
+
+    return isadmin
 
 def plot_graph(df, name, label):
     fig, ax = plt.subplots()
