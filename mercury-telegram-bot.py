@@ -32,7 +32,7 @@ def error_callback(bot, update, error):
         logger.error(traceback.format_exc())
 
 
-def admin_only():
+def admin_only(*args, **kwargs):
     def wrapper(fun):
         def wrapped(bot, update):
             useraccounts = Table(useraccounts_table, metadata, autoload=True)
@@ -169,7 +169,7 @@ def start(bot, update):
         '''
 
 
-@admin_only()
+@admin_only
 def stats(bot, update):
     df = pd.read_sql_query(sql='SELECT * FROM ' + balance_table, con=db_engine, index_col='index')
     df_groupped = df.groupby(df.timestamp.dt.date)['totalbalance'].mean()
