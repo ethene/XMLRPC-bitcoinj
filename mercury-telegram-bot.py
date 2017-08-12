@@ -102,24 +102,29 @@ def userlist(bot, update):
 
 def start(bot, update):
     with db_engine.connect() as con:
-        useraccounts = Table(useraccounts_table, metadata, autoload=True)
-        stm = select([useraccounts])
-        rs = con.execute(stm)
-        response = rs.fetchall()
         userfrom = update.effective_user
         logger.debug("userfrom : %s" % userfrom)
         userID = userfrom.id
         firstname = userfrom.first_name
         lastname = userfrom.last_name
         username = userfrom.username
+
+        useraccounts = Table(useraccounts_table, metadata, autoload=True)
+        stm = select([useraccounts]).where(useraccounts.c.ID == userID)
+        rs = con.execute(stm)
+        response = rs.fetchall()
+
         if len(response) == 0:
-            logger.debug("user not found in db, creating new admin %s" % userfrom)
+            logger.debug("user not found in db, creating new user %s" % userfrom)
             ins = useraccounts.insert().values(ID=userID, firstname=firstname, lastname=lastname, username=username,
                                                isadmin=False)
             con.execute(ins)
             bot.send_message(chat_id=update.message.chat_id,
                              text="Hello, %s!\nYour new account has just created" % (username))
             return
+        else:
+            for u in response:
+                logger.debug("user found in db, admin: %s" % u.isadmin)
 
         '''
         stm = select([adminaccounts]).where(adminaccounts.c.ID == userID)
