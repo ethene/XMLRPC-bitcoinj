@@ -3,11 +3,11 @@
 
 # TODO: imports
 import calendar
-import datetime
 import logging
 import shutil
 import traceback
 import xmlrpc.client
+from datetime import datetime
 
 import coloredlogs
 import matplotlib as mpl
