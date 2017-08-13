@@ -1,6 +1,11 @@
 #!/home/strky/anaconda3/envs/py36/bin/python
 # -*- coding: utf-8 -*-
+
+# TODO: imports
+import calendar
+import datetime
 import logging
+import shutil
 import traceback
 import xmlrpc.client
 
@@ -67,6 +72,17 @@ if not db_engine.dialect.has_table(db_engine, useraccounts_table):
 
 updater = Updater(token=TELEGRAM_BOT_TOKEN)
 dispatcher = updater.dispatcher
+
+
+#
+# Helpers
+#
+
+def getUTCtime():
+    d = datetime.utcnow()
+    unixtime = calendar.timegm(d.utctimetuple())
+    return unixtime * 1000
+
 
 '''
 def userlist(bot, update):
@@ -169,6 +185,20 @@ def stats(bot, update):
     bot.send_photo(chat_id=update.message.chat_id, photo=picture_2)
 
 
+def health_check(bot, update):
+    isadmin = check_admin_privilege(update)
+    if not isadmin:
+        return
+    freeG = shutil.disk_usage('/').free / 1e9
+    message = "free disk space: %.2f\n" % freeG
+    health_df = pd.read_sql_table('mercury_health', con=db_engine)
+    health_record = health_df.to_dict(orient='records')
+    for r in health_record[0]:
+        if r != 'index':
+            message += "%s is alive: %s\n" % (r, health_record[0][r] == 1)
+        else:
+            message += "updated %d s ago" % ((getUTCtime() - health_record[0][r]) / 1000)
+
 def check_admin_privilege(update):
     isadmin = False
     useraccounts = Table(useraccounts_table, metadata, autoload=True)
@@ -200,7 +230,6 @@ def plot_graph(df, name, label):
 
     plt.plot(df)
     plt.savefig(pic_folder + '/' + name)
-
 
 start_handler = CommandHandler('start', start)
 stats_handler = CommandHandler('statistics', stats)
