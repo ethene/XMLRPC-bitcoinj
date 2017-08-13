@@ -200,6 +200,9 @@ def health_check(bot, update):
         else:
             message += "updated %d s ago" % ((getUTCtime() - health_record[0][r]) / 1000)
 
+    logger.debug(message)
+    bot.send_message(chat_id=update.message.chat_id, text=message)
+
 def check_admin_privilege(update):
     isadmin = False
     useraccounts = Table(useraccounts_table, metadata, autoload=True)
