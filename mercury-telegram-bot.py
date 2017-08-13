@@ -149,7 +149,8 @@ def start(bot, update):
             bot.send_message(chat_id=update.message.chat_id,
                              text="Hello, admin %s!\nWelcome back to use the bot" % (username),
                              reply_markup=ReplyKeyboardMarkup(
-                                 keyboard=[[KeyboardButton(text="/statistics"), KeyboardButton(text="/transfers")]]))
+                                 keyboard=[[KeyboardButton(text="/statistics"), KeyboardButton(text="/transfers"),
+                                            KeyboardButton(text="/health")]]))
 
         '''
         stm = select([adminaccounts]).where(adminaccounts.c.ID == userID)
@@ -233,10 +234,12 @@ def plot_graph(df, name, label):
 
 start_handler = CommandHandler('start', start)
 stats_handler = CommandHandler('statistics', stats)
+health_handler = CommandHandler('health', health_check)
 # userlist_handler = CommandHandler('userlist', userlist)
 # dispatcher.add_handler(userlist_handler)
 dispatcher.add_handler(start_handler)
 dispatcher.add_handler(stats_handler)
+dispatcher.add_handler(health_handler)
 
 dispatcher.add_error_handler(error_callback)
 updater.start_polling()
