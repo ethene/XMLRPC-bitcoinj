@@ -191,14 +191,13 @@ def health_check(bot, update):
     if not isadmin:
         return
     freeG = shutil.disk_usage('/').free / 1e9
-    message = "free disk space: %.2f\n" % freeG
+    message = "free disk space: %.2f Gb\n" % freeG
     health_df = pd.read_sql_table('mercury_health', con=db_engine)
     health_record = health_df.to_dict(orient='records')
     for r in health_record[0]:
-        if r != 'index':
+        if r not in ['index', 'timestamp']:
             message += "%s is alive: %s\n" % (r, health_record[0][r] == 1)
-        else:
-            message += "updated %d s ago" % ((getUTCtime() - health_record[0][r]) / 1000)
+    message += "updated %d s ago\n" % ((getUTCtime() - health_record[0]['index']) / 1000)
 
     logger.debug(message)
     bot.send_message(chat_id=update.message.chat_id, text=message)
