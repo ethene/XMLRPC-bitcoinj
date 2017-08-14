@@ -15,9 +15,9 @@ import pandas as pd
 from sqlalchemy import (create_engine, Table, Column, Integer,
                         String, Boolean, MetaData)
 from sqlalchemy.sql import select
-from telegram import ReplyKeyboardMarkup, KeyboardButton
+from telegram import ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove
 from telegram.error import (TelegramError)
-from telegram.ext import CommandHandler
+from telegram.ext import CommandHandler, RegexHandler
 from telegram.ext import Updater
 
 mpl.use('Agg')
@@ -26,9 +26,9 @@ import matplotlib.dates as mdates
 import sys
 
 sys.path.insert(0, '../BitMEX-trader/db/')
-from settings import MYSQL_CONNECTION, TELEGRAM_BOT_TOKEN
+from settings import MYSQL_CONNECTION, TELEGRAM_BOT_TOKEN, BASE_URL
 from SizedTimedRotatingFileHandler import SizedTimedRotatingFileHandler
-
+from bitmex import BitMEX
 
 def error_callback(bot, update, error):
     try:
@@ -46,6 +46,9 @@ pic_folder = './pictures'
 pic_1_filename = 'balance.png'
 pic_2_filename = 'cumulative.png'
 
+b_key = '-u2QixS6Hx5ov1CWfXo6jATS'
+b_secret = 'CEAOCPqIi5P6sOD4GpSF49-1NA3niUBGldACrLqIPI0905IL'
+
 level = logging.DEBUG
 script_name = 'telegram.bot'
 
@@ -59,6 +62,11 @@ log_handler = SizedTimedRotatingFileHandler(log_filename, maxBytes=0, backupCoun
                                             interval=1)  # encoding='bz2',  # uncomment for bz2 compression)
 logger.addHandler(log_handler)
 coloredlogs.install(level=level)
+
+bitmex = BitMEX(apiKey=b_key, apiSecret=b_secret, base_url=BASE_URL, logger=logger)
+
+# last command to perform with OTP auth
+last_command = None
 
 if not db_engine.dialect.has_table(db_engine, useraccounts_table):
     logger.debug("user accounts table does not exist")
@@ -186,6 +194,24 @@ def stats(bot, update):
     bot.send_photo(chat_id=update.message.chat_id, photo=picture_2)
 
 
+def OTP_command(bot, update):
+    isadmin = check_admin_privilege(update)
+    if not isadmin:
+        return
+    logger.debug(update)
+
+
+def transfers_confirm(bot, update):
+    isadmin = check_admin_privilege(update)
+    if not isadmin:
+        return
+    df = pd.read_sql_table(balance_diff_table, con=db_engine, index_col='index')
+    transfer_record = df.to_dict(orient='records')
+    transfer_diff = round(transfer_record[0]['avg_balance_difference'], 6)
+
+    if transfer_diff > 0:
+        bitmex.withdraw()
+
 def transfers_show(bot, update):
     isadmin = check_admin_privilege(update)
     if not isadmin:
@@ -197,11 +223,9 @@ def transfers_show(bot, update):
         direction = '->'
     elif transfer_diff < 0:
         direction = '<-'
-    message = "BitMEX %s Poloniex %.6f\n Confirm?" % (direction, abs(transfer_diff))
-    bot.send_message(chat_id=update.message.chat_id,
-                     text=message,
-                     reply_markup=ReplyKeyboardMarkup(
-                         keyboard=[[KeyboardButton(text="/confirmtransfer")]]))
+    message = "BitMEX %s Poloniex %.6f, send OTP to confirm" % (direction, abs(transfer_diff))
+    bot.send_message(chat_id=update.message.chat_id, text=message, reply_markup=ReplyKeyboardRemove())
+    last_command = 'BW'
 
 def health_check(bot, update):
     isadmin = check_admin_privilege(update)
@@ -255,6 +279,8 @@ start_handler = CommandHandler('start', start)
 stats_handler = CommandHandler('statistics', stats)
 health_handler = CommandHandler('health', health_check)
 transfers_show_handler = CommandHandler('transfers', transfers_show)
+# transfers_confirm_handler = CommandHandler('confirmtransfer', transfers_confirm)
+OTP_handler = RegexHandler(pattern='^\d{6}$', callback=OTP_command)
 
 # userlist_handler = CommandHandler('userlist', userlist)
 # dispatcher.add_handler(userlist_handler)
@@ -262,6 +288,7 @@ dispatcher.add_handler(start_handler)
 dispatcher.add_handler(stats_handler)
 dispatcher.add_handler(health_handler)
 dispatcher.add_handler(transfers_show_handler)
+dispatcher.add_handler(OTP_handler)
 
 dispatcher.add_error_handler(error_callback)
 updater.start_polling()
