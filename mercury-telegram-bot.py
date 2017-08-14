@@ -186,6 +186,23 @@ def stats(bot, update):
     bot.send_photo(chat_id=update.message.chat_id, photo=picture_2)
 
 
+def transfers_show(bot, update):
+    isadmin = check_admin_privilege(update)
+    if not isadmin:
+        return
+    df = pd.read_sql_table(balance_diff_table, con=db_engine, index_col='index')
+    transfer_record = df.to_dict(orient='records')
+    transfer_diff = round(transfer_record[0]['avg_balance_difference'], 6)
+    if transfer_diff > 0:
+        direction = '->'
+    elif transfer_diff < 0:
+        direction = '<-'
+    message = "BitMEX %s Poloniex %.6f\n Confirm?" % (direction, abs(transfer_diff))
+    bot.send_message(chat_id=update.message.chat_id,
+                     text=message,
+                     reply_markup=ReplyKeyboardMarkup(
+                         keyboard=[[KeyboardButton(text="/confirmtransfer")]]))
+
 def health_check(bot, update):
     isadmin = check_admin_privilege(update)
     if not isadmin:
@@ -237,6 +254,8 @@ def plot_graph(df, name, label):
 start_handler = CommandHandler('start', start)
 stats_handler = CommandHandler('statistics', stats)
 health_handler = CommandHandler('health', health_check)
+transfers_show_handler = CommandHandler('transfers', transfers_show)
+
 # userlist_handler = CommandHandler('userlist', userlist)
 # dispatcher.add_handler(userlist_handler)
 dispatcher.add_handler(start_handler)
