@@ -43,6 +43,8 @@ class BitMEX(object):
         self.apiKey = apiKey
         self.apiSecret = apiSecret
         self.token = None
+        self.remaining = 300
+        self.reset = getUTCtime() + self.remaining
 
         # Prepare HTTPS session
         self.session = requests.Session()
