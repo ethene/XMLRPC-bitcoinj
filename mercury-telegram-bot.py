@@ -210,7 +210,19 @@ def OTP_command(bot, update):
 
     last_command = None
     last_args = None
-        
+
+
+def CancelOTP(bot, update):
+    global last_command
+    global last_args
+    isadmin = check_admin_privilege(update)
+    if not isadmin:
+        return
+
+    last_command = None
+    last_args = None
+    message = "Command cancelled"
+    bot.send_message(chat_id=update.message.chat_id, text=message, reply_markup=admin_keyboard)
 
 def transfers_show(bot, update):
     global last_command
@@ -230,10 +242,11 @@ def transfers_show(bot, update):
         last_command = 'PW'
         last_args = abs(transfer_diff)
 
-    message = "BitMEX %s Poloniex %.6f, send OTP to confirm\n" % (direction, abs(transfer_diff))
+    message = "BitMEX %s Poloniex %.6f\n" % (direction, abs(transfer_diff))
     result = bitmex.min_withdrawal_fee()
     logger.debug(result)
-    message += "Min fee is: %s" % (result['fee'] / XBt_TO_XBT)
+    message += "Min fee is: %s\n" % (result['fee'] / XBt_TO_XBT)
+    message += "send OTP to confirm or 0 to cancel"
     bot.send_message(chat_id=update.message.chat_id, text=message, reply_markup=ReplyKeyboardRemove())
     last_command = 'BW'
     last_args = transfer_diff
@@ -296,6 +309,7 @@ health_handler = CommandHandler('health', health_check)
 transfers_show_handler = CommandHandler('transfers', transfers_show)
 # transfers_confirm_handler = CommandHandler('confirmtransfer', transfers_confirm)
 OTP_handler = RegexHandler(pattern='^\d{6}$', callback=OTP_command)
+OTP_cancel_handler = RegexHandler(pattern='^0$', callback=CancelOTP)
 
 # userlist_handler = CommandHandler('userlist', userlist)
 # dispatcher.add_handler(userlist_handler)
@@ -304,6 +318,7 @@ dispatcher.add_handler(stats_handler)
 dispatcher.add_handler(health_handler)
 dispatcher.add_handler(transfers_show_handler)
 dispatcher.add_handler(OTP_handler)
+dispatcher.add_handler(OTP_cancel_handler)
 
 dispatcher.add_error_handler(error_callback)
 updater.start_polling()
