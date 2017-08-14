@@ -241,7 +241,8 @@ def transfers_show(bot, update):
 
     message = "BitMEX %s Poloniex %.6f, send OTP to confirm\n" % (direction, abs(transfer_diff))
     result = bitmex.min_withdrawal_fee()
-    message += "Min fee is: %.6f" % result
+    logger.debug(result)
+    message += "Min fee is: %s" % result
     bot.send_message(chat_id=update.message.chat_id, text=message, reply_markup=ReplyKeyboardRemove())
     last_command = 'BW'
     last_args = transfer_diff
