@@ -94,15 +94,6 @@ def getUTCtime():
     unixtime = calendar.timegm(d.utctimetuple())
     return unixtime * 1000
 
-
-def XBt_to_XBT(XBt):
-    return float(XBt) / XBt_TO_XBT
-
-
-def XBT_to_XBt(XBT):
-    return float(XBT) * XBt_TO_XBT
-
-
 '''
 def userlist(bot, update):
     userfrom = update.effective_user
@@ -242,7 +233,7 @@ def transfers_show(bot, update):
     message = "BitMEX %s Poloniex %.6f, send OTP to confirm\n" % (direction, abs(transfer_diff))
     result = bitmex.min_withdrawal_fee()
     logger.debug(result)
-    message += "Min fee is: %s" % XBt_TO_XBT(result['fee'])
+    message += "Min fee is: %s" % (result['fee'] / XBt_TO_XBT)
     bot.send_message(chat_id=update.message.chat_id, text=message, reply_markup=ReplyKeyboardRemove())
     last_command = 'BW'
     last_args = transfer_diff
