@@ -261,6 +261,7 @@ transfers_show_handler = CommandHandler('transfers', transfers_show)
 dispatcher.add_handler(start_handler)
 dispatcher.add_handler(stats_handler)
 dispatcher.add_handler(health_handler)
+dispatcher.add_handler(transfers_show_handler)
 
 dispatcher.add_error_handler(error_callback)
 updater.start_polling()
