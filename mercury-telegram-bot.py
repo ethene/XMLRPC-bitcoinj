@@ -49,6 +49,8 @@ pic_2_filename = 'cumulative.png'
 b_key = '-u2QixS6Hx5ov1CWfXo6jATS'
 b_secret = 'CEAOCPqIi5P6sOD4GpSF49-1NA3niUBGldACrLqIPI0905IL'
 
+XBt_TO_XBT = 100000000
+
 level = logging.DEBUG
 script_name = 'telegram.bot'
 
@@ -67,6 +69,7 @@ bitmex = BitMEX(apiKey=b_key, apiSecret=b_secret, base_url=BASE_URL, logger=logg
 
 # last command to perform with OTP auth
 last_command = None
+last_args = None
 
 if not db_engine.dialect.has_table(db_engine, useraccounts_table):
     logger.debug("user accounts table does not exist")
@@ -90,6 +93,14 @@ def getUTCtime():
     d = datetime.utcnow()
     unixtime = calendar.timegm(d.utctimetuple())
     return unixtime * 1000
+
+
+def XBt_to_XBT(XBt):
+    return float(XBt) / XBt_TO_XBT
+
+
+def XBT_to_XBt(XBT):
+    return float(XBT) * XBt_TO_XBT
 
 
 '''
@@ -157,8 +168,7 @@ def start(bot, update):
             bot.send_message(chat_id=update.message.chat_id,
                              text="Hello, admin %s!\nWelcome back to use the bot" % (username),
                              reply_markup=ReplyKeyboardMarkup(
-                                 keyboard=[[KeyboardButton(text="/statistics"), KeyboardButton(text="/transfers"),
-                                            KeyboardButton(text="/health")]]))
+                                 keyboard=admin_keyboard))
 
         '''
         stm = select([adminaccounts]).where(adminaccounts.c.ID == userID)
@@ -195,24 +205,25 @@ def stats(bot, update):
 
 
 def OTP_command(bot, update):
+    global last_command
+    global last_args
     isadmin = check_admin_privilege(update)
     if not isadmin:
         return
-    logger.debug(update)
+    OTP = update.message.text
 
+    if last_command == 'BW' and last_args > 0.05:
+        result = bitmex.min_withdrawal_fee()
+        # result = bitmex.withdraw(amount=last_args * XBT_to_XBt, address=POLO_ADDRESS, otptoken=OTP)
+        logger.debug(result)
 
-def transfers_confirm(bot, update):
-    isadmin = check_admin_privilege(update)
-    if not isadmin:
-        return
-    df = pd.read_sql_table(balance_diff_table, con=db_engine, index_col='index')
-    transfer_record = df.to_dict(orient='records')
-    transfer_diff = round(transfer_record[0]['avg_balance_difference'], 6)
-
-    if transfer_diff > 0:
-        bitmex.withdraw()
+    last_command = None
+    last_args = None
+        
 
 def transfers_show(bot, update):
+    global last_command
+    global last_args
     isadmin = check_admin_privilege(update)
     if not isadmin:
         return
@@ -221,11 +232,19 @@ def transfers_show(bot, update):
     transfer_diff = round(transfer_record[0]['avg_balance_difference'], 6)
     if transfer_diff > 0:
         direction = '->'
+        last_command = 'BW'
+        last_args = transfer_diff
     elif transfer_diff < 0:
         direction = '<-'
-    message = "BitMEX %s Poloniex %.6f, send OTP to confirm" % (direction, abs(transfer_diff))
+        last_command = 'PW'
+        last_args = abs(transfer_diff)
+
+    message = "BitMEX %s Poloniex %.6f, send OTP to confirm\n" % (direction, abs(transfer_diff))
+    result = bitmex.min_withdrawal_fee()
+    message += "Min fee is: %.6f" % result
     bot.send_message(chat_id=update.message.chat_id, text=message, reply_markup=ReplyKeyboardRemove())
     last_command = 'BW'
+    last_args = transfer_diff
 
 def health_check(bot, update):
     isadmin = check_admin_privilege(update)
@@ -274,6 +293,10 @@ def plot_graph(df, name, label):
 
     plt.plot(df)
     plt.savefig(pic_folder + '/' + name)
+
+
+admin_keyboard = [[KeyboardButton(text="/statistics"), KeyboardButton(text="/transfers"),
+                   KeyboardButton(text="/health")]]
 
 start_handler = CommandHandler('start', start)
 stats_handler = CommandHandler('statistics', stats)

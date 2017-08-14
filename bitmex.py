@@ -52,14 +52,21 @@ class BitMEX(object):
         self.session.headers.update({'accept': 'application/json'})
 
     @authentication_required
-    def withdraw(self, amount, fee, address):
+    def withdraw(self, amount, address, otptoken, fee=None):
         api = "user/requestWithdrawal"
         postdict = {
             'amount': amount,
             'fee': fee,
             'currency': 'XBt',
-            'address': address
+            'address': address,
+            'otpToken': otptoken
         }
+        return self._curl_bitmex(api=api, postdict=postdict, verb="POST")
+
+    @authentication_required
+    def min_withdrawal_fee(self):
+        api = "user/minWithdrawalFee"
+        postdict = {}
         return self._curl_bitmex(api=api, postdict=postdict, verb="POST")
 
     def _curl_bitmex(self, api, query=None, postdict=None, timeout=3, verb=None, rethrow_errors=False):
