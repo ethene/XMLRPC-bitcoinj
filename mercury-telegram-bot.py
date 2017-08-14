@@ -222,7 +222,8 @@ def CancelOTP(bot, update):
     last_command = None
     last_args = None
     message = "Command cancelled"
-    bot.send_message(chat_id=update.message.chat_id, text=message, reply_markup=admin_keyboard)
+    bot.send_message(chat_id=update.message.chat_id, text=message, reply_markup=ReplyKeyboardMarkup(
+        keyboard=admin_keyboard))
 
 def transfers_show(bot, update):
     global last_command
