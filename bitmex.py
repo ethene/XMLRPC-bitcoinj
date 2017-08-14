@@ -69,7 +69,7 @@ class BitMEX(object):
     def min_withdrawal_fee(self):
         api = "user/minWithdrawalFee"
         postdict = {}
-        return self._curl_bitmex(api=api, postdict=postdict, verb="POST")
+        return self._curl_bitmex(api=api, postdict=postdict, verb="GET")
 
     def _curl_bitmex(self, api, query=None, postdict=None, timeout=3, verb=None, rethrow_errors=False):
         """Send a request to BitMEX Servers."""
