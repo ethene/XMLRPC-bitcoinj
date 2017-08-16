@@ -127,7 +127,7 @@ class BitMEX(object):
                 if postdict:
                     self.logger.error(postdict)
                 # Always exit, even if rethrow_errors, because this is fatal
-                exit(1)
+                # exit(1)
                 return self._curl_bitmex(api, query, postdict, timeout, verb)
 
             # 404, can be thrown if order canceled does not exist.
