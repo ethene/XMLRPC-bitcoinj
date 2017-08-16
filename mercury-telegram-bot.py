@@ -30,6 +30,7 @@ sys.path.insert(0, '../BitMEX-trader/db/')
 from settings import MYSQL_CONNECTION, TELEGRAM_BOT_TOKEN, BASE_URL
 from SizedTimedRotatingFileHandler import SizedTimedRotatingFileHandler
 from bitmex import BitMEX
+from extra_settings import B_KEY, B_SECRET, POLO_ADDRESS
 
 def error_callback(bot, update, error):
     try:
@@ -47,9 +48,6 @@ pic_folder = './pictures'
 pic_1_filename = 'balance.png'
 pic_2_filename = 'cumulative.png'
 
-b_key = '-u2QixS6Hx5ov1CWfXo6jATS'
-b_secret = 'CEAOCPqIi5P6sOD4GpSF49-1NA3niUBGldACrLqIPI0905IL'
-
 XBt_TO_XBT = 100000000
 
 level = logging.DEBUG
@@ -66,7 +64,7 @@ log_handler = SizedTimedRotatingFileHandler(log_filename, maxBytes=0, backupCoun
 logger.addHandler(log_handler)
 coloredlogs.install(level=level)
 
-bitmex = BitMEX(apiKey=b_key, apiSecret=b_secret, base_url=BASE_URL, logger=logger)
+bitmex = BitMEX(apiKey=B_KEY, apiSecret=B_SECRET, base_url=BASE_URL, logger=logger)
 
 # last command to perform with OTP auth
 last_command = None
@@ -205,9 +203,12 @@ def OTP_command(bot, update):
     OTP = update.message.text
 
     if last_command == 'BW' and last_args > 0.05:
-        result = bitmex.min_withdrawal_fee()
-        # result = bitmex.withdraw(amount=last_args * XBT_to_XBt, address=POLO_ADDRESS, otptoken=OTP)
+        # result = bitmex.min_withdrawal_fee()
+        result = bitmex.withdraw(amount=last_args * XBt_TO_XBT, address=POLO_ADDRESS, otptoken=OTP)
         logger.debug(result)
+        message = result
+        bot.send_message(chat_id=update.message.chat_id, text=message, reply_markup=ReplyKeyboardMarkup(
+            keyboard=admin_keyboard))
 
     last_command = None
     last_args = None
@@ -268,8 +269,8 @@ def health_check(bot, update):
         message += "bot pid: %s\n" % pid
     else:
         message += "bot is not running!\n"
-    message += "virtual memory used %d %%\n" % psutil.virtual_memory().percent
-    message += "swap memory used %d %%\n" % psutil.swap_memory().percent
+    message += "virtual memory used %d%%\n" % psutil.virtual_memory().percent
+    message += "swap memory used %d%%\n" % psutil.swap_memory().percent
 
     freeG = shutil.disk_usage('/').free / 1e9
     message += "free disk space: %.2f Gb\n" % freeG
