@@ -77,7 +77,7 @@ if not db_engine.dialect.has_table(db_engine, useraccounts_table):
           Column('ID', Integer, primary_key=True, nullable=False),
           Column('firstname', String(255)), Column('lastname', String(255)),
           Column('username', String(255)), Column('isadmin', Boolean(), default=False), Column('address', String(40)),
-          Column('balance', BigInteger), Column('position ', BigInteger))
+          Column('balance', BigInteger()), Column('position', BigInteger()))
     # Implement the creation
     metadata.create_all()
 
