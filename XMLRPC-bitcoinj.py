@@ -92,7 +92,9 @@ class RPCFunctions:
 
     def getNewAddress(self):
         address = self.kit.wallet().freshReceiveAddress()
-        return address.toString()
+        address_string = address.toString()
+        logger.debug("new address requested %s" % (address_string))
+        return address_string
 
     def getInputValue(self, address):
         transactions = self.kit.wallet().getTransactions(True)
@@ -104,7 +106,7 @@ class RPCFunctions:
             for to in t_outputs:
                 to_addr = to.getAddressFromP2PKHScript(params).toString()
                 if (to_addr == address) and (depth > confirm_wait):
-                    value = int(to.getValue().toString()) / 1e8
+                    value = int(to.getValue().toString())
                     invalue += value
 
         logger.debug("address %s input value %.8f" % (address, invalue))

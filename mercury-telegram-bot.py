@@ -13,7 +13,7 @@ import coloredlogs
 import matplotlib as mpl
 import pandas as pd
 import psutil
-from sqlalchemy import (create_engine, Table, Column, Integer,
+from sqlalchemy import (create_engine, Table, Column, Integer, BigInteger,
                         String, Boolean, MetaData)
 from sqlalchemy.sql import select
 from telegram import ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove
@@ -76,7 +76,8 @@ if not db_engine.dialect.has_table(db_engine, useraccounts_table):
     Table(useraccounts_table, metadata,
           Column('ID', Integer, primary_key=True, nullable=False),
           Column('firstname', String(255)), Column('lastname', String(255)),
-          Column('username', String(255)), Column('isadmin', Boolean(), default=False), Column('address', String(40)))
+          Column('username', String(255)), Column('isadmin', Boolean(), default=False), Column('address', String(40)),
+          Column('balance', BigInteger), Column('position ', BigInteger))
     # Implement the creation
     metadata.create_all()
 
@@ -93,39 +94,6 @@ def getUTCtime():
     unixtime = calendar.timegm(d.utctimetuple())
     return unixtime * 1000
 
-'''
-def userlist(bot, update):
-    userfrom = update.effective_user
-    username = userfrom.username
-    userID = userfrom.id
-    with db_engine.connect() as con:
-        adminaccounts = Table(admin_table, metadata, autoload=True)
-        stm = select([adminaccounts]).where(adminaccounts.c.ID == userID)
-        rs = con.execute(stm)
-        response = rs.fetchall()
-        if len(response) == 0:
-            bot.send_message(chat_id=update.message.chat_id,
-                             text="Sorry, %s!\nYou have no authorisation to use this bot" % (username))
-            return
-        useraccounts = Table(useraccounts_table, metadata, autoload=True)
-        stm = select([useraccounts])
-        rs = con.execute(stm)
-        response = rs.fetchall()
-        message = ""
-        for u in response:
-            if u.address:
-                invalue = XMLRPCServer.getInputValue(u.address)
-                upd = useraccounts.update().values(invalue=invalue).where(useraccounts.c.ID == userID)
-                con.execute(upd)
-            message += "%s %s %s %s %.8f %.8f\n" % (
-                u.username, u.firstname, u.lastname, u.address, u.invalue or 0, u.outvalue or 0)
-        if len(response) > 0:
-            bot.send_message(chat_id=update.message.chat_id,
-                             text="User / InValue / OutValue\n" + message)
-
-'''
-
-
 def start(bot, update):
     with db_engine.connect() as con:
         userfrom = update.effective_user
@@ -140,41 +108,45 @@ def start(bot, update):
         rs = con.execute(stm)
         response = rs.fetchall()
         isadmin = False
+        freshuser = False
+        message = None
+        keyboard = None
 
         if len(response) == 0:
             logger.debug("user not found in db, creating new user %s" % userfrom)
-            ins = useraccounts.insert().values(ID=userID, firstname=firstname, lastname=lastname, username=username,
-                                               isadmin=False)
-            con.execute(ins)
-            bot.send_message(chat_id=update.message.chat_id,
-                             text="Hello, %s!\nYour new account has just created" % (username))
+            try:
+                address = XMLRPCServer.getNewAddress()
+                ins = useraccounts.insert().values(ID=userID, firstname=firstname, lastname=lastname, username=username,
+                                                   isadmin=False, address=address)
+                con.execute(ins)
+                message = "Hello, %s!\nYour new account has just created\nYour address is %s" % (username, address)
+
+                keyboard = user_keyboard
+                freshuser = True
+            except:
+                message = "Failed to create new user, please contact admin"
+
             return
         else:
             for u in response:
                 isadmin = u.isadmin == 1
                 logger.debug("user found in db, admin: %s" % isadmin)
-
         if isadmin:
-            bot.send_message(chat_id=update.message.chat_id,
-                             text="Hello, admin %s!\nWelcome back to use the bot" % (username),
-                             reply_markup=ReplyKeyboardMarkup(
-                                 keyboard=admin_keyboard))
+            message = "Hello, admin %s!\nWelcome back to use the bot" % (username)
+            keyboard = admin_keyboard
+        elif not freshuser:
+            message = "Hello, %s!\nWelcome back to use the bot\n" % (username)
+            address = response[0].address
+            try:
+                balance = XMLRPCServer.getInputValue(address)
+                message += "Your balance is %.8f" % (int(balance) / 1e8)
+            except:
+                message += "Balance is unavailable, please contact admin"
+            keyboard = user_keyboard
 
-        '''
-        stm = select([adminaccounts]).where(adminaccounts.c.ID == userID)
-        rs = con.execute(stm)
-        response = rs.fetchall()
-        if len(response) == 0:
-            bot.send_message(chat_id=update.message.chat_id,
-                             text="Sorry, %s!\nYou have no authorisation to use this bot" % (username))
-            return
-        else:
-            bot.send_message(chat_id=update.message.chat_id,
-                             text="Hello, %s!\nWelcome back to use the bot" % (username),
-                             reply_markup=ReplyKeyboardMarkup(keyboard=[[KeyboardButton(text="/statistics")]]))
-
-        '''
-
+        if message and keyboard:
+            bot.send_message(chat_id=update.message.chat_id, text=message,
+                             reply_markup=ReplyKeyboardMarkup(keyboard=keyboard))
 
 def stats(bot, update):
     isadmin = check_admin_privilege(update)
@@ -201,6 +173,7 @@ def OTP_command(bot, update):
     if not isadmin:
         return
     OTP = update.message.text
+    message = None
 
     if last_command == 'BW' and last_args > 0.05:
         try:
@@ -210,12 +183,15 @@ def OTP_command(bot, update):
             result = e
         if 'error' in result:
             message = result['error']['message']
-        bot.send_message(chat_id=update.message.chat_id, text=message, reply_markup=ReplyKeyboardMarkup(
+        elif 'transactID' in result:
+            message = 'BitMEX -> Polo transfer created, ID: %s' % result['transactID']
+
+        if message:
+            bot.send_message(chat_id=update.message.chat_id, text=message, reply_markup=ReplyKeyboardMarkup(
             keyboard=admin_keyboard))
 
     last_command = None
     last_args = None
-
 
 def CancelOTP(bot, update):
     global last_command
@@ -322,17 +298,15 @@ def plot_graph(df, name, label):
 
 admin_keyboard = [[KeyboardButton(text="/statistics"), KeyboardButton(text="/transfers"),
                    KeyboardButton(text="/health")]]
+user_keyboard = [[KeyboardButton(text="/statistics")]]
 
 start_handler = CommandHandler('start', start)
 stats_handler = CommandHandler('statistics', stats)
 health_handler = CommandHandler('health', health_check)
 transfers_show_handler = CommandHandler('transfers', transfers_show)
-# transfers_confirm_handler = CommandHandler('confirmtransfer', transfers_confirm)
 OTP_handler = RegexHandler(pattern='^\d{6}$', callback=OTP_command)
 OTP_cancel_handler = RegexHandler(pattern='^0$', callback=CancelOTP)
 
-# userlist_handler = CommandHandler('userlist', userlist)
-# dispatcher.add_handler(userlist_handler)
 dispatcher.add_handler(start_handler)
 dispatcher.add_handler(stats_handler)
 dispatcher.add_handler(health_handler)
