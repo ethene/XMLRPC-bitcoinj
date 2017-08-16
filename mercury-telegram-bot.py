@@ -125,24 +125,24 @@ def start(bot, update):
                 freshuser = True
             except:
                 message = "Failed to create new user, please contact admin"
-
-            return
+                keyboard = user_keyboard
         else:
             for u in response:
                 isadmin = u.isadmin == 1
                 logger.debug("user found in db, admin: %s" % isadmin)
-        if isadmin:
-            message = "Hello, admin %s!\nWelcome back to use the bot" % (username)
-            keyboard = admin_keyboard
-        elif not freshuser:
-            message = "Hello, %s!\nWelcome back to use the bot\n" % (username)
-            address = response[0].address
-            try:
-                balance = XMLRPCServer.getInputValue(address)
-                message += "Your balance is %.8f" % (int(balance) / 1e8)
-            except:
-                message += "Balance is unavailable, please contact admin"
-            keyboard = user_keyboard
+
+            if isadmin:
+                message = "Hello, admin %s!\nWelcome back to use the bot" % (username)
+                keyboard = admin_keyboard
+            elif not freshuser:
+                message = "Hello, %s!\nWelcome back to use the bot\n" % (username)
+                address = response[0].address
+                try:
+                    balance = XMLRPCServer.getInputValue(address)
+                    message += "Your balance is %.8f" % (int(balance) / 1e8)
+                except:
+                    message += "Balance is unavailable, please contact admin"
+                keyboard = user_keyboard
 
         if message and keyboard:
             bot.send_message(chat_id=update.message.chat_id, text=message,
