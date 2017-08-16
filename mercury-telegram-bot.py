@@ -204,8 +204,11 @@ def OTP_command(bot, update):
 
     if last_command == 'BW' and last_args > 0.05:
         # result = bitmex.min_withdrawal_fee()
-        result = bitmex.withdraw(amount=last_args * XBt_TO_XBT, address=POLO_ADDRESS, otptoken=OTP)
-        logger.debug(result)
+        try:
+            result = bitmex.withdraw(amount=last_args * XBt_TO_XBT, address=POLO_ADDRESS, otptoken=OTP)
+            logger.debug(result)
+        except Exception as e:
+            result = e
         message = result
         bot.send_message(chat_id=update.message.chat_id, text=message, reply_markup=ReplyKeyboardMarkup(
             keyboard=admin_keyboard))
