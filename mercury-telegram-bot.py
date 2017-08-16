@@ -119,7 +119,7 @@ def start(bot, update):
                 ins = useraccounts.insert().values(ID=userID, firstname=firstname, lastname=lastname, username=username,
                                                    isadmin=False, address=address)
                 con.execute(ins)
-                message = "Hello, %s!\nYour new account has just created\nYour address is %s" % (username, address)
+                message = "Hello, %s!\nYour new account has just created\nYour address is %s\n" % (username, address)
 
                 keyboard = user_keyboard
                 freshuser = True
