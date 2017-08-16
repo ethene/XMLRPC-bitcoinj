@@ -121,14 +121,19 @@ class BitMEX(object):
 
         except requests.exceptions.HTTPError as e:
             # 401 - Auth error. This is fatal with API keys.
-            if response.status_code == 401:
+            if (response.json()['error'] and response.json()['error'][
+                'message'] == '2FA Token is required and did not match.'):
+                return response.json()
+            elif response.status_code == 401:
                 self.logger.error("Login information or API Key incorrect, please check and restart.")
                 self.logger.error("Error: " + response.text)
                 if postdict:
                     self.logger.error(postdict)
                 # Always exit, even if rethrow_errors, because this is fatal
-                # exit(1)
-                return self._curl_bitmex(api, query, postdict, timeout, verb)
+
+                raise e
+                return response.text
+                # return self._curl_bitmex(api, query, postdict, timeout, verb)
 
             # 404, can be thrown if order canceled does not exist.
             elif response.status_code == 404:
