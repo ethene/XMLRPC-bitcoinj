@@ -77,7 +77,7 @@ if not db_engine.dialect.has_table(db_engine, useraccounts_table):
           Column('ID', Integer, primary_key=True, nullable=False),
           Column('firstname', String(255)), Column('lastname', String(255)),
           Column('username', String(255)), Column('isadmin', Boolean(), default=False), Column('address', String(40)),
-          Column('balance', BigInteger()), Column('position', BigInteger()))
+          Column('withdrawn', BigInteger(), default=0), Column('position', BigInteger(), default=0))
     # Implement the creation
     metadata.create_all()
 
@@ -119,7 +119,7 @@ def start(bot, update):
                 ins = useraccounts.insert().values(ID=userID, firstname=firstname, lastname=lastname, username=username,
                                                    isadmin=False, address=address)
                 con.execute(ins)
-                message = "Hello, %s!\nYour new account has just created\nYour address is %s\n" % (username, address)
+                message = "Hello, %s!\nYour new account has just created\nYour address is\n%s\n" % (username, address)
 
                 keyboard = user_keyboard
                 freshuser = True
@@ -137,9 +137,13 @@ def start(bot, update):
             elif not freshuser:
                 message = "Hello, %s!\nWelcome back to use the bot\n" % (username)
                 address = response[0].address
+                position = response[0].position
+                withdrawn = response[0].withdrawn
                 try:
-                    balance = XMLRPCServer.getInputValue(address)
+                    balance = XMLRPCServer.getInputValue(address) - withdrawn
                     message += "Your balance is %.8f" % (int(balance) / 1e8)
+                    message += "Your position is %.8f" % (int(position) / 1e8)
+                    message += "Your address is\n %s\n" % address
                 except:
                     message += "Balance is unavailable, please contact admin"
                 keyboard = user_keyboard
