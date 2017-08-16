@@ -12,6 +12,7 @@ from datetime import datetime
 import coloredlogs
 import matplotlib as mpl
 import pandas as pd
+import psutil
 from sqlalchemy import (create_engine, Table, Column, Integer,
                         String, Boolean, MetaData)
 from sqlalchemy.sql import select
@@ -233,7 +234,7 @@ def transfers_show(bot, update):
         return
     df = pd.read_sql_table(balance_diff_table, con=db_engine, index_col='index')
     transfer_record = df.to_dict(orient='records')
-    transfer_diff = round(transfer_record[0]['avg_balance_difference'], 6)
+    transfer_diff = round(transfer_record[0]['avg_balance_difference'] / 2, 6)
     if transfer_diff > 0:
         direction = '->'
         last_command = 'BW'
@@ -256,8 +257,22 @@ def health_check(bot, update):
     isadmin = check_admin_privilege(update)
     if not isadmin:
         return
+    message = ''
+    pid = None
+    for proc in psutil.process_iter():
+        proc_dict = proc.as_dict()
+        if 'mercurybot' in proc_dict['cmdline']:
+            if 'pid' in proc_dict:
+                pid = proc_dict['pid']
+    if pid:
+        message += "bot pid: %s\n" % pid
+    else:
+        message += "bot is not running!\n"
+    message += "virtual memory used %d %%\n" % psutil.virtual_memory().percent
+    message += "swap memory used %d %%\n" % psutil.swap_memory().percent
+
     freeG = shutil.disk_usage('/').free / 1e9
-    message = "free disk space: %.2f Gb\n" % freeG
+    message += "free disk space: %.2f Gb\n" % freeG
     health_df = pd.read_sql_table('mercury_health', con=db_engine)
     health_record = health_df.to_dict(orient='records')
     for r in health_record[0]:
