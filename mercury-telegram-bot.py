@@ -13,7 +13,7 @@ import coloredlogs
 import matplotlib as mpl
 import pandas as pd
 import psutil
-from sqlalchemy import (create_engine, Table, Column, Integer, BigInteger,
+from sqlalchemy import (create_engine, Table, Column, Integer, BigInteger, ForeignKey, DateTime,
                         String, Boolean, MetaData)
 from sqlalchemy.sql import select
 from telegram import ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove
@@ -42,6 +42,7 @@ def error_callback(bot, update, error):
 XMLRPCServer = xmlrpc.client.ServerProxy('http://localhost:8000')
 
 useraccounts_table = 'telegram_useraccounts'
+positions_table = 'mercury_positions'
 balance_table = 'mercury_balance'
 balance_diff_table = 'avg_balance_difference'
 pic_folder = './pictures'
@@ -77,7 +78,16 @@ if not db_engine.dialect.has_table(db_engine, useraccounts_table):
           Column('ID', Integer, primary_key=True, nullable=False),
           Column('firstname', String(255)), Column('lastname', String(255)),
           Column('username', String(255)), Column('isadmin', Boolean(), default=False), Column('address', String(40)),
-          Column('withdrawn', BigInteger(), default=0), Column('position', BigInteger(), default=0))
+          Column('withdrawn', BigInteger(), default=0))
+    # Implement the creation
+    metadata.create_all()
+
+if not db_engine.dialect.has_table(db_engine, positions_table):
+    logger.debug("positions table does not exist")
+    # Create a table with the appropriate Columns
+    Table(positions_table, metadata,
+          Column('userID', Integer, ForeignKey("useraccounts_table.ID")),
+          Column('position', BigInteger(), default=0)), Column('timestamp', DateTime, default=datetime.utcnow)
     # Implement the creation
     metadata.create_all()
 
@@ -139,11 +149,12 @@ def start(bot, update):
                 address = response[0].address
                 position = response[0].position
                 withdrawn = response[0].withdrawn
+
                 try:
                     balance = XMLRPCServer.getInputValue(address) - withdrawn
-                    message += "Your balance is %.8f" % (int(balance) / 1e8)
-                    message += "Your position is %.8f" % (int(position) / 1e8)
-                    message += "Your address is\n %s\n" % address
+                    message += "Your balance is %.8f\n" % (int(balance) / 1e8)
+                    message += "Your position is %.8f\n" % (int(position) / 1e8)
+                    message += "Your address is\n%s\n" % address
                 except:
                     message += "Balance is unavailable, please contact admin"
                 keyboard = user_keyboard
@@ -218,7 +229,7 @@ def transfers_show(bot, update):
         return
     df = pd.read_sql_table(balance_diff_table, con=db_engine, index_col='index')
     transfer_record = df.to_dict(orient='records')
-    transfer_diff = round(transfer_record[0]['avg_balance_difference'] / 2, 6)
+    transfer_diff = round(transfer_record[0]['avg_balance_difference'], 6)
     if transfer_diff > 0:
         direction = '->'
         last_command = 'BW'
@@ -232,6 +243,8 @@ def transfers_show(bot, update):
     result = bitmex.min_withdrawal_fee()
     logger.debug(result)
     message += "Min fee is: %s\n" % (result['fee'] / XBt_TO_XBT)
+
+    message += "Current UTC now is %s\n" % (datetime.utcnow().strftime("%H:%M:%S"))
     message += "send OTP to confirm or 0 to cancel"
     bot.send_message(chat_id=update.message.chat_id, text=message, reply_markup=ReplyKeyboardRemove())
     last_command = 'BW'
