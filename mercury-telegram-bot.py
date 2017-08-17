@@ -74,19 +74,21 @@ last_args = None
 if not db_engine.dialect.has_table(db_engine, useraccounts_table):
     logger.debug("user accounts table does not exist")
     # Create a table with the appropriate Columns
-    Table(useraccounts_table, metadata,
-          Column('ID', Integer, primary_key=True, nullable=False),
-          Column('firstname', String(255)), Column('lastname', String(255)),
-          Column('username', String(255)), Column('isadmin', Boolean(), default=False), Column('address', String(40)),
-          Column('withdrawn', BigInteger(), default=0))
+    useraccounts = Table(useraccounts_table, metadata,
+                         Column('ID', Integer, primary_key=True, nullable=False),
+                         Column('firstname', String(255)), Column('lastname', String(255)),
+                         Column('username', String(255)), Column('isadmin', Boolean(), default=False), Column('address', String(40)),
+                         Column('withdrawn', BigInteger(), default=0))
     # Implement the creation
     metadata.create_all()
+else:
+    useraccounts = Table(useraccounts_table, metadata, autoload=True)
 
 if not db_engine.dialect.has_table(db_engine, positions_table):
     logger.debug("positions table does not exist")
     # Create a table with the appropriate Columns
     Table(positions_table, metadata,
-          Column('userID', Integer, ForeignKey(useraccounts_table + ".ID")),
+          Column('userID', Integer, ForeignKey(useraccounts.ID)),
           Column('position', BigInteger(), default=0)), Column('timestamp', DateTime, default=datetime.utcnow)
     # Implement the creation
     metadata.create_all()
