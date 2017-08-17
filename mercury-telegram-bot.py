@@ -86,7 +86,7 @@ if not db_engine.dialect.has_table(db_engine, positions_table):
     logger.debug("positions table does not exist")
     # Create a table with the appropriate Columns
     Table(positions_table, metadata,
-          Column('userID', Integer, ForeignKey("useraccounts_table.ID")),
+          Column('userID', Integer, ForeignKey(useraccounts_table + ".ID")),
           Column('position', BigInteger(), default=0)), Column('timestamp', DateTime, default=datetime.utcnow)
     # Implement the creation
     metadata.create_all()
