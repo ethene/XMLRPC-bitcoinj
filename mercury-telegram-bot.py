@@ -277,6 +277,7 @@ def health_check(bot, update):
     for r in health_record[0]:
         if r not in ['index', 'timestamp']:
             message += "%s is alive: %s\n" % (r, health_record[0][r] == 1)
+    message += "Current UTC now is %s\n" % (datetime.utcnow().strftime("%H:%M:%S"))
     message += "updated %d s ago\n" % ((getUTCtime() - health_record[0]['index']) / 1000)
 
     logger.debug(message)
