@@ -244,7 +244,7 @@ def transfers_show(bot, update):
     message = "BitMEX %s Poloniex %.6f\n" % (direction, abs(transfer_diff))
     result = bitmex.min_withdrawal_fee()
     logger.debug(result)
-    message += "Min fee is: %s\n" % (result['fee'] / XBt_TO_XBT)
+    message += "Min fee is: %s\n" % (result['minFee'] / XBt_TO_XBT)
 
     message += "Current UTC now is %s\n" % (datetime.utcnow().strftime("%H:%M:%S"))
     message += "send OTP to confirm or 0 to cancel"
