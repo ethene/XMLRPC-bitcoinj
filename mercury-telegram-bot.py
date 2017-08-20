@@ -14,7 +14,7 @@ import matplotlib as mpl
 import pandas as pd
 import psutil
 from sqlalchemy import (create_engine, Table, Column, Integer, BigInteger, ForeignKey, DateTime,
-                        String, Boolean, MetaData)
+                        String, Boolean, MetaData, desc)
 from sqlalchemy.sql import select
 from telegram import ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove
 from telegram.error import (TelegramError)
@@ -116,6 +116,7 @@ def start(bot, update):
         username = userfrom.username
 
         useraccounts = Table(useraccounts_table, metadata, autoload=True)
+        positions = Table(positions_table, metadata, autoload=True)
         stm = select([useraccounts]).where(useraccounts.c.ID == userID)
         rs = con.execute(stm)
         response = rs.fetchall()
@@ -130,9 +131,11 @@ def start(bot, update):
                 address = XMLRPCServer.getNewAddress()
                 ins = useraccounts.insert().values(ID=userID, firstname=firstname, lastname=lastname, username=username,
                                                    isadmin=False, address=address)
+
+                con.execute(ins)
+                ins = positions.insert().values(userID=userID)
                 con.execute(ins)
                 message = "Hello, %s!\nYour new account has just created\nYour address is\n%s\n" % (username, address)
-
                 keyboard = user_keyboard
                 freshuser = True
             except:
@@ -148,8 +151,12 @@ def start(bot, update):
                 keyboard = admin_keyboard
             elif not freshuser:
                 message = "Hello, %s!\nWelcome back to use the bot\n" % (username)
+                # subqry = session.query(func.max(Data.counter)).filter(Data.user_id == user_id)
+                stm = select([positions]).where(positions.c.userID == userID).order_by(desc(positions.c.timestamp))
+                rs = con.execute(stm)
+                response2 = rs.fetchall()
                 address = response[0].address
-                position = response[0].position
+                position = response2[0].position
                 withdrawn = response[0].withdrawn
 
                 try:
