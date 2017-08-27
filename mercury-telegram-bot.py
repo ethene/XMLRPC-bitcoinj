@@ -238,7 +238,7 @@ def transfers_show(bot, update):
         return
     df = pd.read_sql_table(balance_diff_table, con=db_engine, index_col='index')
     transfer_record = df.to_dict(orient='records')
-    transfer_diff = round(transfer_record[0]['avg_balance_difference'], 6)
+    transfer_diff = round(transfer_record[0]['avg_balance_difference'] * 0.5, 6)
     if transfer_diff > 0:
         direction = '->'
         last_command = 'BW'
