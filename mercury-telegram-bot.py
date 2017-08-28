@@ -14,7 +14,7 @@ import matplotlib as mpl
 import pandas as pd
 import psutil
 from sqlalchemy import (create_engine, Table, Column, Integer, BigInteger, ForeignKey, DateTime,
-                        String, Boolean, MetaData, desc)
+                        String, Boolean, MetaData, desc, func)
 from sqlalchemy.sql import select
 from telegram import ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove
 from telegram.error import (TelegramError)
@@ -89,7 +89,7 @@ if not db_engine.dialect.has_table(db_engine, positions_table):
     # Create a table with the appropriate Columns
     Table(positions_table, metadata,
           Column('userID', Integer, ForeignKey(useraccounts.c.ID)),
-          Column('position', BigInteger(), default=0), Column('timestamp', DateTime, default=datetime.utcnow))
+          Column('position', BigInteger(), default=0), Column('timestamp', DateTime, onupdate=func.utc_timestamp()))
     # Implement the creation
     metadata.create_all()
 
@@ -152,21 +152,22 @@ def start(bot, update):
             elif not freshuser:
                 message = "Hello, %s!\nWelcome back to use the bot\n" % (username)
                 # subqry = session.query(func.max(Data.counter)).filter(Data.user_id == user_id)
-                stm = select([positions]).where(positions.c.userID == userID).order_by(desc(positions.c.timestamp))
-                rs = con.execute(stm)
-                response2 = rs.fetchall()
-                address = response[0].address
-                position = response2[0].position
-                withdrawn = response[0].withdrawn
-
-                try:
-                    balance = XMLRPCServer.getInputValue(address) - withdrawn
-                    message += "Your balance is %.8f\n" % (int(balance) / 1e8)
-                    message += "Your position is %.8f\n" % (int(position) / 1e8)
-                    message += "Your address is\n%s\n" % address
-                except:
-                    message += "Balance is unavailable, please contact admin"
                 keyboard = user_keyboard
+
+            stm = select([positions]).where(positions.c.userID == userID).order_by(desc(positions.c.timestamp))
+            rs = con.execute(stm)
+            response2 = rs.fetchall()
+            address = response[0].address
+            position = response2[0].position
+            withdrawn = response[0].withdrawn
+
+            try:
+                balance = XMLRPCServer.getInputValue(address) - withdrawn
+                message += "Your balance is %.8f\n" % (int(balance) / 1e8)
+                message += "Your position is %.8f\n" % (int(position) / 1e8)
+                message += "Your address is\n%s\n" % address
+            except:
+                message += "Balance is unavailable, please contact admin"
 
         if message and keyboard:
             bot.send_message(chat_id=update.message.chat_id, text=message,
