@@ -14,6 +14,7 @@ from org.bitcoinj.core import *
 from java.io import File
 
 import org.bitcoinj.params.MainNetParams
+from org.bitcoinj.core import Transaction
 from org.bitcoinj.kits import WalletAppKit
 from org.bitcoinj.wallet.listeners import AbstractWalletEventListener
 
@@ -134,6 +135,12 @@ class RPCFunctions:
                         txs.append({'ID': tx_id, 'value': value})
         return txs
 
+    def sendCoins(self, address, amount):
+        amountToSend = amount - Transaction.REFERENCE_DEFAULT_MIN_TX_FEE
+        pg = self.kit.peerGroup()
+        sr = self.kit.wallet().sendCoins(pg, address, amountToSend)
+        return sr
+
     '''
     def getLatestTransactions(self):
         try:
@@ -214,6 +221,8 @@ logger.debug("balance: %.8f XBT" % (float(balance) / 1e8))
 sl = SenderListener(pg)
 
 transactions = kit.wallet().getTransactions(True)
+
+'''
 invalue = 0
 for t in transactions:
     confidence = t.getConfidence()
@@ -223,6 +232,8 @@ for t in transactions:
         to_addr = to.getAddressFromP2PKHScript(params).toString()
         logger.debug("addr: %s" % to_addr)
         logger.debug("confidence: %s" % depth)
+
+'''
 
 wallet.addEventListener(sl)
 logger.debug("finished initialisation - now in main event loop")

@@ -168,7 +168,7 @@ def start(bot, update):
                     message += "Your position is %.8f\n" % (int(position) / 1e8)
                     message += "Your address is\n%s\n" % address
                     for tx in unconfirmedTXs:
-                        message += "Pending transaction for: %s\n" % (int(tx['value']) / 1e8)
+                        message += "Pending transaction for: %s XBT\n" % (int(tx['value']) / 1e8)
                         message += "tx ID: %s\n" % tx['ID']
                 except:
                     message += "Balance is unavailable, please contact admin"
