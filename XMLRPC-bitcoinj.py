@@ -14,7 +14,7 @@ from org.bitcoinj.core import *
 from java.io import File
 
 import org.bitcoinj.params.MainNetParams
-from org.bitcoinj.core import Transaction
+from org.bitcoinj.core import Transaction, Coin
 from org.bitcoinj.kits import WalletAppKit
 from org.bitcoinj.wallet.listeners import AbstractWalletEventListener
 
@@ -136,7 +136,7 @@ class RPCFunctions:
         return txs
 
     def sendCoins(self, address, amount):
-        amountToSend = amount - Transaction.REFERENCE_DEFAULT_MIN_TX_FEE
+        amountToSend = Coin(amount).subtract(Transaction.REFERENCE_DEFAULT_MIN_TX_FEE)
         pg = self.kit.peerGroup()
         sr = self.kit.wallet().sendCoins(pg, address, amountToSend)
         return sr
