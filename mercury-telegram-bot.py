@@ -175,20 +175,28 @@ def start(bot, update):
 
 def stats(bot, update):
     isadmin = check_admin_privilege(update)
+    userfrom = update.effective_user
+    userID = userfrom.id
+    df_groupped = None
     if not isadmin:
-        return
-    df = pd.read_sql_query(sql='SELECT * FROM ' + balance_table, con=db_engine, index_col='index')
-    df_groupped = df.groupby(df.timestamp.dt.date)['totalbalance'].mean()
-    daily_pc = df_groupped.pct_change().dropna() * 365 * 100
-    cumulative_pc = ((df_groupped - df_groupped.ix[0]) / df_groupped.ix[0]) * 100
+        df = pd.read_sql_query(sql='SELECT * FROM ' + positions_table + ' WHERE `USERID` = ' + userID, con=db_engine,
+                               index_col='index')
+        df_groupped = df.groupby(df.timestamp.dt.date)['totalbalance'].mean()
+    else:
+        df = pd.read_sql_query(sql='SELECT * FROM ' + balance_table, con=db_engine, index_col='index')
+        df_groupped = df.groupby(df.timestamp.dt.date)['totalbalance'].mean()
 
-    plot_graph(daily_pc, pic_1_filename, 'Yearly %')
-    plot_graph(cumulative_pc, pic_2_filename, 'Cumulative growth %')
+    if df_groupped:
+        daily_pc = df_groupped.pct_change().dropna() * 365 * 100
+        cumulative_pc = ((df_groupped - df_groupped.ix[0]) / df_groupped.ix[0]) * 100
 
-    picture_1 = open(pic_folder + '/' + pic_1_filename, 'rb')
-    bot.send_photo(chat_id=update.message.chat_id, photo=picture_1)
-    picture_2 = open(pic_folder + '/' + pic_2_filename, 'rb')
-    bot.send_photo(chat_id=update.message.chat_id, photo=picture_2)
+        plot_graph(daily_pc, pic_1_filename, 'Yearly %')
+        plot_graph(cumulative_pc, pic_2_filename, 'Cumulative growth %')
+
+        picture_1 = open(pic_folder + '/' + pic_1_filename, 'rb')
+        bot.send_photo(chat_id=update.message.chat_id, photo=picture_1)
+        picture_2 = open(pic_folder + '/' + pic_2_filename, 'rb')
+        bot.send_photo(chat_id=update.message.chat_id, photo=picture_2)
 
 
 def OTP_command(bot, update):
