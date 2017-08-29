@@ -187,7 +187,7 @@ def stats(bot, update):
         df = pd.read_sql_query(sql='SELECT * FROM ' + balance_table, con=db_engine, index_col='index')
         df_groupped = df.groupby(df.timestamp.dt.date)['totalbalance'].mean()
 
-    if df_groupped:
+    if len(df_groupped) > 0:
         daily_pc = df_groupped.pct_change().dropna() * 365 * 100
         cumulative_pc = ((df_groupped - df_groupped.ix[0]) / df_groupped.ix[0]) * 100
 
