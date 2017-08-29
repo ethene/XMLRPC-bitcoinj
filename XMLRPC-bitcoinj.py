@@ -225,12 +225,14 @@ pg = kit.peerGroup()
 wallet = kit.wallet()
 
 balance = wallet.getBalance().getValue()
+watched_addrs = wallet.getWatchedAddresses()
 logger.debug("balance: %.8f XBT" % (float(balance) / 1e8))
+for a in watched_addrs:
+    logger.debug("watched addr: %s" % a.toString())
 sl = SenderListener(pg)
 
 transactions = kit.wallet().getTransactions(True)
 
-'''
 invalue = 0
 for t in transactions:
     confidence = t.getConfidence()
@@ -239,9 +241,8 @@ for t in transactions:
     for to in t_outputs:
         to_addr = to.getAddressFromP2PKHScript(params).toString()
         logger.debug("addr: %s" % to_addr)
-        logger.debug("confidence: %s" % depth)
+        logger.debug("value: %s" % to.getValue().toString())
 
-'''
 
 wallet.addEventListener(sl)
 logger.debug("finished initialisation - now in main event loop")
