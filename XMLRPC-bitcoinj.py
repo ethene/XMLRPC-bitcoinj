@@ -138,7 +138,7 @@ class RPCFunctions:
         sr = None
         balance = self.kit.wallet().getBalance().getValue()
         invalue = self.getInputValue(fromAddress)
-        logger.debug("invalue: %d, to_send: %d, legal: %s " % (invalue, amount, invalue - amount > 0)
+        logger.debug("invalue: %d, to_send: %d, legal: %s " % (invalue, amount, invalue - amount > 0))
         pg = self.kit.peerGroup()
         # sr = self.kit.wallet().sendCoins(pg, address, Coin(amount).subtract(Transaction.REFERENCE_DEFAULT_MIN_TX_FEE))
         return sr
