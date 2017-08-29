@@ -32,6 +32,11 @@ level = logging.DEBUG
 
 script_name = 'XMLRPC-bitcoinj'
 
+walletFolder = '.'
+
+params = org.bitcoinj.params.TestNet3Params.get()
+filePrefix = 'bitcoinj-service-testnet'
+
 formatter = logging.Formatter(fmt='%(asctime)s - %(levelname)s - %(module)s - %(message)s')
 logger = logging.getLogger(script_name)
 log_handler = logging.StreamHandler()
@@ -182,10 +187,7 @@ class SenderListener(AbstractWalletEventListener):
         Futures.addCallback(tx.getConfidence().getDepthFuture(confirm_wait), myFutureCallback(tx))
 
 
-params = org.bitcoinj.params.TestNet3Params.get()
-# my_address = Address(params,my_address_text)
-filePrefix = "bitcoinj-service-testnet"
-f = File(".")
+f = File(walletFolder)
 kit = WalletAppKit(params, f, filePrefix);
 kit.setAutoSave(True)
 logger.debug("starting and waiting..")
@@ -193,9 +195,6 @@ kit.startAsync()
 kit.awaitRunning()
 pg = kit.peerGroup()
 wallet = kit.wallet()
-# sendToAddress = kit.wallet().currentReceiveAddress()
-# logger.debug("send test coins to %s" % sendToAddress)
-
 
 balance = wallet.getBalance().getValue()
 logger.debug("balance: %.8f XBT" % (float(balance) / 1e8))
