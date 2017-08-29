@@ -31,8 +31,8 @@ import traceback
 level = logging.DEBUG
 
 script_name = 'XMLRPC-bitcoinj'
-
 walletFolder = '.'
+confirmationsRequired = 1
 
 params = org.bitcoinj.params.TestNet3Params.get()
 filePrefix = 'bitcoinj-service-testnet'
@@ -130,8 +130,10 @@ class RPCFunctions:
                 if to_addr == address:
                     tx_id = t.getHashAsString()
                     logger.debug("tx: %s depth: %s" % (tx_id, depth))
-                    txs.append(tx_id)
+                    if depth < confirmationsRequired:
+                        txs.append(tx_id)
         return txs
+
     '''
     def getLatestTransactions(self):
         try:
@@ -166,7 +168,6 @@ class RPCFunctions:
             logger.error(traceback.format_exc())
             logger.error(e)
             return False
-
     '''
 
 class SenderListener(AbstractWalletEventListener):
@@ -178,7 +179,6 @@ class SenderListener(AbstractWalletEventListener):
 
     @loud_exceptions
     def onCoinsReceived(self, w, tx, pb, nb):
-
         v = tx.getValueSentToMe(w)
         logger.debug("tx received %s" % (tx))
         for to in tx.getOutputs():
@@ -191,19 +191,17 @@ class SenderListener(AbstractWalletEventListener):
 
             @loud_exceptions
             def onSuccess(selfx, txn):
-                # print "successfully received %s" % w
                 valueConfirmed = v.getValue()
                 logger.debug("confirmed: %s" % valueConfirmed)
                 for to in tx.getOutputs():
                     addr = to.getAddressFromP2PKHScript(params).toString()
                     logger.debug("receiver address: %s" % addr)
 
-        # print "creating %s confirm callback..." % (confirm_wait)
         Futures.addCallback(tx.getConfidence().getDepthFuture(confirm_wait), myFutureCallback(tx))
 
 
 f = File(walletFolder)
-kit = WalletAppKit(params, f, filePrefix);
+kit = WalletAppKit(params, f, filePrefix)
 kit.setAutoSave(True)
 logger.debug("initializing...")
 kit.startAsync()

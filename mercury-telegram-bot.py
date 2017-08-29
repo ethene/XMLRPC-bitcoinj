@@ -163,9 +163,12 @@ def start(bot, update):
 
                 try:
                     balance = XMLRPCServer.getInputValue(address) - withdrawn
+                    unconfirmedTXs = XMLRPCServer.getUnconfirmedTransactions(address)
                     message += "Your balance is %.8f\n" % (int(balance) / 1e8)
                     message += "Your position is %.8f\n" % (int(position) / 1e8)
                     message += "Your address is\n%s\n" % address
+                    for tx in unconfirmedTXs:
+                        message += "Pending transaction id: %s\n" % tx
                 except:
                     message += "Balance is unavailable, please contact admin"
 
