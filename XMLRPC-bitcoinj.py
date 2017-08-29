@@ -136,9 +136,9 @@ class RPCFunctions:
         return txs
 
     def sendCoins(self, address, amount):
-        amountToSend = Coin(amount).subtract(Transaction.REFERENCE_DEFAULT_MIN_TX_FEE)
+        # amountToSend =
         pg = self.kit.peerGroup()
-        sr = self.kit.wallet().sendCoins(pg, address, amountToSend)
+        sr = self.kit.wallet().sendCoins(pg, address, Coin(amount).subtract(Transaction.REFERENCE_DEFAULT_MIN_TX_FEE))
         return sr
 
     '''
