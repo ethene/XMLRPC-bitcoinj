@@ -209,6 +209,7 @@ for t in transactions:
     for to in t_outputs:
         to_addr = to.getAddressFromP2PKHScript(params).toString()
         logger.debug("addr: %s" % to_addr)
+        logger.debug("confidence: %s" % confidence)
 
 wallet.addEventListener(sl)
 logger.debug("finished initialising .. now in main event loop")
