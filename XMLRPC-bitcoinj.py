@@ -135,7 +135,7 @@ class RPCFunctions:
         return txs
 
     def sendCoins(self, fromAddress, toAddress, amount):
-        sr = None
+        sr_tx = 0
         bl = self.kit.wallet().getBalance()
         balance = bl.getValue()
         invalue = self.getInputValue(fromAddress)
@@ -146,7 +146,8 @@ class RPCFunctions:
             pg = self.kit.peerGroup()
             toAddr = org.bitcoinj.core.Address.fromBase58(params, toAddress)
             sr = self.kit.wallet().sendCoins(pg, toAddr, c)
-        return sr
+            sr_tx = sr.tx.getHashAsString()
+        return sr_tx
 
     '''
     def getLatestTransactions(self):
