@@ -143,9 +143,9 @@ class RPCFunctions:
         logger.debug("invalue: %d, to_send: %d, legal: %s " % (invalue, amount, legal))
         if legal:
             c = org.bitcoinj.core.Coin.valueOf(amount)
-            logger.debug(c)
-        pg = self.kit.peerGroup()
-        # sr = self.kit.wallet().sendCoins(pg, address, Coin(amount).subtract())
+            pg = self.kit.peerGroup()
+            toAddr = org.bitcoinj.core.Address.fromBase58(params, toAddress)
+            sr = self.kit.wallet().sendCoins(pg, toAddr, c)
         return sr
 
     '''
