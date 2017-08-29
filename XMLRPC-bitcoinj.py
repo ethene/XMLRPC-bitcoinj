@@ -121,7 +121,6 @@ class RPCFunctions:
         txs = []
         transactions = self.kit.wallet().getTransactions(True)
         for t in transactions:
-            logger.debug("tx: %s" % t.getHashAsString())
             confidence = t.getConfidence()
             depth = confidence.getDepthInBlocks()
             t_outputs = t.getOutputs()
@@ -129,9 +128,10 @@ class RPCFunctions:
                 to_addr = to.getAddressFromP2PKHScript(params).toString()
                 if to_addr == address:
                     tx_id = t.getHashAsString()
+                    value = int(to.getValue().toString())
                     logger.debug("tx: %s depth: %s" % (tx_id, depth))
                     if depth < confirmationsRequired:
-                        txs.append(tx_id)
+                        txs.append({'ID': tx_id, 'value': value})
         return txs
 
     '''
