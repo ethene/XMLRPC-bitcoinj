@@ -176,6 +176,7 @@ def start(bot, update):
 def stats(bot, update):
     isadmin = check_admin_privilege(update)
     userfrom = update.effective_user
+    logger.debug("userfrom : %s" % userfrom)
     userID = userfrom.id
     df_groupped = None
     if not isadmin:
