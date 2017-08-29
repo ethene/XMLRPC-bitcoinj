@@ -131,9 +131,8 @@ def start(bot, update):
                 address = XMLRPCServer.getNewAddress()
                 ins = useraccounts.insert().values(ID=userID, firstname=firstname, lastname=lastname, username=username,
                                                    isadmin=False, address=address)
-
                 con.execute(ins)
-                ins = positions.insert().values(userID=userID)
+                ins = positions.insert().values(userID=userID, position=0)
                 con.execute(ins)
                 message = "Hello, %s!\nYour new account has just created\nYour address is\n%s\n" % (username, address)
                 keyboard = user_keyboard
@@ -154,20 +153,21 @@ def start(bot, update):
                 # subqry = session.query(func.max(Data.counter)).filter(Data.user_id == user_id)
                 keyboard = user_keyboard
 
-            stm = select([positions]).where(positions.c.userID == userID).order_by(desc(positions.c.timestamp))
-            rs = con.execute(stm)
-            response2 = rs.fetchall()
-            address = response[0].address
-            position = response2[0].position
-            withdrawn = response[0].withdrawn
+            if not freshuser:
+                stm = select([positions]).where(positions.c.userID == userID).order_by(desc(positions.c.timestamp))
+                rs = con.execute(stm)
+                response2 = rs.fetchall()
+                address = response[0].address
+                position = response2[0].position
+                withdrawn = response[0].withdrawn
 
-            try:
-                balance = XMLRPCServer.getInputValue(address) - withdrawn
-                message += "Your balance is %.8f\n" % (int(balance) / 1e8)
-                message += "Your position is %.8f\n" % (int(position) / 1e8)
-                message += "Your address is\n%s\n" % address
-            except:
-                message += "Balance is unavailable, please contact admin"
+                try:
+                    balance = XMLRPCServer.getInputValue(address) - withdrawn
+                    message += "Your balance is %.8f\n" % (int(balance) / 1e8)
+                    message += "Your position is %.8f\n" % (int(position) / 1e8)
+                    message += "Your address is\n%s\n" % address
+                except:
+                    message += "Balance is unavailable, please contact admin"
 
         if message and keyboard:
             bot.send_message(chat_id=update.message.chat_id, text=message,
