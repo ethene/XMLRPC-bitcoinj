@@ -5,9 +5,9 @@ s = xmlrpc.client.ServerProxy('http://localhost:8000')
 
 # print("TX: %s " % (s.getUnconfirmedTransactions('myt8kNqVm6p8s1F9fp3e4vYQuLCZ8cw3mT')))
 
-tx = s.sendCoins('myt8kNqVm6p8s1F9fp3e4vYQuLCZ8cw3mT', 'mwCwTceJvYV27KXBc3NJZys6CjsgsoeHmf', 100000000)
+tx = s.sendCoins('myt8kNqVm6p8s1F9fp3e4vYQuLCZ8cw3mT', 'mwCwTceJvYV27KXBc3NJZys6CjsgsoeHmf', 50000000)
 if tx > 0:
-    print("send: %s" % sr)
+    print("send: %s" % tx)
 
 # Print list of available methods
 print(s.system.listMethods())
