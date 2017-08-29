@@ -117,6 +117,19 @@ class RPCFunctions:
         logger.debug("address %s input value %.8f" % (address, invalue))
         return invalue
 
+    def getUnconfirmedTransactions(self, address):
+        depth = 0
+        transactions = self.kit.wallet().getTransactions(True)
+        for t in transactions:
+            logger.debug("tx: %s" % t)
+            confidence = t.getConfidence()
+            depth = confidence.getDepthInBlocks()
+            t_outputs = t.getOutputs()
+            for to in t_outputs:
+                to_addr = to.getAddressFromP2PKHScript(params).toString()
+                if to_addr == address:
+                    logger.debug("depth: %s" % depth)
+        return depth
     '''
     def getLatestTransactions(self):
         try:
@@ -209,7 +222,7 @@ for t in transactions:
     for to in t_outputs:
         to_addr = to.getAddressFromP2PKHScript(params).toString()
         logger.debug("addr: %s" % to_addr)
-        logger.debug("confidence: %s" % confidence)
+        logger.debug("confidence: %s" % depth)
 
 wallet.addEventListener(sl)
 logger.debug("finished initialising .. now in main event loop")
