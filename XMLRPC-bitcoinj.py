@@ -118,7 +118,6 @@ class RPCFunctions:
         return invalue
 
     def getUnconfirmedTransactions(self, address):
-        depth = 0
         txs = []
         transactions = self.kit.wallet().getTransactions(True)
         for t in transactions:
@@ -129,11 +128,10 @@ class RPCFunctions:
             for to in t_outputs:
                 to_addr = to.getAddressFromP2PKHScript(params).toString()
                 if to_addr == address:
-                    logger.debug("depth: %s" % depth)
-                    txs.append(t.getHashAsString())
-
-        print(txs)
-        return depth
+                    tx_id = t.getHashAsString()
+                    logger.debug("tx: %s depth: %s" % (tx_id, depth))
+                    txs.append(tx_id)
+        return txs
     '''
     def getLatestTransactions(self):
         try:
