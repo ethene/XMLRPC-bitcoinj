@@ -205,7 +205,7 @@ class SenderListener(AbstractWalletEventListener):
 f = File(walletFolder)
 kit = WalletAppKit(params, f, filePrefix);
 kit.setAutoSave(True)
-logger.debug("starting and waiting..")
+logger.debug("initializing...")
 kit.startAsync()
 kit.awaitRunning()
 pg = kit.peerGroup()
@@ -227,7 +227,7 @@ for t in transactions:
         logger.debug("confidence: %s" % depth)
 
 wallet.addEventListener(sl)
-logger.debug("finished initialising .. now in main event loop")
+logger.debug("finished initialisation - now in main event loop")
 
 server.register_instance(RPCFunctions(kit))
 
