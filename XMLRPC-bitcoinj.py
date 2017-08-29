@@ -14,7 +14,6 @@ from org.bitcoinj.core import *
 from java.io import File
 
 import org.bitcoinj.params.MainNetParams
-from org.bitcoinj.core import Transaction, Coin
 from org.bitcoinj.kits import WalletAppKit
 from org.bitcoinj.wallet.listeners import AbstractWalletEventListener
 
@@ -135,10 +134,13 @@ class RPCFunctions:
                         txs.append({'ID': tx_id, 'value': value})
         return txs
 
-    def sendCoins(self, address, amount):
-        # amountToSend =
+    def sendCoins(self, fromAddress, toAddress, amount):
+        sr = None
+        balance = self.kit.wallet().getBalance().getValue()
+        invalue = self.getInputValue(fromAddress)
+        logger.debug("invalue: %d, to_send: %d, legal: %s " % (invalue, amount, invalue - amount > 0)
         pg = self.kit.peerGroup()
-        sr = self.kit.wallet().sendCoins(pg, address, Coin(amount).subtract(Transaction.REFERENCE_DEFAULT_MIN_TX_FEE))
+        # sr = self.kit.wallet().sendCoins(pg, address, Coin(amount).subtract(Transaction.REFERENCE_DEFAULT_MIN_TX_FEE))
         return sr
 
     '''
