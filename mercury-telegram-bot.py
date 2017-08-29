@@ -180,7 +180,7 @@ def stats(bot, update):
     df_groupped = None
     if not isadmin:
         df = pd.read_sql_query(sql='SELECT * FROM ' + positions_table + ' WHERE `USERID` = ' + str(userID),
-                               con=db_engine)
+                               con=db_engine, index_col='timestamp')
         print(df)
         df_groupped = df.groupby(df.timestamp.dt.date)['position'].mean()
     else:
