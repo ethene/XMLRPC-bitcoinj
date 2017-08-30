@@ -149,7 +149,8 @@ class RPCFunctions:
             sr = self.kit.wallet().sendCoins(pg, toAddr, c)
             sr_tx = sr.tx.getHashAsString()
             sent_value = sr.tx.getValueSentFromMe(self.kit.wallet()).getValue()
-        return {'TX': sr_tx, 'value': sent_value}
+            change_value = sr.tx.getValueSentToMe(self.kit.wallet()).getValue()
+        return {'TX': sr_tx, 'value': sent_value - change_value}
 
     '''
     def getLatestTransactions(self):
