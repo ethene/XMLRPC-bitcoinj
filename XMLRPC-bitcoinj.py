@@ -147,7 +147,8 @@ class RPCFunctions:
             toAddr = org.bitcoinj.core.Address.fromBase58(params, toAddress)
             sr = self.kit.wallet().sendCoins(pg, toAddr, c)
             sr_tx = sr.tx.getHashAsString()
-        return sr_tx
+            sent_value = sr.tx.getValueSentFromMe(self.kit.wallet())
+        return {'TX': sr_tx, 'value': sent_value}
 
     '''
     def getLatestTransactions(self):
@@ -225,14 +226,11 @@ pg = kit.peerGroup()
 wallet = kit.wallet()
 
 balance = wallet.getBalance().getValue()
-watched_addrs = wallet.getWatchedAddresses()
 logger.debug("balance: %.8f XBT" % (float(balance) / 1e8))
-for a in watched_addrs:
-    logger.debug("watched addr: %s" % a.toString())
 sl = SenderListener(pg)
 
+'''
 transactions = kit.wallet().getTransactions(True)
-
 invalue = 0
 for t in transactions:
     confidence = t.getConfidence()
@@ -242,7 +240,7 @@ for t in transactions:
         to_addr = to.getAddressFromP2PKHScript(params).toString()
         logger.debug("addr: %s" % to_addr)
         logger.debug("value: %s" % to.getValue().toString())
-
+'''
 
 wallet.addEventListener(sl)
 logger.debug("finished initialisation - now in main event loop")
