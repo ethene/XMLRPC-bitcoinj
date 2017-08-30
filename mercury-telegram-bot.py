@@ -114,7 +114,7 @@ if not db_engine.dialect.has_table(db_engine, log_table):
     log = Table(log_table, metadata,
                 Column('userID', Integer, ForeignKey(useraccounts.c.ID)),
                 Column('log', String(255)),
-                Column('timestamp', DateTime, onupdate=func.utc_timestamp()))
+                Column('timestamp', DateTime, default=datetime.utcnow, onupdate=func.utc_timestamp()))
     # Implement the creation
     metadata.create_all()
 
