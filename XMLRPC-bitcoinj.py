@@ -136,6 +136,7 @@ class RPCFunctions:
 
     def sendCoins(self, fromAddress, toAddress, amount):
         sr_tx = 0
+        sent_value = 0
         bl = self.kit.wallet().getBalance()
         balance = bl.getValue()
         invalue = self.getInputValue(fromAddress)
