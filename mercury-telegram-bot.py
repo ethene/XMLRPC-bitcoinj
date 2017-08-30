@@ -92,29 +92,29 @@ else:
 if not db_engine.dialect.has_table(db_engine, positions_table):
     logger.warn("positions table does not exist")
     # Create a table with the appropriate Columns
-    Table(positions_table, metadata,
-          Column('userID', Integer, ForeignKey(useraccounts.c.ID)),
-          Column('position', BigInteger(), default=0), Column('timestamp', DateTime, onupdate=func.utc_timestamp()))
+    positions = Table(positions_table, metadata,
+                      Column('userID', Integer, ForeignKey(useraccounts.c.ID)),
+                      Column('position', BigInteger(), default=0), Column('timestamp', DateTime, onupdate=func.utc_timestamp()))
     # Implement the creation
     metadata.create_all()
 
 if not db_engine.dialect.has_table(db_engine, actions_table):
     logger.warn("actions table does not exist")
     # Create a table with the appropriate Columns
-    Table(actions_table, metadata,
-          Column('userID', Integer, ForeignKey(useraccounts.c.ID)),
-          Column('action', String(255)), Column('approved', Boolean(), default=False),
-          Column('timestamp', DateTime, onupdate=func.utc_timestamp()))
+    actions = Table(actions_table, metadata,
+                    Column('userID', Integer, ForeignKey(useraccounts.c.ID)),
+                    Column('action', String(255)), Column('approved', Boolean(), default=False),
+                    Column('timestamp', DateTime, onupdate=func.utc_timestamp()))
     # Implement the creation
     metadata.create_all()
 
 if not db_engine.dialect.has_table(db_engine, log_table):
     logger.warn("log table does not exist")
     # Create a table with the appropriate Columns
-    Table(log_table, metadata,
-          Column('userID', Integer, ForeignKey(useraccounts.c.ID)),
-          Column('log', String(255)),
-          Column('timestamp', DateTime, onupdate=func.utc_timestamp()))
+    log = Table(log_table, metadata,
+                Column('userID', Integer, ForeignKey(useraccounts.c.ID)),
+                Column('log', String(255)),
+                Column('timestamp', DateTime, onupdate=func.utc_timestamp()))
     # Implement the creation
     metadata.create_all()
 
@@ -162,7 +162,7 @@ def start(bot, update):
                 con.execute(ins)
                 ins = positions.insert().values(userID=userID, position=0)
                 con.execute(ins)
-                ins = log.insert(userID=userID, log='new user created')
+                ins = log.insert().values(userID=userID, log='new user created')
                 con.execute(ins)
                 message = "Hello, %s!\nYour new account has just created\nYour address is\n%s\n" % (username, address)
                 keyboard = user_keyboard
@@ -175,7 +175,7 @@ def start(bot, update):
                 isadmin = u.isadmin == 1
                 logger.debug("user found in db, admin: %s" % isadmin)
 
-            ins = log.insert(userID=userID, log='user /start')
+            ins = log.insert().values(userID=userID, log='user /start')
             con.execute(ins)
 
             if isadmin:
