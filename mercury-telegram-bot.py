@@ -32,6 +32,7 @@ from SizedTimedRotatingFileHandler import SizedTimedRotatingFileHandler
 from bitmex import BitMEX
 from extra_settings import B_KEY, B_SECRET, POLO_ADDRESS
 
+
 def error_callback(bot, update, error):
     try:
         raise error
@@ -39,8 +40,11 @@ def error_callback(bot, update, error):
         logger.error(e)
         logger.error(traceback.format_exc())
 
+
 XMLRPCServer = xmlrpc.client.ServerProxy('http://localhost:8000')
 
+actions_table = 'telegram_actions'
+log_table = 'telegram_log'
 useraccounts_table = 'telegram_useraccounts'
 positions_table = 'mercury_positions'
 balance_table = 'mercury_balance'
@@ -72,12 +76,13 @@ last_command = None
 last_args = None
 
 if not db_engine.dialect.has_table(db_engine, useraccounts_table):
-    logger.debug("user accounts table does not exist")
+    logger.warn("user accounts table does not exist")
     # Create a table with the appropriate Columns
     useraccounts = Table(useraccounts_table, metadata,
                          Column('ID', Integer, primary_key=True, nullable=False),
                          Column('firstname', String(255)), Column('lastname', String(255)),
-                         Column('username', String(255)), Column('isadmin', Boolean(), default=False), Column('address', String(40)),
+                         Column('username', String(255)), Column('isadmin', Boolean(), default=False),
+                         Column('address', String(40)),
                          Column('withdrawn', BigInteger(), default=0))
     # Implement the creation
     metadata.create_all()
@@ -85,11 +90,31 @@ else:
     useraccounts = Table(useraccounts_table, metadata, autoload=True)
 
 if not db_engine.dialect.has_table(db_engine, positions_table):
-    logger.debug("positions table does not exist")
+    logger.warn("positions table does not exist")
     # Create a table with the appropriate Columns
     Table(positions_table, metadata,
           Column('userID', Integer, ForeignKey(useraccounts.c.ID)),
           Column('position', BigInteger(), default=0), Column('timestamp', DateTime, onupdate=func.utc_timestamp()))
+    # Implement the creation
+    metadata.create_all()
+
+if not db_engine.dialect.has_table(db_engine, actions_table):
+    logger.warn("actions table does not exist")
+    # Create a table with the appropriate Columns
+    Table(actions_table, metadata,
+          Column('userID', Integer, ForeignKey(useraccounts.c.ID)),
+          Column('action', String(255)), Column('approved', Boolean(), default=False),
+          Column('timestamp', DateTime, onupdate=func.utc_timestamp()))
+    # Implement the creation
+    metadata.create_all()
+
+if not db_engine.dialect.has_table(db_engine, log_table):
+    logger.warn("log table does not exist")
+    # Create a table with the appropriate Columns
+    Table(actions_table, metadata,
+          Column('userID', Integer, ForeignKey(useraccounts.c.ID)),
+          Column('log', String(255)),
+          Column('timestamp', DateTime, onupdate=func.utc_timestamp()))
     # Implement the creation
     metadata.create_all()
 
@@ -106,6 +131,7 @@ def getUTCtime():
     unixtime = calendar.timegm(d.utctimetuple())
     return unixtime * 1000
 
+
 def start(bot, update):
     with db_engine.connect() as con:
         userfrom = update.effective_user
@@ -117,6 +143,8 @@ def start(bot, update):
 
         useraccounts = Table(useraccounts_table, metadata, autoload=True)
         positions = Table(positions_table, metadata, autoload=True)
+        actions = Table(actions_table, metadata, autoload=True)
+        log = Table(log_table, metadata, autoload=True)
         stm = select([useraccounts]).where(useraccounts.c.ID == userID)
         rs = con.execute(stm)
         response = rs.fetchall()
@@ -134,6 +162,8 @@ def start(bot, update):
                 con.execute(ins)
                 ins = positions.insert().values(userID=userID, position=0)
                 con.execute(ins)
+                ins = log.insert(userID=userID, log='new user created')
+                con.execute(ins)
                 message = "Hello, %s!\nYour new account has just created\nYour address is\n%s\n" % (username, address)
                 keyboard = user_keyboard
                 freshuser = True
@@ -144,6 +174,9 @@ def start(bot, update):
             for u in response:
                 isadmin = u.isadmin == 1
                 logger.debug("user found in db, admin: %s" % isadmin)
+
+            ins = log.insert(userID=userID, log='user /start')
+            con.execute(ins)
 
             if isadmin:
                 message = "Hello, admin %s!\nWelcome back to use the bot" % (username)
@@ -176,6 +209,7 @@ def start(bot, update):
         if message and keyboard:
             bot.send_message(chat_id=update.message.chat_id, text=message,
                              reply_markup=ReplyKeyboardMarkup(keyboard=keyboard))
+
 
 def stats(bot, update):
     isadmin = check_admin_privilege(update)
@@ -226,10 +260,11 @@ def OTP_command(bot, update):
 
         if message:
             bot.send_message(chat_id=update.message.chat_id, text=message, reply_markup=ReplyKeyboardMarkup(
-            keyboard=admin_keyboard))
+                keyboard=admin_keyboard))
 
     last_command = None
     last_args = None
+
 
 def CancelOTP(bot, update):
     global last_command
@@ -243,6 +278,7 @@ def CancelOTP(bot, update):
     message = "Command cancelled"
     bot.send_message(chat_id=update.message.chat_id, text=message, reply_markup=ReplyKeyboardMarkup(
         keyboard=admin_keyboard))
+
 
 def transfers_show(bot, update):
     global last_command
@@ -272,6 +308,7 @@ def transfers_show(bot, update):
     bot.send_message(chat_id=update.message.chat_id, text=message, reply_markup=ReplyKeyboardRemove())
     last_command = 'BW'
     last_args = transfer_diff
+
 
 def health_check(bot, update):
     isadmin = check_admin_privilege(update)
@@ -304,6 +341,7 @@ def health_check(bot, update):
     logger.debug(message)
     bot.send_message(chat_id=update.message.chat_id, text=message)
 
+
 def check_admin_privilege(update):
     isadmin = False
     useraccounts = Table(useraccounts_table, metadata, autoload=True)
@@ -318,6 +356,7 @@ def check_admin_privilege(update):
                     logger.debug("admin privilege confirmed, %s" % update.effective_user.id)
 
     return isadmin
+
 
 def plot_graph(df, name, label):
     fig, ax = plt.subplots()
