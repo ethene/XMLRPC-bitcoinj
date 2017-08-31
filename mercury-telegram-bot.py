@@ -387,7 +387,7 @@ def action_approve(bot, update):
     actions = Table(actions_table, metadata, autoload=True)
     found = False
     with db_engine.connect() as con:
-        unapproved_actions = select([actions]).where(actions.c.approved == None)
+        unapproved_actions = select([actions]).where(actions.c.approved == None).order_by(desc(actions.c.timestamp))
         rs = con.execute(unapproved_actions)
         response = rs.fetchall()
         message = ""
