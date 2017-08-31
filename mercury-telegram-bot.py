@@ -170,7 +170,7 @@ def start(bot, update):
                 message += "Your wallet is yet empty.\nPlease top-up your account\n"
                 message += "by making a transfer to your main wallet to your address as below:\n"
                 message += "%s\n" % address
-                keyboard = user_keyboard
+                keyboard = [[KeyboardButton(text="/start")]]
                 freshuser = True
             except:
                 logger.error(traceback.format_exc())
@@ -206,14 +206,26 @@ def start(bot, update):
                     if balance == 0:
                         message += "Your wallet is yet empty.\nPlease top-up your account\n"
                         message += "by making a transfer to your main wallet address\n"
+                        keyboard = [[KeyboardButton(text="/start")]]
 
                     else:
                         message += "Your balance is %.8f\n" % (balance)
-                    message += "Your position is %.8f\n" % (int(position) / 1e8)
+
+                    position = int(position) / 1e8
+                    message += "Your position is %.8f\n" % (position)
                     message += "Your address is\n%s\n" % address
+                    if (len(unconfirmedTXs) == 0) and (balance > 0):
+                        message += "Please confirm creation of your portfolio by entering /invest\n"
+                        keyboard = [[KeyboardButton(text="/invest")]]
                     for tx in unconfirmedTXs:
                         message += "Pending transaction for: %s XBT\n" % (int(tx['value']) / 1e8)
                         message += "tx ID: %s\n" % tx['ID']
+                        keyboard = [[KeyboardButton(text="/start")]]
+
+                    if (balance == 0) and (position > 0):
+                        message += "Check stats or request portfolio closure\n"
+                        keyboard = [[KeyboardButton(text="/stats")], [KeyboardButton(text="/close")]]
+
                 except:
                     message += "Balance is unavailable, please contact admin"
                     keyboard = [[KeyboardButton(text="/contact")]]
