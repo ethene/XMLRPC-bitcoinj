@@ -215,7 +215,7 @@ def start(bot, update):
                     message += "Your position is %.8f\n" % (position)
                     message += "Your address is\n%s\n" % address
                     if (len(unconfirmedTXs) == 0) and (balance > 0):
-                        message += "Please confirm creation of your portfolio by entering /invest\n"
+                        message += "Please confirm creation of your portfolio by entering\n/invest\n"
                         keyboard = [[KeyboardButton(text="/invest")]]
                     for tx in unconfirmedTXs:
                         message += "Pending transaction for: %s XBT\n" % (int(tx['value']) / 1e8)
@@ -323,6 +323,23 @@ def contact(bot, update):
         bot.send_message(chat_id=update.message.chat_id, text=message, reply_markup=ReplyKeyboardMarkup(
             keyboard=[[KeyboardButton(text="/start")]]))
 
+
+# TODO: invest
+def invest(bot, update):
+    with db_engine.connect() as con:
+        userfrom = update.effective_user
+        logger.debug("userfrom : %s" % userfrom)
+        userID = userfrom.id
+        log = Table(log_table, metadata, autoload=True)
+        actions = Table(actions_table, metadata, autoload=True)
+        ins = log.insert().values(userID=userID, log='Invest request is sent', timestamp=datetime.utcnow())
+        con.execute(ins)
+        ins = actions.insert().values(userID=userID, action='INVEST', timestamp=datetime.utcnow())
+        con.execute(ins)
+        message = "Invest request is sent.\nPlease wait until we process your request.\n"
+        bot.send_message(chat_id=update.message.chat_id, text=message, reply_markup=ReplyKeyboardMarkup(
+            keyboard=[[KeyboardButton(text="/start")]]))
+
 def transfers_show(bot, update):
     global last_command
     global last_args
@@ -427,6 +444,7 @@ start_handler = CommandHandler('start', start)
 stats_handler = CommandHandler('statistics', stats)
 health_handler = CommandHandler('health', health_check)
 contact_handler = CommandHandler('contact', contact)
+invest_handler = CommandHandler('invest', invest)
 transfers_show_handler = CommandHandler('transfers', transfers_show)
 OTP_handler = RegexHandler(pattern='^\d{6}$', callback=OTP_command)
 OTP_cancel_handler = RegexHandler(pattern='^0$', callback=CancelOTP)
@@ -438,6 +456,7 @@ dispatcher.add_handler(transfers_show_handler)
 dispatcher.add_handler(OTP_handler)
 dispatcher.add_handler(OTP_cancel_handler)
 dispatcher.add_handler(contact_handler)
+dispatcher.add_handler(invest_handler)
 
 dispatcher.add_error_handler(error_callback)
 updater.start_polling()
