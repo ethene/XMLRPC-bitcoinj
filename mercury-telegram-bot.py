@@ -171,11 +171,11 @@ def start(bot, update):
                 message += "Your wallet is yet empty.\nPlease top-up your account\n"
                 message += "by making a transfer to your main wallet to your address as below:\n"
                 message += "%s\n" % address
-                keyboard = [[KeyboardButton(text="/start")]]
+                keyboard = [KeyboardButton(text="/start")]
             except:
                 logger.error(traceback.format_exc())
                 message = "Failed to create new user, please contact admin"
-                keyboard = [[KeyboardButton(text="/contact")]]
+                keyboard = [KeyboardButton(text="/contact")]
         else:
             #user found in DB
             for u in response:
@@ -187,13 +187,12 @@ def start(bot, update):
 
             if isadmin:
                 message = "Hello, admin %s!\nWelcome back to use the bot" % (username)
-                keyboard = admin_keyboard
-            elif not freshuser:
+            else:
                 message = "Hello, %s!\nWelcome back to use the bot\n" % (username)
-                keyboard = user_keyboard
 
-            stm = select([positions]).where(positions.c.userID == userID).order_by(desc(positions.c.timestamp))
-            rs = con.execute(stm)
+            select_positions = select([positions]).where(positions.c.userID == userID).order_by(
+                desc(positions.c.timestamp))
+            rs = con.execute(select_positions)
             response2 = rs.fetchall()
             address = response[0].address
             position = response2[0].position
@@ -206,18 +205,18 @@ def start(bot, update):
                 if balance == 0:
                     message += "Your wallet is yet empty.\nPlease top-up your account\n"
                     message += "by making a transfer to your main wallet address\n"
-                    keyboard = [[KeyboardButton(text="/start")]]
+                    keyboard = [KeyboardButton(text="/start")]
 
                 else:
                     message += "Your balance is %.8f\n" % (balance)
 
                 invest_actions = select([actions]).where(actions.c.userID == userID).where(
                     actions.c.action == 'INVEST').where(actions.c.approved == None)
-                rs = con.execute(stm)
+                rs = con.execute(invest_actions)
                 response3 = rs.fetchall()
                 if len(response3) > 0:
                     message += "Waiting to add your balance to portfolio\n"
-                    keyboard = [[KeyboardButton(text="/start")]]
+                    keyboard = [KeyboardButton(text="/start")]
                 else:
                     position = int(position) / 1e8
                     message += "Your position is %.8f\n" % (position)
@@ -228,18 +227,21 @@ def start(bot, update):
                     for tx in unconfirmedTXs:
                         message += "Pending transaction for: %s XBT\n" % (int(tx['value']) / 1e8)
                         message += "tx ID: %s\n" % tx['ID']
-                        keyboard = [[KeyboardButton(text="/start")]]
+                        keyboard = [KeyboardButton(text="/start")]
                     if (balance == 0) and (position > 0):
                         message += "Check stats or request portfolio closure\n"
-                        keyboard = [[KeyboardButton(text="/stats")], [KeyboardButton(text="/close")]]
+                        keyboard = [KeyboardButton(text="/stats"), KeyboardButton(text="/close")]
 
             except:
                 message += "Balance is unavailable, please contact admin"
-                keyboard = [[KeyboardButton(text="/contact")]]
+                keyboard = [KeyboardButton(text="/contact")]
+
+        if isadmin:
+            keyboard += admin_keyboard
 
         if message and keyboard:
             bot.send_message(chat_id=update.message.chat_id, text=message,
-                             reply_markup=ReplyKeyboardMarkup(keyboard=keyboard))
+                             reply_markup=ReplyKeyboardMarkup(keyboard=[keyboard]))
 
 
 #TODO: stats
@@ -293,7 +295,7 @@ def OTP_command(bot, update):
 
         if message:
             bot.send_message(chat_id=update.message.chat_id, text=message, reply_markup=ReplyKeyboardMarkup(
-                keyboard=admin_keyboard))
+                keyboard=[admin_keyboard]))
 
     last_command = None
     last_args = None
@@ -311,7 +313,7 @@ def CancelOTP(bot, update):
     last_args = None
     message = "Command cancelled"
     bot.send_message(chat_id=update.message.chat_id, text=message, reply_markup=ReplyKeyboardMarkup(
-        keyboard=admin_keyboard))
+        keyboard=[admin_keyboard]))
 
 
 # TODO: contact
@@ -443,9 +445,9 @@ def plot_graph(df, name, label):
     plt.savefig(pic_folder + '/' + name)
 
 
-admin_keyboard = [[KeyboardButton(text="/statistics"), KeyboardButton(text="/transfers"),
-                   KeyboardButton(text="/health")]]
-user_keyboard = [[KeyboardButton(text="/statistics")]]
+admin_keyboard = [KeyboardButton(text="/statistics"), KeyboardButton(text="/transfers"),
+                  KeyboardButton(text="/health")]
+user_keyboard = [KeyboardButton(text="/statistics")]
 
 start_handler = CommandHandler('start', start)
 stats_handler = CommandHandler('statistics', stats)
