@@ -94,7 +94,8 @@ if not db_engine.dialect.has_table(db_engine, positions_table):
     # Create a table with the appropriate Columns
     positions = Table(positions_table, metadata,
                       Column('userID', Integer, ForeignKey(useraccounts.c.ID)),
-                      Column('position', BigInteger(), default=0), Column('timestamp', DateTime, onupdate=func.utc_timestamp()))
+                      Column('position', BigInteger(), default=0),
+                      Column('timestamp', DateTime, default=datetime.utcnow, onupdate=func.utc_timestamp()))
     # Implement the creation
     metadata.create_all()
 
@@ -104,7 +105,7 @@ if not db_engine.dialect.has_table(db_engine, actions_table):
     actions = Table(actions_table, metadata,
                     Column('userID', Integer, ForeignKey(useraccounts.c.ID)),
                     Column('action', String(255)), Column('approved', Boolean(), default=False),
-                    Column('timestamp', DateTime, onupdate=func.utc_timestamp()))
+                    Column('timestamp', DateTime, default=datetime.utcnow, onupdate=func.utc_timestamp()))
     # Implement the creation
     metadata.create_all()
 
@@ -164,7 +165,7 @@ def start(bot, update):
                 con.execute(ins)
                 ins = log.insert().values(userID=userID, log='new user created')
                 con.execute(ins)
-                message = "Hello, %s!\nYour new account has just created\nYour address is\n%s\n" % (username, address)
+                message = "Hello, %s!\nYour new account has just created\n" % (username)
                 keyboard = user_keyboard
                 freshuser = True
             except:
@@ -197,7 +198,14 @@ def start(bot, update):
                 try:
                     balance = XMLRPCServer.getInputValue(address) - withdrawn
                     unconfirmedTXs = XMLRPCServer.getUnconfirmedTransactions(address)
-                    message += "Your balance is %.8f\n" % (int(balance) / 1e8)
+                    balance = int(balance) / 1e8
+                    if balance == 0:
+                        message += "Your wallet is yet empty.\nPlease top-up your account\n"
+                        message += "by making a transfer to your main wallet address:\n %s\n" % (address)
+
+                    else:
+                        message += "Your balance is %.8f\n" % (balance)
+                        message += "Your main wallet address:\n %s\n" % (address)
                     message += "Your position is %.8f\n" % (int(position) / 1e8)
                     message += "Your address is\n%s\n" % address
                     for tx in unconfirmedTXs:
