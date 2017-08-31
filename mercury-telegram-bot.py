@@ -385,6 +385,7 @@ def action_approve(bot, update):
         return
     action_id = update.message.text.split("a")[1]
     actions = Table(actions_table, metadata, autoload=True)
+    found = False
     with db_engine.connect() as con:
         unapproved_actions = select([actions]).where(actions.c.approved == None)
         rs = con.execute(unapproved_actions)
@@ -393,7 +394,6 @@ def action_approve(bot, update):
         i = 0
         for a in response:
             i += 1
-            found = False
             if i == int(action_id):
                 user = a.userID
                 action = a.action
