@@ -167,10 +167,10 @@ def start(bot, update):
                 con.execute(ins)
                 ins = log.insert().values(userID=userID, log='new user created', timestamp=datetime.utcnow())
                 con.execute(ins)
-                message = "Hello, %s!\nYour new account has just created\n" % (username)
+                message = "Hello, *%s*!\nYour new account has just created\n" % (username)
                 message += "Your wallet is yet empty.\nPlease top-up your account\n"
                 message += "by making a transfer to your main wallet to your address as below:\n"
-                message += "%s\n" % address
+                message += "*%s*\n" % address
                 keyboard = [KeyboardButton(text="/start")]
             except:
                 logger.error(traceback.format_exc())
@@ -186,9 +186,9 @@ def start(bot, update):
             con.execute(ins)
 
             if isadmin:
-                message = "Hello, admin %s!\nWelcome back to use the bot" % (username)
+                message = "Hello, admin *%s*!\nWelcome back to use the bot" % (username)
             else:
-                message = "Hello, %s!\nWelcome back to use the bot\n" % (username)
+                message = "Hello, *%s*!\nWelcome back to use the bot\n" % (username)
 
             select_positions = select([positions]).where(positions.c.userID == userID).order_by(
                 desc(positions.c.timestamp))
@@ -208,7 +208,7 @@ def start(bot, update):
                     keyboard = [KeyboardButton(text="/start")]
 
                 else:
-                    message += "Your balance is %.8f\n" % (balance)
+                    message += "Your balance is *%.8f*\n" % (balance)
 
                 invest_actions = select([actions]).where(actions.c.userID == userID).where(
                     actions.c.action == 'INVEST').where(actions.c.approved == None)
@@ -219,14 +219,14 @@ def start(bot, update):
                     keyboard = [KeyboardButton(text="/start")]
                 else:
                     position = int(position) / 1e8
-                    message += "Your position is %.8f\n" % (position)
+                    message += "Your position is *%.8f*\n" % (position)
                     message += "Your address is\n*%s*\n" % address
                     if (len(unconfirmedTXs) == 0) and (balance > 0):
                         message += "Please confirm creation of your portfolio by entering\n/invest\n"
                         keyboard = [KeyboardButton(text="/invest")]
                     for tx in unconfirmedTXs:
                         message += "Pending transaction for: %s XBT\n" % (int(tx['value']) / 1e8)
-                        message += "tx ID: %s\n" % tx['ID']
+                        message += "tx ID: *%s*\n" % tx['ID']
                         keyboard = [KeyboardButton(text="/start")]
                     if (balance == 0) and (position > 0):
                         message += "Check stats or request portfolio closure\n"
@@ -291,10 +291,11 @@ def OTP_command(bot, update):
         if 'error' in result:
             message = result['error']['message']
         elif 'transactID' in result:
-            message = 'BitMEX -> Polo transfer created, ID: %s' % result['transactID']
+            message = 'BitMEX -> Polo transfer created, ID: *%s*' % result['transactID']
 
         if message:
-            bot.send_message(chat_id=update.message.chat_id, text=message, reply_markup=ReplyKeyboardMarkup(
+            bot.send_message(chat_id=update.message.chat_id, text=message, parse_mode='Markdown',
+                             reply_markup=ReplyKeyboardMarkup(
                 keyboard=[admin_keyboard]))
 
     last_command = None
@@ -328,8 +329,9 @@ def contact(bot, update):
         con.execute(ins)
         ins = actions.insert().values(userID=userID, action='SUPPORT', timestamp=datetime.utcnow())
         con.execute(ins)
-        message = "Support request is sent.\nPlease wait to be contacted.\n"
-        bot.send_message(chat_id=update.message.chat_id, text=message, reply_markup=ReplyKeyboardMarkup(
+        message = "Support request is sent.\n*Please wait to be contacted.*\n"
+        bot.send_message(chat_id=update.message.chat_id, text=message, parse_mode='Markdown',
+                         reply_markup=ReplyKeyboardMarkup(
             keyboard=[[KeyboardButton(text="/start")]]))
 
 
@@ -345,13 +347,14 @@ def invest(bot, update):
         con.execute(ins)
         ins = actions.insert().values(userID=userID, action='INVEST', timestamp=datetime.utcnow())
         con.execute(ins)
-        message = "Invest request is sent.\nPlease wait until we process your request.\n"
-        bot.send_message(chat_id=update.message.chat_id, text=message, reply_markup=ReplyKeyboardMarkup(
+        message = "Invest request is sent.\n*Please wait until we process your request.*\n"
+        bot.send_message(chat_id=update.message.chat_id, text=message, parse_mode='Markdown',
+                         reply_markup=ReplyKeyboardMarkup(
             keyboard=[[KeyboardButton(text="/start")]]))
 
 
 # TODO: actions
-def actions(bot, update):
+def unapproved_actions(bot, update):
     isadmin = check_admin_privilege(update)
     if not isadmin:
         return
@@ -367,15 +370,16 @@ def actions(bot, update):
             user = a.userID
             action = a.action
             timestamp = a.timestamp
-            message += "a%d: %s %s [%s]\n" % (i, user, action, timestamp.strftime("%d %b %H:%M:%S"))
+            message += "*a%d*: %s %s [%s]\n" % (i, user, action, timestamp.strftime("%d %b %H:%M:%S"))
 
     if message == "":
         message = "All actions were approved\n"
         reply_markup = ReplyKeyboardMarkup(keyboard=[admin_keyboard])
     else:
-        message += "Type a[n] to approve\n"
+        message += "Type *a[n]* to approve\n"
         reply_markup = ReplyKeyboardRemove()
-    bot.send_message(chat_id=update.message.chat_id, text=message, reply_markup=reply_markup)
+    bot.send_message(chat_id=update.message.chat_id, text=message, parse_mode='Markdown',
+                     reply_markup=reply_markup)
 
 
 # TODO: action_approve
@@ -405,11 +409,13 @@ def action_approve(bot, update):
                 break
 
     if found:
-        message = "Action %s approved:\n%s %s [%s]\n" % (action_id, user, action, timestamp.strftime("%d %b %H:%M:%S"))
+        message = "Action *%s* approved:\n%s %s [%s]\n" % (
+        action_id, user, action, timestamp.strftime("%d %b %H:%M:%S"))
     else:
-        message = "Action %s not found!\n" % (action_id)
+        message = "Action *%s* not found!\n" % (action_id)
 
-    bot.send_message(chat_id=update.message.chat_id, text=message, reply_markup=ReplyKeyboardMarkup(
+    bot.send_message(chat_id=update.message.chat_id, text=message, parse_mode='Markdown',
+                     reply_markup=ReplyKeyboardMarkup(
         keyboard=[admin_keyboard]))
 
 
@@ -523,7 +529,7 @@ stats_handler = CommandHandler('statistics', stats)
 health_handler = CommandHandler('health', health_check)
 contact_handler = CommandHandler('contact', contact)
 invest_handler = CommandHandler('invest', invest)
-actions_handler = CommandHandler('actions', actions)
+actions_handler = CommandHandler('actions', unapproved_actions)
 transfers_show_handler = CommandHandler('transfers', transfers_show)
 OTP_handler = RegexHandler(pattern='^\d{6}$', callback=OTP_command)
 OTP_cancel_handler = RegexHandler(pattern='^0$', callback=CancelOTP)
