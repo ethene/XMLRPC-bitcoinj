@@ -133,6 +133,7 @@ def getUTCtime():
     return unixtime * 1000
 
 
+# TODO: start
 def start(bot, update):
     with db_engine.connect() as con:
         userfrom = update.effective_user
@@ -174,7 +175,7 @@ def start(bot, update):
             except:
                 logger.error(traceback.format_exc())
                 message = "Failed to create new user, please contact admin"
-                keyboard = user_keyboard
+                keyboard = [[KeyboardButton(text="/contact")]]
         else:
             for u in response:
                 isadmin = u.isadmin == 1
@@ -215,12 +216,14 @@ def start(bot, update):
                         message += "tx ID: %s\n" % tx['ID']
                 except:
                     message += "Balance is unavailable, please contact admin"
+                    keyboard = [[KeyboardButton(text="/contact")]]
 
         if message and keyboard:
             bot.send_message(chat_id=update.message.chat_id, text=message,
                              reply_markup=ReplyKeyboardMarkup(keyboard=keyboard))
 
 
+#TODO: stats
 def stats(bot, update):
     isadmin = check_admin_privilege(update)
     userfrom = update.effective_user
@@ -248,6 +251,7 @@ def stats(bot, update):
         bot.send_photo(chat_id=update.message.chat_id, photo=picture_2)
 
 
+#TODO: OTP command
 def OTP_command(bot, update):
     global last_command
     global last_args
@@ -276,6 +280,7 @@ def OTP_command(bot, update):
     last_args = None
 
 
+#TODO: cancet OTP
 def CancelOTP(bot, update):
     global last_command
     global last_args
@@ -289,6 +294,22 @@ def CancelOTP(bot, update):
     bot.send_message(chat_id=update.message.chat_id, text=message, reply_markup=ReplyKeyboardMarkup(
         keyboard=admin_keyboard))
 
+
+# TODO: contact
+def contact(bot, update):
+    with db_engine.connect() as con:
+        userfrom = update.effective_user
+        logger.debug("userfrom : %s" % userfrom)
+        userID = userfrom.id
+        log = Table(log_table, metadata, autoload=True)
+        actions = Table(actions_table, metadata, autoload=True)
+        ins = log.insert().values(userID=userID, log='Support request is sent', timestamp=datetime.utcnow())
+        con.execute(ins)
+        ins = actions.insert().values(userID=userID, action='SUPPORT', timestamp=datetime.utcnow())
+        con.execute(ins)
+        message = "Support request is sent.\nPlease wait to be contacted.\n"
+        bot.send_message(chat_id=update.message.chat_id, text=message, reply_markup=ReplyKeyboardMarkup(
+            keyboard=[[KeyboardButton(text="/start")]]))
 
 def transfers_show(bot, update):
     global last_command
@@ -393,6 +414,7 @@ user_keyboard = [[KeyboardButton(text="/statistics")]]
 start_handler = CommandHandler('start', start)
 stats_handler = CommandHandler('statistics', stats)
 health_handler = CommandHandler('health', health_check)
+contact_handler = CommandHandler('contact', contact)
 transfers_show_handler = CommandHandler('transfers', transfers_show)
 OTP_handler = RegexHandler(pattern='^\d{6}$', callback=OTP_command)
 OTP_cancel_handler = RegexHandler(pattern='^0$', callback=CancelOTP)
@@ -403,6 +425,7 @@ dispatcher.add_handler(health_handler)
 dispatcher.add_handler(transfers_show_handler)
 dispatcher.add_handler(OTP_handler)
 dispatcher.add_handler(OTP_cancel_handler)
+dispatcher.add_handler(contact_handler)
 
 dispatcher.add_error_handler(error_callback)
 updater.start_polling()
