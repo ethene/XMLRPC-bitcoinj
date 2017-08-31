@@ -349,6 +349,47 @@ def invest(bot, update):
         bot.send_message(chat_id=update.message.chat_id, text=message, reply_markup=ReplyKeyboardMarkup(
             keyboard=[[KeyboardButton(text="/start")]]))
 
+
+# TODO: actions
+def actions(bot, update):
+    isadmin = check_admin_privilege(update)
+    if not isadmin:
+        return
+    actions = Table(actions_table, metadata, autoload=True)
+    with db_engine.connect() as con:
+        unapproved_actions = select([actions]).where(actions.c.approved == None)
+        rs = con.execute(unapproved_actions)
+        response = rs.fetchall()
+        message = ""
+        for a in response:
+            user = a.userID
+            action = a.action
+            timestamp = a.timestamp
+            message += "%s %s %s\n" % (user, action, timestamp.strftime("%d %b %H:%M:%S"))
+
+    if message == "":
+        message = "All actions were approved\n"
+    bot.send_message(chat_id=update.message.chat_id, text=message, reply_markup=ReplyKeyboardMarkup(
+        keyboard=[admin_keyboard]))
+
+    '''
+    with db_engine.connect() as con:
+        userfrom = update.effective_user
+        logger.debug("userfrom : %s" % userfrom)
+        userID = userfrom.id
+        log = Table(log_table, metadata, autoload=True)
+        actions = Table(actions_table, metadata, autoload=True)
+        ins = log.insert().values(userID=userID, log='Invest request is sent', timestamp=datetime.utcnow())
+        con.execute(ins)
+        ins = actions.insert().values(userID=userID, action='INVEST', timestamp=datetime.utcnow())
+        con.execute(ins)
+        message = "Invest request is sent.\nPlease wait until we process your request.\n"
+        bot.send_message(chat_id=update.message.chat_id, text=message, reply_markup=ReplyKeyboardMarkup(
+            keyboard=[[KeyboardButton(text="/start")]]))
+    '''
+
+
+# TODO: transfers_show
 def transfers_show(bot, update):
     global last_command
     global last_args
@@ -379,6 +420,7 @@ def transfers_show(bot, update):
     last_args = transfer_diff
 
 
+#TODO: health
 def health_check(bot, update):
     isadmin = check_admin_privilege(update)
     if not isadmin:
@@ -411,6 +453,7 @@ def health_check(bot, update):
     bot.send_message(chat_id=update.message.chat_id, text=message)
 
 
+#TODO: check_admin_privilege
 def check_admin_privilege(update):
     isadmin = False
     useraccounts = Table(useraccounts_table, metadata, autoload=True)
@@ -427,6 +470,7 @@ def check_admin_privilege(update):
     return isadmin
 
 
+#TODO: plot glaph
 def plot_graph(df, name, label):
     fig, ax = plt.subplots()
     ax.plot(df.index, df, label=label)
@@ -446,14 +490,16 @@ def plot_graph(df, name, label):
 
 
 admin_keyboard = [KeyboardButton(text="/statistics"), KeyboardButton(text="/transfers"),
-                  KeyboardButton(text="/health")]
+                  KeyboardButton(text="/health"), KeyboardButton(text="/actions")]
 user_keyboard = [KeyboardButton(text="/statistics")]
 
+#TODO: handlers
 start_handler = CommandHandler('start', start)
 stats_handler = CommandHandler('statistics', stats)
 health_handler = CommandHandler('health', health_check)
 contact_handler = CommandHandler('contact', contact)
 invest_handler = CommandHandler('invest', invest)
+actions_handler = CommandHandler('actions', actions)
 transfers_show_handler = CommandHandler('transfers', transfers_show)
 OTP_handler = RegexHandler(pattern='^\d{6}$', callback=OTP_command)
 OTP_cancel_handler = RegexHandler(pattern='^0$', callback=CancelOTP)
@@ -466,6 +512,7 @@ dispatcher.add_handler(OTP_handler)
 dispatcher.add_handler(OTP_cancel_handler)
 dispatcher.add_handler(contact_handler)
 dispatcher.add_handler(invest_handler)
+dispatcher.add_handler(actions_handler)
 
 dispatcher.add_error_handler(error_callback)
 updater.start_polling()
