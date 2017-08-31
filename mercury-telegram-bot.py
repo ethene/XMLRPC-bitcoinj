@@ -161,7 +161,7 @@ def start(bot, update):
                 ins = useraccounts.insert().values(ID=userID, firstname=firstname, lastname=lastname, username=username,
                                                    isadmin=False, address=address)
                 con.execute(ins)
-                ins = positions.insert().values(userID=userID, position=0)
+                ins = positions.insert().values(userID=userID, position=0, timestamp=datetime.utcnow)
                 con.execute(ins)
                 ins = log.insert().values(userID=userID, log='new user created')
                 con.execute(ins)
@@ -179,7 +179,7 @@ def start(bot, update):
                 isadmin = u.isadmin == 1
                 logger.debug("user found in db, admin: %s" % isadmin)
 
-            ins = log.insert().values(userID=userID, log='user /start')
+            ins = log.insert().values(userID=userID, log='user /start', timestamp=datetime.utcnow)
             con.execute(ins)
 
             if isadmin:
