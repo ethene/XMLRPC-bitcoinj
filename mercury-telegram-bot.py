@@ -186,7 +186,7 @@ def start(bot, update):
             con.execute(ins)
 
             if isadmin:
-                message = "Hello, admin *%s*!\nWelcome back to use the bot" % (username)
+                message = "Hello, admin *%s*!\nWelcome back to use the bot\n" % (username)
             else:
                 message = "Hello, *%s*!\nWelcome back to use the bot\n" % (username)
 
@@ -370,7 +370,7 @@ def unapproved_actions(bot, update):
             user = a.userID
             action = a.action
             timestamp = a.timestamp
-            message += "*a%d*: %s %s [%s]\n" % (i, user, action, timestamp.strftime("%d %b %H:%M:%S"))
+            message += "*a%d*: (tg://user?id=%s) %s [%s]\n" % (i, user, action, timestamp.strftime("%d %b %H:%M:%S"))
 
     if message == "":
         message = "All actions were approved\n"
@@ -409,7 +409,7 @@ def action_approve(bot, update):
                 break
 
     if found:
-        message = "Action *%s* approved:\n%s %s [%s]\n" % (
+        message = "Action *%s* approved:\n(tg://user?id=%s) %s [%s]\n" % (
         action_id, user, action, timestamp.strftime("%d %b %H:%M:%S"))
     else:
         message = "Action *%s* not found!\n" % (action_id)
