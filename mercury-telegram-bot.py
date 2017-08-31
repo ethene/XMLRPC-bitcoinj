@@ -357,36 +357,60 @@ def actions(bot, update):
         return
     actions = Table(actions_table, metadata, autoload=True)
     with db_engine.connect() as con:
+        unapproved_actions = select([actions]).where(actions.c.approved == None).order_by(desc(actions.c.timestamp))
+        rs = con.execute(unapproved_actions)
+        response = rs.fetchall()
+        message = ""
+        i = 0
+        for a in response:
+            i += 1
+            user = a.userID
+            action = a.action
+            timestamp = a.timestamp
+            message += "a%d: %s %s [%s]\n" % (i, user, action, timestamp.strftime("%d %b %H:%M:%S"))
+
+    if message == "":
+        message = "All actions were approved\n"
+        reply_markup = ReplyKeyboardMarkup(keyboard=[admin_keyboard])
+    else:
+        message += "Type a[n] to approve\n"
+        reply_markup = ReplyKeyboardRemove()
+    bot.send_message(chat_id=update.message.chat_id, text=message, reply_markup=reply_markup)
+
+
+# TODO: action_approve
+def action_approve(bot, update):
+    isadmin = check_admin_privilege(update)
+    if not isadmin:
+        return
+    action_id = update.message.text.split("a")[1]
+    actions = Table(actions_table, metadata, autoload=True)
+    with db_engine.connect() as con:
         unapproved_actions = select([actions]).where(actions.c.approved == None)
         rs = con.execute(unapproved_actions)
         response = rs.fetchall()
         message = ""
+        i = 0
         for a in response:
-            user = a.userID
-            action = a.action
-            timestamp = a.timestamp
-            message += "%s %s %s\n" % (user, action, timestamp.strftime("%d %b %H:%M:%S"))
+            i += 1
+            found = False
+            if i == int(action_id):
+                user = a.userID
+                action = a.action
+                timestamp = a.timestamp
+                upd = actions.update().values(approved=True).where(actions.c.userID == user).where(
+                    actions.c.action == action).where(actions.c.timestamp == timestamp)
+                con.execute(upd)
+                found = True
+                break
 
-    if message == "":
-        message = "All actions were approved\n"
+    if found:
+        message = "Action %d approved:\n %s %s %s\n" % (action_id, user, action, timestamp.strftime("%d %b %H:%M:%S"))
+    else:
+        message = "Action %d not found!\n" % (action_id)
+
     bot.send_message(chat_id=update.message.chat_id, text=message, reply_markup=ReplyKeyboardMarkup(
         keyboard=[admin_keyboard]))
-
-    '''
-    with db_engine.connect() as con:
-        userfrom = update.effective_user
-        logger.debug("userfrom : %s" % userfrom)
-        userID = userfrom.id
-        log = Table(log_table, metadata, autoload=True)
-        actions = Table(actions_table, metadata, autoload=True)
-        ins = log.insert().values(userID=userID, log='Invest request is sent', timestamp=datetime.utcnow())
-        con.execute(ins)
-        ins = actions.insert().values(userID=userID, action='INVEST', timestamp=datetime.utcnow())
-        con.execute(ins)
-        message = "Invest request is sent.\nPlease wait until we process your request.\n"
-        bot.send_message(chat_id=update.message.chat_id, text=message, reply_markup=ReplyKeyboardMarkup(
-            keyboard=[[KeyboardButton(text="/start")]]))
-    '''
 
 
 # TODO: transfers_show
@@ -503,6 +527,7 @@ actions_handler = CommandHandler('actions', actions)
 transfers_show_handler = CommandHandler('transfers', transfers_show)
 OTP_handler = RegexHandler(pattern='^\d{6}$', callback=OTP_command)
 OTP_cancel_handler = RegexHandler(pattern='^0$', callback=CancelOTP)
+action_approve_handler = RegexHandler(pattern='^a\d{1,3}$', callback=action_approve)
 
 dispatcher.add_handler(start_handler)
 dispatcher.add_handler(stats_handler)
@@ -513,6 +538,7 @@ dispatcher.add_handler(OTP_cancel_handler)
 dispatcher.add_handler(contact_handler)
 dispatcher.add_handler(invest_handler)
 dispatcher.add_handler(actions_handler)
+dispatcher.add_handler(action_approve_handler)
 
 dispatcher.add_error_handler(error_callback)
 updater.start_polling()
