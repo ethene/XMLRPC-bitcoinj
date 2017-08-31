@@ -172,6 +172,7 @@ def start(bot, update):
                 keyboard = user_keyboard
                 freshuser = True
             except:
+                logger.error(traceback.format_exc())
                 message = "Failed to create new user, please contact admin"
                 keyboard = user_keyboard
         else:
