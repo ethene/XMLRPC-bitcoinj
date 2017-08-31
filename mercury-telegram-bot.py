@@ -156,6 +156,7 @@ def start(bot, update):
         keyboard = None
 
         if len(response) == 0:
+            # user not found in db
             logger.debug("user not found in db, creating new user %s" % userfrom)
             try:
                 address = XMLRPCServer.getNewAddress()
@@ -171,12 +172,12 @@ def start(bot, update):
                 message += "by making a transfer to your main wallet to your address as below:\n"
                 message += "%s\n" % address
                 keyboard = [[KeyboardButton(text="/start")]]
-                freshuser = True
             except:
                 logger.error(traceback.format_exc())
                 message = "Failed to create new user, please contact admin"
                 keyboard = [[KeyboardButton(text="/contact")]]
         else:
+            #user found in DB
             for u in response:
                 isadmin = u.isadmin == 1
                 logger.debug("user found in db, admin: %s" % isadmin)
@@ -191,26 +192,33 @@ def start(bot, update):
                 message = "Hello, %s!\nWelcome back to use the bot\n" % (username)
                 keyboard = user_keyboard
 
-            if not freshuser:
-                stm = select([positions]).where(positions.c.userID == userID).order_by(desc(positions.c.timestamp))
+            stm = select([positions]).where(positions.c.userID == userID).order_by(desc(positions.c.timestamp))
+            rs = con.execute(stm)
+            response2 = rs.fetchall()
+            address = response[0].address
+            position = response2[0].position
+            withdrawn = response[0].withdrawn
+
+            try:
+                balance = XMLRPCServer.getInputValue(address) - withdrawn
+                unconfirmedTXs = XMLRPCServer.getUnconfirmedTransactions(address)
+                balance = int(balance) / 1e8
+                if balance == 0:
+                    message += "Your wallet is yet empty.\nPlease top-up your account\n"
+                    message += "by making a transfer to your main wallet address\n"
+                    keyboard = [[KeyboardButton(text="/start")]]
+
+                else:
+                    message += "Your balance is %.8f\n" % (balance)
+
+                invest_actions = select([actions]).where(actions.c.userID == userID).where(
+                    actions.c.action == 'INVEST').where(actions.c.approved == None)
                 rs = con.execute(stm)
-                response2 = rs.fetchall()
-                address = response[0].address
-                position = response2[0].position
-                withdrawn = response[0].withdrawn
-
-                try:
-                    balance = XMLRPCServer.getInputValue(address) - withdrawn
-                    unconfirmedTXs = XMLRPCServer.getUnconfirmedTransactions(address)
-                    balance = int(balance) / 1e8
-                    if balance == 0:
-                        message += "Your wallet is yet empty.\nPlease top-up your account\n"
-                        message += "by making a transfer to your main wallet address\n"
-                        keyboard = [[KeyboardButton(text="/start")]]
-
-                    else:
-                        message += "Your balance is %.8f\n" % (balance)
-
+                response3 = rs.fetchall()
+                if len(response3) > 0:
+                    message += "Waiting to add your balance to portfolio\n"
+                    keyboard = [[KeyboardButton(text="/start")]]
+                else:
                     position = int(position) / 1e8
                     message += "Your position is %.8f\n" % (position)
                     message += "Your address is\n%s\n" % address
@@ -221,14 +229,13 @@ def start(bot, update):
                         message += "Pending transaction for: %s XBT\n" % (int(tx['value']) / 1e8)
                         message += "tx ID: %s\n" % tx['ID']
                         keyboard = [[KeyboardButton(text="/start")]]
-
                     if (balance == 0) and (position > 0):
                         message += "Check stats or request portfolio closure\n"
                         keyboard = [[KeyboardButton(text="/stats")], [KeyboardButton(text="/close")]]
 
-                except:
-                    message += "Balance is unavailable, please contact admin"
-                    keyboard = [[KeyboardButton(text="/contact")]]
+            except:
+                message += "Balance is unavailable, please contact admin"
+                keyboard = [[KeyboardButton(text="/contact")]]
 
         if message and keyboard:
             bot.send_message(chat_id=update.message.chat_id, text=message,
