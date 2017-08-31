@@ -167,8 +167,8 @@ def start(bot, update):
                 con.execute(ins)
                 message = "Hello, %s!\nYour new account has just created\n" % (username)
                 message += "Your wallet is yet empty.\nPlease top-up your account\n"
-                message += "by making a transfer to your main wallet address\n"
-                message += "Your address is\n%s\n" % address
+                message += "by making a transfer to your main wallet to your address as below:\n"
+                message += "%s\n" % address
                 keyboard = user_keyboard
                 freshuser = True
             except:
