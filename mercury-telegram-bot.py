@@ -405,9 +405,9 @@ def action_approve(bot, update):
                 break
 
     if found:
-        message = "Action %d approved:\n %s %s %s\n" % (action_id, user, action, timestamp.strftime("%d %b %H:%M:%S"))
+        message = "Action %s approved:\n %s %s %s\n" % (action_id, user, action, timestamp.strftime("%d %b %H:%M:%S"))
     else:
-        message = "Action %d not found!\n" % (action_id)
+        message = "Action %s not found!\n" % (action_id)
 
     bot.send_message(chat_id=update.message.chat_id, text=message, reply_markup=ReplyKeyboardMarkup(
         keyboard=[admin_keyboard]))
