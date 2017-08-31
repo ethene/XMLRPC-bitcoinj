@@ -223,7 +223,7 @@ def start(bot, update):
                     message += "Your address is\n*%s*\n" % address
                     if (len(unconfirmedTXs) == 0) and (balance > 0):
                         message += "Please confirm creation of your portfolio by entering\n/invest\n"
-                        keyboard = [[KeyboardButton(text="/invest")]]
+                        keyboard = [KeyboardButton(text="/invest")]
                     for tx in unconfirmedTXs:
                         message += "Pending transaction for: %s XBT\n" % (int(tx['value']) / 1e8)
                         message += "tx ID: %s\n" % tx['ID']
