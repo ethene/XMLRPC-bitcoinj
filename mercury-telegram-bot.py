@@ -166,6 +166,9 @@ def start(bot, update):
                 ins = log.insert().values(userID=userID, log='new user created')
                 con.execute(ins)
                 message = "Hello, %s!\nYour new account has just created\n" % (username)
+                message += "Your wallet is yet empty.\nPlease top-up your account\n"
+                message += "by making a transfer to your main wallet address\n"
+                message += "Your address is\n%s\n" % address
                 keyboard = user_keyboard
                 freshuser = True
             except:
@@ -201,11 +204,10 @@ def start(bot, update):
                     balance = int(balance) / 1e8
                     if balance == 0:
                         message += "Your wallet is yet empty.\nPlease top-up your account\n"
-                        message += "by making a transfer to your main wallet address:\n %s\n" % (address)
+                        message += "by making a transfer to your main wallet address\n"
 
                     else:
                         message += "Your balance is %.8f\n" % (balance)
-                        message += "Your main wallet address:\n %s\n" % (address)
                     message += "Your position is %.8f\n" % (int(position) / 1e8)
                     message += "Your address is\n%s\n" % address
                     for tx in unconfirmedTXs:
