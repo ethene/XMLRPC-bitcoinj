@@ -220,7 +220,7 @@ def start(bot, update):
                 else:
                     position = int(position) / 1e8
                     message += "Your position is %.8f\n" % (position)
-                    message += "Your address is\n%s\n" % address
+                    message += "Your address is\n*%s*\n" % address
                     if (len(unconfirmedTXs) == 0) and (balance > 0):
                         message += "Please confirm creation of your portfolio by entering\n/invest\n"
                         keyboard = [[KeyboardButton(text="/invest")]]
@@ -240,7 +240,7 @@ def start(bot, update):
             keyboard += admin_keyboard
 
         if message and keyboard:
-            bot.send_message(chat_id=update.message.chat_id, text=message,
+            bot.send_message(chat_id=update.message.chat_id, text=message, parse_mode='Markdown',
                              reply_markup=ReplyKeyboardMarkup(keyboard=[keyboard]))
 
 
@@ -405,7 +405,7 @@ def action_approve(bot, update):
                 break
 
     if found:
-        message = "Action %s approved:\n %s %s %s\n" % (action_id, user, action, timestamp.strftime("%d %b %H:%M:%S"))
+        message = "Action %s approved:\n%s %s [%s]\n" % (action_id, user, action, timestamp.strftime("%d %b %H:%M:%S"))
     else:
         message = "Action %s not found!\n" % (action_id)
 
