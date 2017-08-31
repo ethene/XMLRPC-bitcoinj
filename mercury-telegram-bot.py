@@ -163,7 +163,7 @@ def start(bot, update):
                 con.execute(ins)
                 ins = positions.insert().values(userID=userID, position=0, timestamp=datetime.utcnow)
                 con.execute(ins)
-                ins = log.insert().values(userID=userID, log='new user created')
+                ins = log.insert().values(userID=userID, log='new user created', timestamp=datetime.utcnow)
                 con.execute(ins)
                 message = "Hello, %s!\nYour new account has just created\n" % (username)
                 message += "Your wallet is yet empty.\nPlease top-up your account\n"
@@ -188,7 +188,6 @@ def start(bot, update):
                 keyboard = admin_keyboard
             elif not freshuser:
                 message = "Hello, %s!\nWelcome back to use the bot\n" % (username)
-                # subqry = session.query(func.max(Data.counter)).filter(Data.user_id == user_id)
                 keyboard = user_keyboard
 
             if not freshuser:
