@@ -360,18 +360,21 @@ def unapproved_actions(bot, update):
         return
     actions = Table(actions_table, metadata, autoload=True)
     with db_engine.connect() as con:
-        unapproved_actions = select([actions]).where(actions.c.approved == None).order_by(desc(actions.c.timestamp))
-        rs = con.execute(unapproved_actions)
+        j = actions.join(useraccounts)
+        q = select([actions, useraccounts]).where(actions.c.approved == None).order_by(
+            desc(actions.c.timestamp)).select_from(j)
+        rs = con.execute(q)
         response = rs.fetchall()
         message = ""
         i = 0
         for a in response:
             i += 1
-            user = a.userID
+            username = a.username
+            user_id = a.userID
             action = a.action
             timestamp = a.timestamp
-            message += "*a%d*: [user](tg://user?id=%s) %s [%s]\n" % (
-            i, user, action, timestamp.strftime("%d %b %H:%M:%S"))
+            message += "*a%d*: [%s](tg://user?id=%s) %s [%s]\n" % (
+                i, username, user_id, action, timestamp.strftime("%d %b %H:%M:%S"))
 
     if message == "":
         message = "All actions were approved\n"
