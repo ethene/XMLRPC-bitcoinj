@@ -373,7 +373,7 @@ def unapproved_actions(bot, update):
             user_id = a.userID
             action = a.action
             timestamp = a.timestamp
-            message += "*a%d*: [%s](tg://user?id=%s) %s [%s]\n" % (
+            message += "*a%d*: [%s](tg://user?id=%s) %s (%s)\n" % (
                 i, username, user_id, action, timestamp.strftime("%d %b %H:%M:%S"))
 
     if message == "":
@@ -395,26 +395,29 @@ def action_approve(bot, update):
     actions = Table(actions_table, metadata, autoload=True)
     found = False
     with db_engine.connect() as con:
-        unapproved_actions = select([actions]).where(actions.c.approved == None).order_by(desc(actions.c.timestamp))
-        rs = con.execute(unapproved_actions)
+        j = actions.join(useraccounts)
+        q = select([actions, useraccounts]).where(actions.c.approved == None).order_by(
+            desc(actions.c.timestamp)).select_from(j)
+        rs = con.execute(q)
         response = rs.fetchall()
         message = ""
         i = 0
         for a in response:
             i += 1
             if i == int(action_id):
-                user = a.userID
+                username = a.username
+                user_id = a.userID
                 action = a.action
                 timestamp = a.timestamp
-                upd = actions.update().values(approved=True).where(actions.c.userID == user).where(
+                upd = actions.update().values(approved=True).where(actions.c.userID == user_id).where(
                     actions.c.action == action).where(actions.c.timestamp == timestamp)
                 con.execute(upd)
                 found = True
                 break
 
     if found:
-        message = "Action *%s* approved:\n[user](tg://user?id=%s) %s [%s]\n" % (
-        action_id, user, action, timestamp.strftime("%d %b %H:%M:%S"))
+        message = "Action *%s* approved:\n[%s](tg://user?id=%s) %s (%s)\n" % (
+            action_id, username, user_id, action, timestamp.strftime("%d %b %H:%M:%S"))
     else:
         message = "Action *%s* not found!\n" % (action_id)
 
