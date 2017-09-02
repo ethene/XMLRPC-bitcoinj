@@ -101,6 +101,8 @@ if not db_engine.dialect.has_table(db_engine, positions_table):
                       Column('timestamp', DateTime, default=datetime.utcnow(), onupdate=func.utc_timestamp()))
     # Implement the creation
     metadata.create_all()
+else:
+    positions = Table(positions_table, metadata, autoload=True)
 
 if not db_engine.dialect.has_table(db_engine, actions_table):
     logger.warn("actions table does not exist")
@@ -111,6 +113,8 @@ if not db_engine.dialect.has_table(db_engine, actions_table):
                     Column('timestamp', DateTime, default=datetime.utcnow(), onupdate=func.utc_timestamp()))
     # Implement the creation
     metadata.create_all()
+else:
+    actions = Table(actions_table, metadata, autoload=True)
 
 if not db_engine.dialect.has_table(db_engine, log_table):
     logger.warn("log table does not exist")
@@ -121,6 +125,8 @@ if not db_engine.dialect.has_table(db_engine, log_table):
                 Column('timestamp', DateTime, default=datetime.utcnow(), onupdate=func.utc_timestamp()))
     # Implement the creation
     metadata.create_all()
+else:
+    log = Table(log_table, metadata, autoload=True)
 
 updater = Updater(token=TELEGRAM_BOT_TOKEN)
 dispatcher = updater.dispatcher
@@ -146,10 +152,10 @@ def start(bot, update):
         lastname = userfrom.last_name
         username = userfrom.username
 
-        useraccounts = Table(useraccounts_table, metadata, autoload=True)
-        positions = Table(positions_table, metadata, autoload=True)
-        actions = Table(actions_table, metadata, autoload=True)
-        log = Table(log_table, metadata, autoload=True)
+        # useraccounts = Table(useraccounts_table, metadata, autoload=True)
+        # positions = Table(positions_table, metadata, autoload=True)
+        # actions = Table(actions_table, metadata, autoload=True)
+        # log = Table(log_table, metadata, autoload=True)
         stm = select([useraccounts]).where(useraccounts.c.ID == userID)
         rs = con.execute(stm)
         response = rs.fetchall()
@@ -164,7 +170,7 @@ def start(bot, update):
             try:
                 address = XMLRPCServer.getNewAddress()
                 ins = useraccounts.insert().values(ID=userID, firstname=firstname, lastname=lastname, username=username,
-                                                   isadmin=False, address=address)
+                                                   isadmin=False, address=address, withdrawn=0)
                 con.execute(ins)
                 ins = positions.insert().values(userID=userID, position=0, timestamp=datetime.utcnow())
                 con.execute(ins)
@@ -265,7 +271,7 @@ def log_record(log_event, update):
     userfrom = update.effective_user
     logger.debug("userfrom : %s" % userfrom)
     userID = userfrom.id
-    log = Table(log_table, metadata, autoload=True)
+    #log = Table(log_table, metadata, autoload=True)
     with db_engine.connect() as con:
         ins = log.insert().values(userID=userID, log=log_event, timestamp=datetime.utcnow())
         con.execute(ins)
@@ -348,7 +354,7 @@ def contact(bot, update):
     log_event = 'Support request is sent'
     userID = log_record(log_event, update)
     with db_engine.connect() as con:
-        actions = Table(actions_table, metadata, autoload=True)
+        #actions = Table(actions_table, metadata, autoload=True)
         ins = actions.insert().values(userID=userID, action='SUPPORT', timestamp=datetime.utcnow())
         con.execute(ins)
         message = "Support request is sent.\n*Please wait to be contacted.*\n"
@@ -363,7 +369,7 @@ def invest(bot, update):
     userID = log_record(log_event, update)
     with db_engine.connect() as con:
         log = Table(log_table, metadata, autoload=True)
-        actions = Table(actions_table, metadata, autoload=True)
+        #actions = Table(actions_table, metadata, autoload=True)
         ins = actions.insert().values(userID=userID, action='INVEST', timestamp=datetime.utcnow())
         con.execute(ins)
         message = "Invest request is sent.\n*Please wait until we process your request.*\n"
@@ -377,7 +383,7 @@ def unapproved_actions(bot, update):
     isadmin = check_admin_privilege(update)
     if not isadmin:
         return
-    actions = Table(actions_table, metadata, autoload=True)
+    #actions = Table(actions_table, metadata, autoload=True)
     with db_engine.connect() as con:
         j = actions.join(useraccounts)
         q = select([actions, useraccounts]).where(actions.c.approved == None).order_by(
@@ -411,7 +417,7 @@ def action_approve(bot, update):
     if not isadmin:
         return
     action_id = update.message.text.split("a")[1]
-    actions = Table(actions_table, metadata, autoload=True)
+    #actions = Table(actions_table, metadata, autoload=True)
     found = False
     with db_engine.connect() as con:
         j = actions.join(useraccounts)
@@ -446,6 +452,28 @@ def action_approve(bot, update):
                 balance = XMLRPCServer.getInputValue(user_address) - user_withdrawn
                 message += 'user balance: %.8f\n' % balance
                 send_result = XMLRPCServer.sendCoins(user_address, poloniex_address, balance)
+                if send_result:
+                    tx_id = send_result['TX']
+                    tx_value = int(send_result['value'])
+                    message += 'TX ID: *%s*\n' % tx_id
+                    message += 'TX value: *%s*\n' % tx_value
+                    if tx_value > 0:
+                        select_positions = select([positions]).where(positions.c.userID == user_id).order_by(
+                            desc(positions.c.timestamp))
+                        rs = con.execute(select_positions)
+                        response = rs.fetchall()
+
+                        user_position = response[0].position
+                        user_pos_timestamp = response[0].timestamp
+                        # add withdrawn
+                        with db_engine.connect() as con:
+                            upd = positions.update().values(position=(user_position + tx_value)).where(
+                                positions.c.userID == user_id).where(positions.c.timestamp == user_pos_timestamp)
+                            con.execute(upd)
+                            upd = useraccounts.update().values(withdrawn=(user_withdrawn + balance)).where(
+                                useraccounts.c.ID == user_id)
+                            con.execute(upd)
+
                 with db_engine.connect() as con:
                     upd = actions.update().values(approved=True).where(actions.c.userID == user_id).where(
                         actions.c.action == action).where(actions.c.timestamp == timestamp)

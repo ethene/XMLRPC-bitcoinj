@@ -1,3 +1,6 @@
+#!/home/strky/anaconda3/envs/py36/bin/python
+# -*- coding: utf-8 -*-
+
 import xmlrpc.client
 
 s = xmlrpc.client.ServerProxy('http://localhost:8000')
