@@ -211,7 +211,7 @@ def start(bot, update):
             withdrawn = response[0].withdrawn
 
             try:
-                balance = XMLRPCServer.getInputValue(address) - withdrawn
+                balance = int(XMLRPCServer.getInputValue(address)) - int(withdrawn)
                 unconfirmedTXs = XMLRPCServer.getUnconfirmedTransactions(address)
                 balance = int(balance) / 1e8
                 if balance == 0:
@@ -452,7 +452,7 @@ def action_approve(bot, update):
             logger.debug("invest action started")
             try:
                 logger.debug("getting balance")
-                balance = XMLRPCServer.getInputValue(user_address) - user_withdrawn
+                balance = int(XMLRPCServer.getInputValue(user_address)) - int(user_withdrawn)
                 logger.debug("balance %.8f" % balance / 1e8)
                 message += 'user balance: %.8f\n' % balance / 1e8
                 logger.debug("sending to polo")
