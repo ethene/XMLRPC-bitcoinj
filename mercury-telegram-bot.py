@@ -198,7 +198,7 @@ def start(bot, update):
             except:
                 logger.error(traceback.format_exc())
                 message = "Failed to create new user, please /contact admin"
-                keyboard = [KeyboardButton(text="/contact")]
+                keyboard = [[KeyboardButton(text="/contact")]]
         #TODO: existing user
         else:
             # user found in DB
@@ -267,19 +267,19 @@ def start(bot, update):
                         keyboard = [KeyboardButton(text="/start")]
                     if (balance == 0) and (position > 0):
                         message += "Check portfolio stats or request portfolio closure\n"
-                        keyboard = [KeyboardButton(text="/portfolio"), KeyboardButton(text="/close")]
+                        keyboard = [[KeyboardButton(text="/portfolio")], [KeyboardButton(text="/close")]]
 
             except:
                 logger.error(traceback.format_exc())
                 message += "*Balance is unavailable, please contact admin*"
-                keyboard = [KeyboardButton(text="/contact")]
+                keyboard = [[KeyboardButton(text="/contact")]]
 
         if isadmin:
             keyboard += admin_keyboard
 
         if message and keyboard:
             bot.send_message(chat_id=update.message.chat_id, text=message, parse_mode='Markdown',
-                             reply_markup=ReplyKeyboardMarkup(keyboard=[keyboard]))
+                             reply_markup=ReplyKeyboardMarkup(keyboard=keyboard))
 
 
 # TODO: folio stats
@@ -635,8 +635,8 @@ def plot_graph(df, name, label):
 
 
 if __name__ == "__main__":
-    admin_keyboard = [KeyboardButton(text="/statistics"), KeyboardButton(text="/transfers"),
-                      KeyboardButton(text="/health"), KeyboardButton(text="/actions")]
+    admin_keyboard = [[KeyboardButton(text="/statistics")], [KeyboardButton(text="/transfers")],
+                      [KeyboardButton(text="/health")], [KeyboardButton(text="/actions")]]
     user_keyboard = [KeyboardButton(text="/statistics")]
 
     # TODO: handlers
