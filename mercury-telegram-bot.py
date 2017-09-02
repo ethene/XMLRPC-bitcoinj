@@ -52,6 +52,9 @@ balance_diff_table = 'avg_balance_difference'
 pic_folder = './pictures'
 pic_1_filename = 'balance.png'
 pic_2_filename = 'cumulative.png'
+#
+poloniex_address = 'mwCwTceJvYV27KXBc3NJZys6CjsgsoeHmf'
+bitmex_address = 'mwCwTceJvYV27KXBc3NJZys6CjsgsoeHmf'
 
 XBt_TO_XBT = 100000000
 
@@ -167,17 +170,20 @@ def start(bot, update):
                 con.execute(ins)
                 ins = log.insert().values(userID=userID, log='new user created', timestamp=datetime.utcnow())
                 con.execute(ins)
-                message = "Hello, *%s*!\nYour new account has just created\n" % (username)
+                message = "Hello, *%s*!\nThis is your personal interface to the Mercury crypto hedge fund\n" % (
+                username)
+                message += "Your new account has just created\n"
+                message += "To see the fund performance use /statistics\n"
                 message += "Your wallet is yet empty.\nPlease top-up your account\n"
                 message += "by making a transfer to your main wallet to your address as below:\n"
                 message += "*%s*\n" % address
-                keyboard = [KeyboardButton(text="/start")]
+                keyboard = [KeyboardButton(text="/start"), KeyboardButton(text="/statistics")]
             except:
                 logger.error(traceback.format_exc())
                 message = "Failed to create new user, please contact admin"
                 keyboard = [KeyboardButton(text="/contact")]
         else:
-            #user found in DB
+            # user found in DB
             for u in response:
                 isadmin = u.isadmin == 1
                 logger.debug("user found in db, admin: %s" % isadmin)
@@ -203,9 +209,10 @@ def start(bot, update):
                 unconfirmedTXs = XMLRPCServer.getUnconfirmedTransactions(address)
                 balance = int(balance) / 1e8
                 if balance == 0:
+                    message += "To see the fund performance use /statistics\n"
                     message += "Your wallet is yet empty.\nPlease top-up your account\n"
                     message += "by making a transfer to your main wallet address\n"
-                    keyboard = [KeyboardButton(text="/start")]
+                    keyboard = [KeyboardButton(text="/start"), KeyboardButton(text="/statistics")]
 
                 else:
                     message += "Your balance is *%.8f*\n" % (balance)
@@ -229,8 +236,8 @@ def start(bot, update):
                         message += "tx ID: *%s*\n" % tx['ID']
                         keyboard = [KeyboardButton(text="/start")]
                     if (balance == 0) and (position > 0):
-                        message += "Check stats or request portfolio closure\n"
-                        keyboard = [KeyboardButton(text="/stats"), KeyboardButton(text="/close")]
+                        message += "Check portfolio stats or request portfolio closure\n"
+                        keyboard = [KeyboardButton(text="/portfolio"), KeyboardButton(text="/close")]
 
             except:
                 message += "Balance is unavailable, please contact admin"
@@ -244,21 +251,37 @@ def start(bot, update):
                              reply_markup=ReplyKeyboardMarkup(keyboard=[keyboard]))
 
 
-#TODO: stats
-def stats(bot, update):
-    isadmin = check_admin_privilege(update)
+# TODO: folio stats
+def folio(bot, update):
+    log_event = 'folio stats checked'
+    userID = log_record(log_event, update)
+    df = pd.read_sql_query(sql='SELECT * FROM ' + positions_table + ' WHERE `USERID` = ' + str(userID),
+                           con=db_engine, index_col='timestamp')
+    df_groupped = df.groupby(df.index)['position'].mean()
+    send_stats(bot, df_groupped, update)
+
+
+def log_record(log_event, update):
     userfrom = update.effective_user
     logger.debug("userfrom : %s" % userfrom)
     userID = userfrom.id
-    df_groupped = None
-    if not isadmin:
-        df = pd.read_sql_query(sql='SELECT * FROM ' + positions_table + ' WHERE `USERID` = ' + str(userID),
-                               con=db_engine, index_col='timestamp')
-        df_groupped = df.groupby(df.index)['position'].mean()
-    else:
-        df = pd.read_sql_query(sql='SELECT * FROM ' + balance_table, con=db_engine, index_col='index')
-        df_groupped = df.groupby(df.timestamp.dt.date)['totalbalance'].mean()
+    log = Table(log_table, metadata, autoload=True)
+    with db_engine.connect() as con:
+        ins = log.insert().values(userID=userID, log=log_event, timestamp=datetime.utcnow())
+        con.execute(ins)
+    return userID
 
+
+# TODO: stats
+def stats(bot, update):
+    log_event = 'hedge stats checked'
+    userID = log_record(log_event, update)
+    df = pd.read_sql_query(sql='SELECT * FROM ' + balance_table, con=db_engine, index_col='index')
+    df_groupped = df.groupby(df.timestamp.dt.date)['totalbalance'].mean()
+    send_stats(bot, df_groupped, update)
+
+
+def send_stats(bot, df_groupped, update):
     if len(df_groupped) > 0:
         daily_pc = df_groupped.pct_change().dropna() * 365 * 100
         cumulative_pc = ((df_groupped - df_groupped.ix[0]) / df_groupped.ix[0]) * 100
@@ -272,7 +295,7 @@ def stats(bot, update):
         bot.send_photo(chat_id=update.message.chat_id, photo=picture_2)
 
 
-#TODO: OTP command
+# TODO: OTP command
 def OTP_command(bot, update):
     global last_command
     global last_args
@@ -280,6 +303,8 @@ def OTP_command(bot, update):
     if not isadmin:
         return
     OTP = update.message.text
+    log_event = 'OTP command: ' + OTP
+    userID = log_record(log_event, update)
     message = None
 
     if last_command == 'BW' and last_args > 0.05:
@@ -296,20 +321,21 @@ def OTP_command(bot, update):
         if message:
             bot.send_message(chat_id=update.message.chat_id, text=message, parse_mode='Markdown',
                              reply_markup=ReplyKeyboardMarkup(
-                keyboard=[admin_keyboard]))
+                                 keyboard=[admin_keyboard]))
 
     last_command = None
     last_args = None
 
 
-#TODO: cancet OTP
+# TODO: cancet OTP
 def CancelOTP(bot, update):
     global last_command
     global last_args
     isadmin = check_admin_privilege(update)
     if not isadmin:
         return
-
+    log_event = 'Cancel OTP'
+    userID = log_record(log_event, update)
     last_command = None
     last_args = None
     message = "Command cancelled"
@@ -319,38 +345,31 @@ def CancelOTP(bot, update):
 
 # TODO: contact
 def contact(bot, update):
+    log_event = 'Support request is sent'
+    userID = log_record(log_event, update)
     with db_engine.connect() as con:
-        userfrom = update.effective_user
-        logger.debug("userfrom : %s" % userfrom)
-        userID = userfrom.id
-        log = Table(log_table, metadata, autoload=True)
         actions = Table(actions_table, metadata, autoload=True)
-        ins = log.insert().values(userID=userID, log='Support request is sent', timestamp=datetime.utcnow())
-        con.execute(ins)
         ins = actions.insert().values(userID=userID, action='SUPPORT', timestamp=datetime.utcnow())
         con.execute(ins)
         message = "Support request is sent.\n*Please wait to be contacted.*\n"
         bot.send_message(chat_id=update.message.chat_id, text=message, parse_mode='Markdown',
                          reply_markup=ReplyKeyboardMarkup(
-            keyboard=[[KeyboardButton(text="/start")]]))
+                             keyboard=[[KeyboardButton(text="/start")]]))
 
 
 # TODO: invest
 def invest(bot, update):
+    log_event = 'Invest request is sent'
+    userID = log_record(log_event, update)
     with db_engine.connect() as con:
-        userfrom = update.effective_user
-        logger.debug("userfrom : %s" % userfrom)
-        userID = userfrom.id
         log = Table(log_table, metadata, autoload=True)
         actions = Table(actions_table, metadata, autoload=True)
-        ins = log.insert().values(userID=userID, log='Invest request is sent', timestamp=datetime.utcnow())
-        con.execute(ins)
         ins = actions.insert().values(userID=userID, action='INVEST', timestamp=datetime.utcnow())
         con.execute(ins)
         message = "Invest request is sent.\n*Please wait until we process your request.*\n"
         bot.send_message(chat_id=update.message.chat_id, text=message, parse_mode='Markdown',
                          reply_markup=ReplyKeyboardMarkup(
-            keyboard=[[KeyboardButton(text="/start")]]))
+                             keyboard=[[KeyboardButton(text="/start")]]))
 
 
 # TODO: actions
@@ -400,30 +419,51 @@ def action_approve(bot, update):
             desc(actions.c.timestamp)).select_from(j)
         rs = con.execute(q)
         response = rs.fetchall()
-        message = ""
         i = 0
+        action = None
+        user_address = None
+        user_withdrawn = None
+        user_id = None
+        timestamp = None
         for a in response:
             i += 1
             if i == int(action_id):
                 username = a.username
                 user_id = a.userID
+                user_address = a.address
+                user_withdrawn = a.withdrawn
                 action = a.action
                 timestamp = a.timestamp
-                upd = actions.update().values(approved=True).where(actions.c.userID == user_id).where(
-                    actions.c.action == action).where(actions.c.timestamp == timestamp)
-                con.execute(upd)
+
                 found = True
                 break
 
     if found:
         message = "Action *%s* approved:\n[%s](tg://user?id=%s) %s (%s)\n" % (
             action_id, username, user_id, action, timestamp.strftime("%d %b %H:%M:%S"))
+        if (action == 'INVEST') and user_address and user_withdrawn:
+            try:
+                balance = XMLRPCServer.getInputValue(user_address) - user_withdrawn
+                message += 'user balance: %.8f\n' % balance
+                send_result = XMLRPCServer.sendCoins(user_address, poloniex_address, balance)
+                with db_engine.connect() as con:
+                    upd = actions.update().values(approved=True).where(actions.c.userID == user_id).where(
+                        actions.c.action == action).where(actions.c.timestamp == timestamp)
+                    con.execute(upd)
+            except:
+                message += '*cannot send coins*\n'
+
+        else:
+            with db_engine.connect() as con:
+                upd = actions.update().values(approved=True).where(actions.c.userID == user_id).where(
+                    actions.c.action == action).where(actions.c.timestamp == timestamp)
+                con.execute(upd)
     else:
         message = "Action *%s* not found!\n" % (action_id)
 
     bot.send_message(chat_id=update.message.chat_id, text=message, parse_mode='Markdown',
                      reply_markup=ReplyKeyboardMarkup(
-        keyboard=[admin_keyboard]))
+                         keyboard=[admin_keyboard]))
 
 
 # TODO: transfers_show
@@ -457,7 +497,7 @@ def transfers_show(bot, update):
     last_args = transfer_diff
 
 
-#TODO: health
+# TODO: health
 def health_check(bot, update):
     isadmin = check_admin_privilege(update)
     if not isadmin:
@@ -490,7 +530,7 @@ def health_check(bot, update):
     bot.send_message(chat_id=update.message.chat_id, text=message)
 
 
-#TODO: check_admin_privilege
+# TODO: check_admin_privilege
 def check_admin_privilege(update):
     isadmin = False
     useraccounts = Table(useraccounts_table, metadata, autoload=True)
@@ -507,7 +547,7 @@ def check_admin_privilege(update):
     return isadmin
 
 
-#TODO: plot glaph
+# TODO: plot glaph
 def plot_graph(df, name, label):
     fig, ax = plt.subplots()
     ax.plot(df.index, df, label=label)
@@ -530,9 +570,10 @@ admin_keyboard = [KeyboardButton(text="/statistics"), KeyboardButton(text="/tran
                   KeyboardButton(text="/health"), KeyboardButton(text="/actions")]
 user_keyboard = [KeyboardButton(text="/statistics")]
 
-#TODO: handlers
+# TODO: handlers
 start_handler = CommandHandler('start', start)
 stats_handler = CommandHandler('statistics', stats)
+folio_handler = CommandHandler('portfolio', folio_stats)
 health_handler = CommandHandler('health', health_check)
 contact_handler = CommandHandler('contact', contact)
 invest_handler = CommandHandler('invest', invest)
@@ -544,6 +585,7 @@ action_approve_handler = RegexHandler(pattern='^a\d{1,3}$', callback=action_appr
 
 dispatcher.add_handler(start_handler)
 dispatcher.add_handler(stats_handler)
+dispatcher.add_handler(folio_handler)
 dispatcher.add_handler(health_handler)
 dispatcher.add_handler(transfers_show_handler)
 dispatcher.add_handler(OTP_handler)

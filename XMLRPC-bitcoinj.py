@@ -140,10 +140,10 @@ class RPCFunctions:
         bl = self.kit.wallet().getBalance()
         balance = bl.getValue()
         invalue = self.getInputValue(fromAddress)
-        legal = invalue - amount > org.bitcoinj.core.Transaction.REFERENCE_DEFAULT_MIN_TX_FEE.getValue()
+        legal = invalue - amount >= 0
         logger.debug("invalue: %d, to_send: %d, legal: %s " % (invalue, amount, legal))
         if legal:
-            c = org.bitcoinj.core.Coin.valueOf(amount)
+            c = org.bitcoinj.core.Coin.valueOf(amount).subtract(org.bitcoinj.core.Transaction.DEFAULT_TX_FEE)
             pg = self.kit.peerGroup()
             toAddr = org.bitcoinj.core.Address.fromBase58(params, toAddress)
             sr = self.kit.wallet().sendCoins(pg, toAddr, c)
