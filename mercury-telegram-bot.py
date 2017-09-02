@@ -237,7 +237,7 @@ def start(bot, update):
                 else:
                     message += "Your balance is *%.8f*\n" % (balance)
 
-                new_mail = select([mail]).where(mail.c.userID == userID).where(mail.read == False).order_by(
+                new_mail = select([mail]).where(mail.c.userID == userID).where(mail.c.read == False).order_by(
                     desc(mail.c.timestamp))
                 mail_rs = con.execute(new_mail).fetchall()
                 for m in mail_rs:
