@@ -464,26 +464,24 @@ def action_approve(bot, update):
                     message += 'TX ID: *%s*\n' % tx_id
                     message += 'TX value: *%s*\n' % tx_value
                     if tx_value > 0:
-                        select_positions = select([positions]).where(positions.c.userID == user_id).order_by(
-                            desc(positions.c.timestamp))
-                        rs = con.execute(select_positions)
-                        response = rs.fetchall()
-
-                        user_position = response[0].position
-                        user_pos_timestamp = response[0].timestamp
-                        # add withdrawn
                         with db_engine.connect() as con:
+                            select_positions = select([positions]).where(positions.c.userID == user_id).order_by(
+                            desc(positions.c.timestamp))
+                            rs = con.execute(select_positions)
+                            response = rs.fetchall()
+
+                            user_position = response[0].position
+                            user_pos_timestamp = response[0].timestamp
+
                             upd = positions.update().values(position=(user_position + tx_value)).where(
                                 positions.c.userID == user_id).where(positions.c.timestamp == user_pos_timestamp)
                             con.execute(upd)
                             upd = useraccounts.update().values(withdrawn=(user_withdrawn + balance)).where(
                                 useraccounts.c.ID == user_id)
                             con.execute(upd)
-
-                with db_engine.connect() as con:
-                    upd = actions.update().values(approved=True).where(actions.c.userID == user_id).where(
-                        actions.c.action == action).where(actions.c.timestamp == timestamp)
-                    con.execute(upd)
+                            upd = actions.update().values(approved=True).where(actions.c.userID == user_id).where(
+                                actions.c.action == action).where(actions.c.timestamp == timestamp)
+                            con.execute(upd)
             except:
                 logger.error(traceback.format_exc())
                 message += '*cannot send coins*\n'
