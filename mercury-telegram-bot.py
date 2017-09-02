@@ -449,6 +449,7 @@ def action_approve(bot, update):
             action_id, username, user_id, action, timestamp.strftime("%d %b %H:%M:%S"))
         logger.debug("%s %s %s" % (action, user_address, user_withdrawn))
         if (action == 'INVEST') and user_address and user_withdrawn:
+            logger.debug("invest action started")
             try:
                 balance = XMLRPCServer.getInputValue(user_address) - user_withdrawn
                 message += 'user balance: %.8f\n' % balance
