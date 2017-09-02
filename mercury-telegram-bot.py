@@ -448,7 +448,7 @@ def action_approve(bot, update):
         message = "Action *%s* approved:\n[%s](tg://user?id=%s) %s (%s)\n" % (
             action_id, username, user_id, action, timestamp.strftime("%d %b %H:%M:%S"))
         logger.debug("%s %s %s" % (action, user_address, user_withdrawn))
-        if (action == 'INVEST') and user_address and user_withdrawn:
+        if (action == 'INVEST') and user_address:
             logger.debug("invest action started")
             try:
                 balance = XMLRPCServer.getInputValue(user_address) - user_withdrawn
@@ -596,34 +596,35 @@ def plot_graph(df, name, label):
     plt.savefig(pic_folder + '/' + name)
 
 
-admin_keyboard = [KeyboardButton(text="/statistics"), KeyboardButton(text="/transfers"),
-                  KeyboardButton(text="/health"), KeyboardButton(text="/actions")]
-user_keyboard = [KeyboardButton(text="/statistics")]
+if __name__ == "__main__":
+    admin_keyboard = [KeyboardButton(text="/statistics"), KeyboardButton(text="/transfers"),
+                      KeyboardButton(text="/health"), KeyboardButton(text="/actions")]
+    user_keyboard = [KeyboardButton(text="/statistics")]
 
-# TODO: handlers
-start_handler = CommandHandler('start', start)
-stats_handler = CommandHandler('statistics', stats)
-folio_handler = CommandHandler('portfolio', folio_stats)
-health_handler = CommandHandler('health', health_check)
-contact_handler = CommandHandler('contact', contact)
-invest_handler = CommandHandler('invest', invest)
-actions_handler = CommandHandler('actions', unapproved_actions)
-transfers_show_handler = CommandHandler('transfers', transfers_show)
-OTP_handler = RegexHandler(pattern='^\d{6}$', callback=OTP_command)
-OTP_cancel_handler = RegexHandler(pattern='^0$', callback=CancelOTP)
-action_approve_handler = RegexHandler(pattern='^a\d{1,3}$', callback=action_approve)
+    # TODO: handlers
+    start_handler = CommandHandler('start', start)
+    stats_handler = CommandHandler('statistics', stats)
+    folio_handler = CommandHandler('portfolio', folio_stats)
+    health_handler = CommandHandler('health', health_check)
+    contact_handler = CommandHandler('contact', contact)
+    invest_handler = CommandHandler('invest', invest)
+    actions_handler = CommandHandler('actions', unapproved_actions)
+    transfers_show_handler = CommandHandler('transfers', transfers_show)
+    OTP_handler = RegexHandler(pattern='^\d{6}$', callback=OTP_command)
+    OTP_cancel_handler = RegexHandler(pattern='^0$', callback=CancelOTP)
+    action_approve_handler = RegexHandler(pattern='^a\d{1,3}$', callback=action_approve)
 
-dispatcher.add_handler(start_handler)
-dispatcher.add_handler(stats_handler)
-dispatcher.add_handler(folio_handler)
-dispatcher.add_handler(health_handler)
-dispatcher.add_handler(transfers_show_handler)
-dispatcher.add_handler(OTP_handler)
-dispatcher.add_handler(OTP_cancel_handler)
-dispatcher.add_handler(contact_handler)
-dispatcher.add_handler(invest_handler)
-dispatcher.add_handler(actions_handler)
-dispatcher.add_handler(action_approve_handler)
+    dispatcher.add_handler(start_handler)
+    dispatcher.add_handler(stats_handler)
+    dispatcher.add_handler(folio_handler)
+    dispatcher.add_handler(health_handler)
+    dispatcher.add_handler(transfers_show_handler)
+    dispatcher.add_handler(OTP_handler)
+    dispatcher.add_handler(OTP_cancel_handler)
+    dispatcher.add_handler(contact_handler)
+    dispatcher.add_handler(invest_handler)
+    dispatcher.add_handler(actions_handler)
+    dispatcher.add_handler(action_approve_handler)
 
-dispatcher.add_error_handler(error_callback)
-updater.start_polling()
+    dispatcher.add_error_handler(error_callback)
+    updater.start_polling()
