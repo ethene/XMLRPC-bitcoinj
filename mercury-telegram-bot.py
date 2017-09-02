@@ -45,6 +45,7 @@ XMLRPCServer = xmlrpc.client.ServerProxy('http://localhost:8000')
 
 actions_table = 'telegram_actions'
 log_table = 'telegram_log'
+mail_table = 'telegram_mail'
 useraccounts_table = 'telegram_useraccounts'
 positions_table = 'mercury_positions'
 balance_table = 'mercury_balance'
@@ -128,6 +129,19 @@ if not db_engine.dialect.has_table(db_engine, log_table):
 else:
     log = Table(log_table, metadata, autoload=True)
 
+if not db_engine.dialect.has_table(db_engine, mail_table):
+    logger.warn("mail table does not exist")
+    # Create a table with the appropriate Columns
+    mail = Table(mail_table, metadata,
+                 Column('userID', Integer, ForeignKey(useraccounts.c.ID)),
+                 Column('mail', String(1024)), Column('read', Boolean(), default=False),
+                 Column('timestamp', DateTime, default=datetime.utcnow(), onupdate=func.utc_timestamp()))
+    # Implement the creation
+    metadata.create_all()
+else:
+    mail = Table(mail_table, metadata, autoload=True)
+
+
 updater = Updater(token=TELEGRAM_BOT_TOKEN)
 dispatcher = updater.dispatcher
 
@@ -152,10 +166,6 @@ def start(bot, update):
         lastname = userfrom.last_name
         username = userfrom.username
 
-        # useraccounts = Table(useraccounts_table, metadata, autoload=True)
-        # positions = Table(positions_table, metadata, autoload=True)
-        # actions = Table(actions_table, metadata, autoload=True)
-        # log = Table(log_table, metadata, autoload=True)
         stm = select([useraccounts]).where(useraccounts.c.ID == userID)
         rs = con.execute(stm)
         response = rs.fetchall()
@@ -164,6 +174,7 @@ def start(bot, update):
         message = None
         keyboard = None
 
+        # TODO: new user
         if len(response) == 0:
             # user not found in db
             logger.debug("user not found in db, creating new user %s" % userfrom)
@@ -188,6 +199,7 @@ def start(bot, update):
                 logger.error(traceback.format_exc())
                 message = "Failed to create new user, please contact admin"
                 keyboard = [KeyboardButton(text="/contact")]
+        #TODO: existing user
         else:
             # user found in DB
             for u in response:
@@ -225,11 +237,21 @@ def start(bot, update):
                 else:
                     message += "Your balance is *%.8f*\n" % (balance)
 
+                new_mail = select([mail]).where(mail.c.userID == userID).where(mail.read == False).order_by(
+                    desc(mail.c.timestamp))
+                mail_rs = con.execute(new_mail).fetchall()
+                for m in mail_rs:
+                    message += "*mail: %s\n" % m.mail
+
+                upd = mail.update().values(read=True).where(
+                    mail.c.userID == userID)
+                con.execute(upd)
+
                 invest_actions = select([actions]).where(actions.c.userID == userID).where(
                     actions.c.action == 'INVEST').where(actions.c.approved == None)
-                rs = con.execute(invest_actions)
-                response3 = rs.fetchall()
-                if len(response3) > 0:
+                invest_rs = con.execute(invest_actions).fetchall()
+
+                if len(invest_rs) > 0:
                     message += "Waiting to add your balance to portfolio\n"
                     keyboard = [KeyboardButton(text="/start")]
                 else:
@@ -370,8 +392,6 @@ def invest(bot, update):
     log_event = 'Invest request is sent'
     userID = log_record(log_event, update)
     with db_engine.connect() as con:
-        log = Table(log_table, metadata, autoload=True)
-        #actions = Table(actions_table, metadata, autoload=True)
         ins = actions.insert().values(userID=userID, action='INVEST', timestamp=datetime.utcnow())
         con.execute(ins)
         message = "Invest request is sent.\n*Please wait until we process your request.*\n"
@@ -385,7 +405,6 @@ def unapproved_actions(bot, update):
     isadmin = check_admin_privilege(update)
     if not isadmin:
         return
-    #actions = Table(actions_table, metadata, autoload=True)
     with db_engine.connect() as con:
         j = actions.join(useraccounts)
         q = select([actions, useraccounts]).where(actions.c.approved == None).order_by(
@@ -419,7 +438,6 @@ def action_approve(bot, update):
     if not isadmin:
         return
     action_id = update.message.text.split("a")[1]
-    #actions = Table(actions_table, metadata, autoload=True)
     found = False
     with db_engine.connect() as con:
         j = actions.join(useraccounts)
@@ -450,6 +468,7 @@ def action_approve(bot, update):
         message = "Action *%s* approved:\n[%s](tg://user?id=%s) %s (%s)\n" % (
             action_id, username, user_id, action, timestamp.strftime("%d %b %H:%M:%S"))
         logger.debug("%s %s %s" % (action, user_address, user_withdrawn))
+        #TODO: INVEST APPROVE
         if (action == 'INVEST') and user_address:
             logger.debug("invest action started")
             try:
@@ -481,24 +500,37 @@ def action_approve(bot, update):
                             upd = useraccounts.update().values(withdrawn=(user_withdrawn + balance)).where(
                                 useraccounts.c.ID == user_id)
                             con.execute(upd)
-                            upd = actions.update().values(approved=True).where(actions.c.userID == user_id).where(
-                                actions.c.action == action).where(actions.c.timestamp == timestamp)
-                            con.execute(upd)
+
+                        approve_action(action, timestamp, user_id)
+                        log_event = 'user: %s tx: %s val %s' % (user_id, tx_id, tx_value)
+                        userID = log_record(log_event, update)
+
             except:
                 logger.error(traceback.format_exc())
                 message += '*cannot send coins*\n'
 
-        else:
+        # TODO: SUPPORT APPROVE
+        elif action == 'SUPPORT':
             with db_engine.connect() as con:
-                upd = actions.update().values(approved=True).where(actions.c.userID == user_id).where(
-                    actions.c.action == action).where(actions.c.timestamp == timestamp)
-                con.execute(upd)
+                mail = '*Support is notified and will contact you soon*'
+                ins = useraccounts.insert().values(userID=user_id, read=False, mail=mail, timestamp=datetime.utcnow())
+                con.execute(ins)
+            approve_action(action, timestamp, user_id)
+        else:
+            approve_action(action, timestamp, user_id)
     else:
         message = "Action *%s* not found!\n" % (action_id)
 
     bot.send_message(chat_id=update.message.chat_id, text=message, parse_mode='Markdown',
                      reply_markup=ReplyKeyboardMarkup(
                          keyboard=[admin_keyboard]))
+
+
+def approve_action(action, timestamp, user_id):
+    with db_engine.connect() as con:
+        upd = actions.update().values(approved=True).where(actions.c.userID == user_id).where(
+            actions.c.action == action).where(actions.c.timestamp == timestamp)
+        con.execute(upd)
 
 
 # TODO: transfers_show
