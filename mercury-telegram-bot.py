@@ -451,9 +451,13 @@ def action_approve(bot, update):
         if (action == 'INVEST') and user_address:
             logger.debug("invest action started")
             try:
+                logger.debug("getting balance")
                 balance = XMLRPCServer.getInputValue(user_address) - user_withdrawn
-                message += 'user balance: %.8f\n' % balance
+                logger.debug("balance %.8f" % balance / 1e8)
+                message += 'user balance: %.8f\n' % balance / 1e8
+                logger.debug("sending to polo")
                 send_result = XMLRPCServer.sendCoins(user_address, poloniex_address, balance)
+                logger.debug("sr: %s" % send_result)
                 if send_result:
                     tx_id = send_result['TX']
                     tx_value = int(send_result['value'])
