@@ -233,6 +233,7 @@ logger.debug("balance: %.8f XBT" % (float(balance) / 1e8))
 sl = SenderListener(pg)
 
 transactions = kit.wallet().getTransactions(True)
+addr_balance = {}
 invalue = 0
 for t in transactions:
     confidence = t.getConfidence()
@@ -240,8 +241,16 @@ for t in transactions:
     t_outputs = t.getOutputs()
     for to in t_outputs:
         to_addr = to.getAddressFromP2PKHScript(params).toString()
-        logger.debug("addr: %s" % to_addr)
-        logger.debug("value: %s" % to.getValue().toString())
+        value = to.getValue()
+        if to_addr in addr_balance:
+            addr_balance[to_addr] += value
+        else:
+            addr_balance[to_addr] = value
+            # logger.debug("addr: %s" % to_addr)
+            # logger.debug("value: %s" % value)
+
+for a in addr_balance:
+    logger.debug("addr: %s value %s" % (a, addr_balance[a]))
 
 wallet.addEventListener(sl)
 logger.debug("finished initialisation - now in main event loop")
