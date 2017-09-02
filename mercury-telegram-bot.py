@@ -211,8 +211,10 @@ def start(bot, update):
             withdrawn = response[0].withdrawn
 
             try:
-                balance = int(XMLRPCServer.getInputValue(address)) - int(withdrawn)
+                balance = XMLRPCServer.getInputValue(address) - withdrawn
+                logger.debug("balance %.8f" % (balance / 1e8))
                 unconfirmedTXs = XMLRPCServer.getUnconfirmedTransactions(address)
+                logger.debug("unconfirmed: %s" % unconfirmedTXs)
                 balance = int(balance) / 1e8
                 if balance == 0:
                     message += "To see the fund performance use /statistics\n"
