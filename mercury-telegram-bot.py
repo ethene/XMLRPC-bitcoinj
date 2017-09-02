@@ -258,7 +258,7 @@ def start(bot, update):
 
 
 # TODO: folio stats
-def folio(bot, update):
+def folio_stats(bot, update):
     log_event = 'folio stats checked'
     userID = log_record(log_event, update)
     df = pd.read_sql_query(sql='SELECT * FROM ' + positions_table + ' WHERE `USERID` = ' + str(userID),
