@@ -197,7 +197,7 @@ def start(bot, update):
                 keyboard = [KeyboardButton(text="/start"), KeyboardButton(text="/statistics")]
             except:
                 logger.error(traceback.format_exc())
-                message = "Failed to create new user, please contact admin"
+                message = "Failed to create new user, please /contact admin"
                 keyboard = [KeyboardButton(text="/contact")]
         #TODO: existing user
         else:
@@ -270,7 +270,8 @@ def start(bot, update):
                         keyboard = [KeyboardButton(text="/portfolio"), KeyboardButton(text="/close")]
 
             except:
-                message += "Balance is unavailable, please contact admin"
+                logger.error(traceback.format_exc())
+                message += "*Balance is unavailable, please contact admin*"
                 keyboard = [KeyboardButton(text="/contact")]
 
         if isadmin:
