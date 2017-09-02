@@ -485,6 +485,7 @@ def action_approve(bot, update):
                         actions.c.action == action).where(actions.c.timestamp == timestamp)
                     con.execute(upd)
             except:
+                logger.error(traceback.format_exc())
                 message += '*cannot send coins*\n'
 
         else:
