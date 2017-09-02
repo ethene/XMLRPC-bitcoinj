@@ -275,7 +275,7 @@ def start(bot, update):
                 keyboard = [KeyboardButton(text="/contact")]
 
         if isadmin:
-            keyboard.append(admin_keyboard)
+            keyboard += admin_keyboard
 
         if message and keyboard:
             bot.send_message(chat_id=update.message.chat_id, text=message, parse_mode='Markdown',
