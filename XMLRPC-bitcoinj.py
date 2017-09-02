@@ -241,7 +241,7 @@ for t in transactions:
     t_outputs = t.getOutputs()
     for to in t_outputs:
         to_addr = to.getAddressFromP2PKHScript(params).toString()
-        value = to.getValue()
+        value = int(to.getValue().toString())
         if to_addr in addr_balance:
             addr_balance[to_addr] += value
         else:
