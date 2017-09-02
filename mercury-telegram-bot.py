@@ -447,6 +447,7 @@ def action_approve(bot, update):
     if found:
         message = "Action *%s* approved:\n[%s](tg://user?id=%s) %s (%s)\n" % (
             action_id, username, user_id, action, timestamp.strftime("%d %b %H:%M:%S"))
+        logger.debug("%s %s %s" % (action, user_address, user_withdrawn))
         if (action == 'INVEST') and user_address and user_withdrawn:
             try:
                 balance = XMLRPCServer.getInputValue(user_address) - user_withdrawn
