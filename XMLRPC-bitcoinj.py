@@ -214,7 +214,7 @@ class SenderListener(AbstractWalletEventListener):
                 logger.debug("confirmed: %s" % valueConfirmed)
                 for to in tx.getOutputs():
                     addr = to.getAddressFromP2PKHScript(params).toString()
-                    logger.debug("receiver address: %s" % addr)
+                    logger.debug("confirmed receiver address: %s" % addr)
 
         Futures.addCallback(tx.getConfidence().getDepthFuture(confirm_wait), myFutureCallback(tx))
 
@@ -232,7 +232,6 @@ balance = wallet.getBalance().getValue()
 logger.debug("balance: %.8f XBT" % (float(balance) / 1e8))
 sl = SenderListener(pg)
 
-'''
 transactions = kit.wallet().getTransactions(True)
 invalue = 0
 for t in transactions:
@@ -243,7 +242,6 @@ for t in transactions:
         to_addr = to.getAddressFromP2PKHScript(params).toString()
         logger.debug("addr: %s" % to_addr)
         logger.debug("value: %s" % to.getValue().toString())
-'''
 
 wallet.addEventListener(sl)
 logger.debug("finished initialisation - now in main event loop")
