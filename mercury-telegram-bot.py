@@ -213,7 +213,7 @@ def start(bot, update):
                 message += "*%s*\n" % address
                 keyboard = [KeyboardButton(text="/start"), KeyboardButton(text="/statistics"),
                             KeyboardButton(text="/help")]
-                msg = "*New user created [%s](tg://user?id=%s)*\n" % (userID, userID)
+                msg = "New user created [%s](tg://user?id=%s)\n" % (userID, userID)
                 bot.send_message(chat_id=TELEGRAM_CHANNEL_NAME, text=msg, parse_mode='Markdown')
             except:
                 logger.error(traceback.format_exc())
@@ -221,7 +221,7 @@ def start(bot, update):
                 log_record(log_event, update)
                 message = "Failed to create new user, please /contact admin"
                 keyboard = [[KeyboardButton(text="/contact")]]
-                msg = "*failed to create user [%s](tg://user?id=%s)*\n" % (userID, userID)
+                msg = "failed to create user [%s](tg://user?id=%s)\n" % (userID, userID)
                 bot.send_message(chat_id=TELEGRAM_CHANNEL_NAME, text=msg, parse_mode='Markdown')
         # TODO: existing user
         else:
@@ -301,7 +301,7 @@ def start(bot, update):
                 log_record(log_event, update)
                 message += "*Balance is unavailable, please contact admin*"
                 keyboard = [[KeyboardButton(text="/contact")]]
-                msg = "*Balance is unavailable [%s](tg://user?id=%s)*\n" % (userID, userID)
+                msg = "Balance is unavailable [%s](tg://user?id=%s)\n" % (userID, userID)
                 bot.send_message(chat_id=TELEGRAM_CHANNEL_NAME, text=msg, parse_mode='Markdown')
 
         if isadmin:
@@ -432,18 +432,20 @@ def invest(bot, update):
         try:
             balance = XMLRPCServer.getInputValue(address) - withdrawn
             logger.debug("balance %.8f" % (balance / 1e8))
-
-            ins = actions.insert().values(userID=userID, action='INVEST', args=balance, timestamp=datetime.utcnow())
-            con.execute(ins)
-            message = "Invest request is sent.\n*Please wait until we double-check and process your request.*\n"
+            if balance > 0:
+                ins = actions.insert().values(userID=userID, action='INVEST', args=balance, timestamp=datetime.utcnow())
+                con.execute(ins)
+                message = "Invest request is sent.\n*Please wait until we double-check and process your request.*\n"
+                msg = "New invest request from [%s](tg://user?id=%s)\n" % (userID, userID)
+                bot.send_message(chat_id=TELEGRAM_CHANNEL_NAME, text=msg, parse_mode='Markdown')
+            else:
+                message = "*Please top-up your wallet first and wait until your funds are confirmed.*"
             bot.send_message(chat_id=update.message.chat_id, text=message, parse_mode='Markdown',
                              reply_markup=ReplyKeyboardMarkup(
                                  keyboard=[[KeyboardButton(text="/start")]]))
-            msg = "*New invest request from [%s](tg://user?id=%s)*\n" % (userID, userID)
-            bot.send_message(chat_id=TELEGRAM_CHANNEL_NAME, text=msg, parse_mode='Markdown')
         except:
             logger.error(traceback.format_exc())
-            msg = "*Invest request error from [%s](tg://user?id=%s)*\n" % (userID, userID)
+            msg = "Invest request error from [%s](tg://user?id=%s)\n" % (userID, userID)
             bot.send_message(chat_id=TELEGRAM_CHANNEL_NAME, text=msg, parse_mode='Markdown')
 
 
