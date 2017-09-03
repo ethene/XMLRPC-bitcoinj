@@ -268,7 +268,7 @@ def start(bot, update):
                                 KeyboardButton(text="/help")]
 
                 else:
-                    message += "Your balance is *%.8f*\n" % (balance)
+                    message += "Your balance is *%.8f* BTC\n" % (balance)
 
                 new_mail = select([mail]).where(mail.c.userID == userID).where(mail.c.read == False).order_by(
                     desc(mail.c.timestamp))
@@ -292,13 +292,13 @@ def start(bot, update):
                     if (balance == 0) and (position > 0):
                         message += "Check /portfolio stats\n"
                         keyboard = [[KeyboardButton(text="/portfolio")]]
-                    message += "Your position is *%.8f*\n" % (position)
+                    message += "Your position is *%.8f* BTC\n" % (position)
                     message += "Your address is\n*%s*\n" % address
                     if (len(unconfirmedTXs) == 0) and (balance > 0):
                         message += "Please confirm creation of your portfolio by entering\n/invest\n"
                         keyboard = [[KeyboardButton(text="/invest")]]
                     for tx in unconfirmedTXs:
-                        message += "Pending transaction for: %s XBT\n" % (int(tx['value']) / 1e8)
+                        message += "Pending transaction for: %s BTC\n" % (int(tx['value']) / 1e8)
                         message += "tx ID: *%s*\n" % tx['ID']
                         keyboard = [[KeyboardButton(text="/start")]]
 
