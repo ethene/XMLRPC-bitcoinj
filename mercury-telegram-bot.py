@@ -192,6 +192,7 @@ def start(bot, update):
         isadmin = False
         message = None
         keyboard = None
+        address = None
 
         # TODO: new user
         if len(response) == 0:
@@ -294,7 +295,6 @@ def start(bot, update):
                     if (balance == 0) and (position > 0):
                         message += "Would you check /portfolio stats?\n"
                         keyboard = [[KeyboardButton(text="/portfolio")]]
-                    message += "Your address is\n*%s*\n" % address
                     if (len(unconfirmedTXs) == 0) and (balance > 0):
                         message += "Please confirm creation of your portfolio by entering\n/invest\n"
                         keyboard = [[KeyboardButton(text="/invest")]]
@@ -302,6 +302,7 @@ def start(bot, update):
                         message += "Pending transaction for: %s BTC\n" % (int(tx['value']) / 1e8)
                         message += "tx ID: *%s*\n" % tx['ID']
                         keyboard = [[KeyboardButton(text="/start")]]
+                    message += "Your address is\n"
 
             except:
                 logger.error(traceback.format_exc())
@@ -319,6 +320,9 @@ def start(bot, update):
         if message and keyboard:
             bot.send_message(chat_id=update.message.chat_id, text=message, parse_mode='Markdown',
                              reply_markup=ReplyKeyboardMarkup(keyboard=keyboard))
+            if address:
+                bot.send_message(chat_id=update.message.chat_id, text="*%s*" % address, parse_mode='Markdown',
+                                 reply_markup=ReplyKeyboardMarkup(keyboard=keyboard))
 
 
 # TODO: folio stats
