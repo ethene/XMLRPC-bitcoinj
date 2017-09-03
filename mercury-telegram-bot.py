@@ -294,6 +294,7 @@ def start(bot, update):
         if isadmin:
             keyboard += admin_keyboard
 
+        logger.debug("msg: %s" % message)
         if message and keyboard:
             bot.send_message(chat_id=update.message.chat_id, text=message, parse_mode='Markdown',
                              reply_markup=ReplyKeyboardMarkup(keyboard=keyboard))
