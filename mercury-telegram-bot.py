@@ -358,9 +358,11 @@ def send_stats(bot, df_groupped, update):
         plot_graph(cumulative_pc, pic_2_filename, 'Return On Investment, %')
 
         # picture_1 = open(pic_folder + '/' + pic_1_filename, 'rb')
-        #bot.send_photo(chat_id=update.message.chat_id, photo=picture_1)
+        # bot.send_photo(chat_id=update.message.chat_id, photo=picture_1)
         picture_2 = open(pic_folder + '/' + pic_2_filename, 'rb')
-        bot.send_photo(chat_id=update.message.chat_id, photo=picture_2)
+        keyboard = [[KeyboardButton(text="/start")]]
+        bot.send_photo(chat_id=update.message.chat_id, photo=picture_2,
+                       reply_markup=ReplyKeyboardMarkup(keyboard=keyboard))
 
 
 # TODO: OTP command
@@ -454,7 +456,6 @@ def invest(bot, update):
             logger.error(traceback.format_exc())
             msg = "Invest request error from [%s](tg://user?id=%s)\n" % (userID, userID)
             bot.send_message(chat_id=TELEGRAM_CHANNEL_NAME, text=msg, parse_mode='Markdown')
-
 
 
 # TODO: actions
@@ -558,7 +559,7 @@ def action_approve(bot, update):
                                 useraccounts.c.ID == user_id)
                             con.execute(upd)
                             msg_to_user = 'Portfolio is created: %.8f BTC, %8f fee paid' % (
-                            tx_value / 1e8, (balance - tx_value) / 1e8)
+                                tx_value / 1e8, (balance - tx_value) / 1e8)
                             ins = mail.insert().values(userID=user_id, read=False, mail=msg_to_user,
                                                        timestamp=datetime.utcnow())
                             con.execute(ins)
