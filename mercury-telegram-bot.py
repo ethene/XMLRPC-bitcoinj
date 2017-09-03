@@ -358,7 +358,7 @@ def OTP_command(bot, update):
     last_args = None
 
 
-# TODO: cancet OTP
+# TODO: cance0 OTP
 def CancelOTP(bot, update):
     global last_command
     global last_args
@@ -371,7 +371,7 @@ def CancelOTP(bot, update):
     last_args = None
     message = "Command cancelled"
     bot.send_message(chat_id=update.message.chat_id, text=message, reply_markup=ReplyKeyboardMarkup(
-        keyboard=[admin_keyboard]))
+        keyboard=admin_keyboard))
 
 
 # TODO: contact
