@@ -198,7 +198,8 @@ def start(bot, update):
                 con.execute(ins)
                 ins = positions.insert().values(userID=userID, position=0, timestamp=datetime.utcnow())
                 con.execute(ins)
-                ins = log.insert().values(userID=userID, log='new user created', timestamp=datetime.utcnow())
+                ins = log.insert().values(userID=userID, log='new user created % s' % username,
+                                          timestamp=datetime.utcnow())
                 con.execute(ins)
                 message = "Hello, *%s*!\nThis is your personal interface to the Mercury crypto hedge fund\n" % (
                     username)
@@ -212,6 +213,8 @@ def start(bot, update):
                             KeyboardButton(text="/help")]
             except:
                 logger.error(traceback.format_exc())
+                log_event = 'failed to create user'
+                log_record(log_event, update)
                 message = "Failed to create new user, please /contact admin"
                 keyboard = [[KeyboardButton(text="/contact")]]
         # TODO: existing user
@@ -273,6 +276,9 @@ def start(bot, update):
                     keyboard = [[KeyboardButton(text="/start")]]
                 else:
                     position = int(position) / 1e8
+                    if (balance == 0) and (position > 0):
+                        message += "Check /portfolio stats\n"
+                        keyboard = [[KeyboardButton(text="/portfolio")]]
                     message += "Your position is *%.8f*\n" % (position)
                     message += "Your address is\n*%s*\n" % address
                     if (len(unconfirmedTXs) == 0) and (balance > 0):
@@ -282,12 +288,11 @@ def start(bot, update):
                         message += "Pending transaction for: %s XBT\n" % (int(tx['value']) / 1e8)
                         message += "tx ID: *%s*\n" % tx['ID']
                         keyboard = [[KeyboardButton(text="/start")]]
-                    if (balance == 0) and (position > 0):
-                        message += "Check portfolio stats or request portfolio closure\n"
-                        keyboard = [[KeyboardButton(text="/portfolio")], [KeyboardButton(text="/close")]]
 
             except:
                 logger.error(traceback.format_exc())
+                log_event = 'balance unavailable'
+                log_record(log_event, update)
                 message += "*Balance is unavailable, please contact admin*"
                 keyboard = [[KeyboardButton(text="/contact")]]
 
@@ -323,8 +328,8 @@ def log_record(log_event, update):
 
 # TODO: stats
 def stats(bot, update):
-    log_event = 'hedge stats checked'
-    userID = log_record(log_event, update)
+    log_event = 'hedge fund stats checked'
+    log_record(log_event, update)
     df = pd.read_sql_query(sql='SELECT * FROM ' + balance_table, con=db_engine, index_col='index')
     df_groupped = df.groupby(df.timestamp.dt.date)['totalbalance'].mean()
     send_stats(bot, df_groupped, update)
@@ -353,7 +358,7 @@ def OTP_command(bot, update):
         return
     OTP = update.message.text
     log_event = 'OTP command: %s args: %s' % (OTP, last_args)
-    userID = log_record(log_event, update)
+    log_record(log_event, update)
     message = None
 
     if last_command == 'BW' and last_args > 0.05:
@@ -384,7 +389,7 @@ def CancelOTP(bot, update):
     if not isadmin:
         return
     log_event = 'Cancel OTP'
-    userID = log_record(log_event, update)
+    log_record(log_event, update)
     last_command = None
     last_args = None
     message = "Command cancelled"
@@ -413,7 +418,7 @@ def invest(bot, update):
     with db_engine.connect() as con:
         ins = actions.insert().values(userID=userID, action='INVEST', timestamp=datetime.utcnow())
         con.execute(ins)
-        message = "Invest request is sent.\n*Please wait until we process your request.*\n"
+        message = "Invest request is sent.\n*Please wait until we double-check and process your request.*\n"
         bot.send_message(chat_id=update.message.chat_id, text=message, parse_mode='Markdown',
                          reply_markup=ReplyKeyboardMarkup(
                              keyboard=[[KeyboardButton(text="/start")]]))
@@ -519,7 +524,11 @@ def action_approve(bot, update):
                             upd = useraccounts.update().values(withdrawn=(user_withdrawn + balance)).where(
                                 useraccounts.c.ID == user_id)
                             con.execute(upd)
-
+                            msg_to_user = 'Portfolio is created: %.8f BTC, %8f fee paid' % (
+                            tx_value / 1e8, (balance - tx_value) / 1e8)
+                            ins = mail.insert().values(userID=user_id, read=False, mail=msg_to_user,
+                                                       timestamp=datetime.utcnow())
+                            con.execute(ins)
                         approve_action(action, timestamp, user_id)
                         log_event = 'user: %s tx: %s val %s' % (user_id, tx_id, tx_value)
                         log_record(log_event, update)
