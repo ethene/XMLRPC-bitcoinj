@@ -212,12 +212,16 @@ def start(bot, update):
                 message += "*%s*\n" % address
                 keyboard = [KeyboardButton(text="/start"), KeyboardButton(text="/statistics"),
                             KeyboardButton(text="/help")]
+                msg = "*New user created [%s](tg://user?id=%s)*\n" % (userID, userID)
+                bot.send_message(chat_id=TELEGRAM_CHANNEL_NAME, text=msg, parse_mode='Markdown')
             except:
                 logger.error(traceback.format_exc())
                 log_event = 'failed to create user'
                 log_record(log_event, update)
                 message = "Failed to create new user, please /contact admin"
                 keyboard = [[KeyboardButton(text="/contact")]]
+                msg = "*failed to create user [%s](tg://user?id=%s)*\n" % (userID, userID)
+                bot.send_message(chat_id=TELEGRAM_CHANNEL_NAME, text=msg, parse_mode='Markdown')
         # TODO: existing user
         else:
             # user found in DB
@@ -296,6 +300,8 @@ def start(bot, update):
                 log_record(log_event, update)
                 message += "*Balance is unavailable, please contact admin*"
                 keyboard = [[KeyboardButton(text="/contact")]]
+                msg = "*Balance is unavailable [%s](tg://user?id=%s)*\n" % (userID, userID)
+                bot.send_message(chat_id=TELEGRAM_CHANNEL_NAME, text=msg, parse_mode='Markdown')
 
         if isadmin:
             keyboard += admin_keyboard
@@ -320,7 +326,6 @@ def log_record(log_event, update):
     userfrom = update.effective_user
     logger.debug("userfrom : %s" % userfrom)
     userID = userfrom.id
-    # log = Table(log_table, metadata, autoload=True)
     with db_engine.connect() as con:
         ins = log.insert().values(userID=userID, log=log_event, timestamp=datetime.utcnow())
         con.execute(ins)
@@ -410,8 +415,8 @@ def contact(bot, update):
         bot.send_message(chat_id=update.message.chat_id, text=message, parse_mode='Markdown',
                          reply_markup=ReplyKeyboardMarkup(
                              keyboard=[[KeyboardButton(text="/start")]]))
-        message = "*New support request from %s*\n" % userID
-        bot.send_message(chat_id=TELEGRAM_CHANNEL_NAME, text=message, parse_mode='Markdown')
+        msg = "*New support request from [%s](tg://user?id=%s)*\n" % (userID, userID)
+        bot.send_message(chat_id=TELEGRAM_CHANNEL_NAME, text=msg, parse_mode='Markdown')
 
 
 # TODO: invest
@@ -425,6 +430,8 @@ def invest(bot, update):
         bot.send_message(chat_id=update.message.chat_id, text=message, parse_mode='Markdown',
                          reply_markup=ReplyKeyboardMarkup(
                              keyboard=[[KeyboardButton(text="/start")]]))
+        msg = "*New invest request from [%s](tg://user?id=%s)*\n" % (userID, userID)
+        bot.send_message(chat_id=TELEGRAM_CHANNEL_NAME, text=msg, parse_mode='Markdown')
 
 
 # TODO: actions
