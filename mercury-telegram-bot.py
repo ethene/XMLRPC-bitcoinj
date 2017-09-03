@@ -416,7 +416,7 @@ def contact(bot, update):
         bot.send_message(chat_id=update.message.chat_id, text=message, parse_mode='Markdown',
                          reply_markup=ReplyKeyboardMarkup(
                              keyboard=[[KeyboardButton(text="/start")]]))
-        msg = "*New support request from [%s](tg://user?id=%s)*\n" % (userID, userID)
+        msg = "New support request from [%s](tg://user?id=%s)\n" % (userID, userID)
         bot.send_message(chat_id=TELEGRAM_CHANNEL_NAME, text=msg, parse_mode='Markdown')
 
 
