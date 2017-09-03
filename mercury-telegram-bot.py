@@ -56,6 +56,7 @@ pic_2_filename = 'cumulative.png'
 #
 poloniex_address = 'mwCwTceJvYV27KXBc3NJZys6CjsgsoeHmf'
 bitmex_address = 'mwCwTceJvYV27KXBc3NJZys6CjsgsoeHmf'
+TELEGRAM_CHANNEL_NAME = '-1001106984254'
 
 XBt_TO_XBT = 100000000
 
@@ -337,14 +338,14 @@ def stats(bot, update):
 
 def send_stats(bot, df_groupped, update):
     if len(df_groupped) > 0:
-        daily_pc = df_groupped.pct_change().dropna() * 365 * 100
+        # daily_pc = df_groupped.pct_change().dropna() * 365 * 100
         cumulative_pc = ((df_groupped - df_groupped.ix[0]) / df_groupped.ix[0]) * 100
 
-        plot_graph(daily_pc, pic_1_filename, 'Yearly %')
-        plot_graph(cumulative_pc, pic_2_filename, 'Cumulative growth %')
+        # plot_graph(daily_pc, pic_1_filename, 'Yearly %')
+        plot_graph(cumulative_pc, pic_2_filename, 'Return On Investment, %')
 
-        picture_1 = open(pic_folder + '/' + pic_1_filename, 'rb')
-        bot.send_photo(chat_id=update.message.chat_id, photo=picture_1)
+        # picture_1 = open(pic_folder + '/' + pic_1_filename, 'rb')
+        #bot.send_photo(chat_id=update.message.chat_id, photo=picture_1)
         picture_2 = open(pic_folder + '/' + pic_2_filename, 'rb')
         bot.send_photo(chat_id=update.message.chat_id, photo=picture_2)
 
@@ -409,6 +410,8 @@ def contact(bot, update):
         bot.send_message(chat_id=update.message.chat_id, text=message, parse_mode='Markdown',
                          reply_markup=ReplyKeyboardMarkup(
                              keyboard=[[KeyboardButton(text="/start")]]))
+        message = "*New support request from %s*\n" % userID
+        bot.send_message(chat_id=TELEGRAM_CHANNEL_NAME, text=message, parse_mode='Markdown')
 
 
 # TODO: invest

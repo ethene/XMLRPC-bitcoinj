@@ -219,43 +219,45 @@ class SenderListener(AbstractWalletEventListener):
         Futures.addCallback(tx.getConfidence().getDepthFuture(confirm_wait), myFutureCallback(tx))
 
 
-f = File(walletFolder)
-kit = WalletAppKit(params, f, filePrefix)
-kit.setAutoSave(True)
-logger.debug("initializing...")
-kit.startAsync()
-kit.awaitRunning()
-pg = kit.peerGroup()
-wallet = kit.wallet()
+# TODO: main loop
+if __name__ == "__main__":
+    f = File(walletFolder)
+    kit = WalletAppKit(params, f, filePrefix)
+    kit.setAutoSave(True)
+    logger.debug("initializing...")
+    kit.startAsync()
+    kit.awaitRunning()
+    pg = kit.peerGroup()
+    wallet = kit.wallet()
 
-balance = wallet.getBalance().getValue()
-logger.debug("balance: %.8f XBT" % (float(balance) / 1e8))
-sl = SenderListener(pg)
+    balance = wallet.getBalance().getValue()
+    logger.debug("balance: %.8f XBT" % (float(balance) / 1e8))
+    sl = SenderListener(pg)
 
-transactions = kit.wallet().getTransactions(True)
-addr_balance = {}
-invalue = 0
-for t in transactions:
-    confidence = t.getConfidence()
-    depth = confidence.getDepthInBlocks()
-    t_outputs = t.getOutputs()
-    for to in t_outputs:
-        to_addr = to.getAddressFromP2PKHScript(params).toString()
-        value = int(to.getValue().toString())
-        if to_addr in addr_balance:
-            addr_balance[to_addr] += value
-        else:
-            addr_balance[to_addr] = value
-            # logger.debug("addr: %s" % to_addr)
-            # logger.debug("value: %s" % value)
+    transactions = kit.wallet().getTransactions(True)
+    addr_balance = {}
+    invalue = 0
+    for t in transactions:
+        confidence = t.getConfidence()
+        depth = confidence.getDepthInBlocks()
+        t_outputs = t.getOutputs()
+        for to in t_outputs:
+            to_addr = to.getAddressFromP2PKHScript(params).toString()
+            value = int(to.getValue().toString())
+            if to_addr in addr_balance:
+                addr_balance[to_addr] += value
+            else:
+                addr_balance[to_addr] = value
+                # logger.debug("addr: %s" % to_addr)
+                # logger.debug("value: %s" % value)
 
-for a in addr_balance:
-    logger.debug("addr: %s value %s" % (a, addr_balance[a]))
+    for a in addr_balance:
+        logger.debug("addr: %s value %s" % (a, addr_balance[a]))
 
-wallet.addEventListener(sl)
-logger.debug("finished initialisation - now in main event loop")
+    wallet.addEventListener(sl)
+    logger.debug("finished initialisation - now in main event loop")
 
-server.register_instance(RPCFunctions(kit))
+    server.register_instance(RPCFunctions(kit))
 
-# Run the server's main loop
-server.serve_forever()
+    # Run the server's main loop
+    server.serve_forever()
