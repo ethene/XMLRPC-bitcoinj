@@ -599,22 +599,23 @@ def transfers_show(bot, update):
     transfer_record = df.to_dict(orient='records')
     transfer_diff = round(transfer_record[0]['avg_balance_difference'] * 0.5, 6)
     if transfer_diff > 0:
-        direction = '->'
+        direction = '*->*'
         last_command = 'BW'
         last_args = transfer_diff
     elif transfer_diff < 0:
-        direction = '<-'
+        direction = '*<-*'
         last_command = 'PW'
         last_args = abs(transfer_diff)
 
-    message = "BitMEX %s Poloniex %.6f\n" % (direction, abs(transfer_diff))
+    message = "_BitMEX_ %s _Poloniex_ %.6f\n" % (direction, abs(transfer_diff))
     result = bitmex.min_withdrawal_fee()
     logger.debug(result)
-    message += "Min fee is: %s\n" % (result['minFee'] / XBt_TO_XBT)
+    message += "_Min fee is:_ %s\n" % (result['minFee'] / XBt_TO_XBT)
 
-    message += "Current UTC now is %s\n" % (datetime.utcnow().strftime("%H:%M:%S"))
+    message += "_Current UTC now is_ %s\n" % (datetime.utcnow().strftime("%H:%M:%S"))
     message += "send OTP to confirm or 0 to cancel"
-    bot.send_message(chat_id=update.message.chat_id, text=message, reply_markup=ReplyKeyboardRemove())
+    bot.send_message(chat_id=update.message.chat_id, text=message, reply_markup=ReplyKeyboardRemove(),
+                     parse_mode='Markdown')
     last_command = 'BW'
     last_args = transfer_diff
 
@@ -632,24 +633,24 @@ def health_check(bot, update):
             if 'pid' in proc_dict:
                 pid = proc_dict['pid']
     if pid:
-        message += "bot pid: %s\n" % pid
+        message += "bot pid: *%s*\n" % pid
     else:
-        message += "bot is not running!\n"
-    message += "virtual memory used %d%%\n" % psutil.virtual_memory().percent
-    message += "swap memory used %d%%\n" % psutil.swap_memory().percent
+        message += "*bot is not running!*\n"
+    message += "virtual memory used *%d%%*\n" % psutil.virtual_memory().percent
+    message += "swap memory used *%d%%*\n" % psutil.swap_memory().percent
 
     freeG = shutil.disk_usage('/').free / 1e9
-    message += "free disk space: %.2f Gb\n" % freeG
+    message += "free disk space: *%.2f* Gb\n" % freeG
     health_df = pd.read_sql_table('mercury_health', con=db_engine)
     health_record = health_df.to_dict(orient='records')
     for r in health_record[0]:
         if r not in ['index', 'timestamp']:
-            message += "%s is alive: %s\n" % (r, health_record[0][r] == 1)
-    message += "time is %s UTC\n" % (datetime.utcnow().strftime("%H:%M:%S"))
-    message += "updated %d s ago\n" % ((getUTCtime() - health_record[0]['index']) / 1000)
+            message += "_%s_ is alive: *%s*\n" % (r, health_record[0][r] == 1)
+    message += "_time is_ *%s* _UTC_\n" % (datetime.utcnow().strftime("%H:%M:%S"))
+    message += "_updated %d s ago_\n" % ((getUTCtime() - health_record[0]['index']) / 1000)
 
     logger.debug(message)
-    bot.send_message(chat_id=update.message.chat_id, text=message)
+    bot.send_message(chat_id=update.message.chat_id, text=message, parse_mode='Markdown')
 
 
 # TODO: check_admin_privilege
