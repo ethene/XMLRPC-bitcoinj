@@ -232,7 +232,7 @@ def start(bot, update):
                     message += "To see the fund performance use /statistics\n"
                     message += "Your wallet is yet empty.\nPlease top-up your account\n"
                     message += "by making a transfer to your main wallet address\n"
-                    keyboard = [KeyboardButton(text="/start"), KeyboardButton(text="/statistics")]
+                    keyboard = [[KeyboardButton(text="/start")], [KeyboardButton(text="/statistics")]]
 
                 else:
                     message += "Your balance is *%.8f*\n" % (balance)
@@ -253,18 +253,18 @@ def start(bot, update):
 
                 if len(invest_rs) > 0:
                     message += "Waiting to add your balance to portfolio\n"
-                    keyboard = [KeyboardButton(text="/start")]
+                    keyboard = [[KeyboardButton(text="/start")]]
                 else:
                     position = int(position) / 1e8
                     message += "Your position is *%.8f*\n" % (position)
                     message += "Your address is\n*%s*\n" % address
                     if (len(unconfirmedTXs) == 0) and (balance > 0):
                         message += "Please confirm creation of your portfolio by entering\n/invest\n"
-                        keyboard = [KeyboardButton(text="/invest")]
+                        keyboard = [[KeyboardButton(text="/invest")]]
                     for tx in unconfirmedTXs:
                         message += "Pending transaction for: %s XBT\n" % (int(tx['value']) / 1e8)
                         message += "tx ID: *%s*\n" % tx['ID']
-                        keyboard = [KeyboardButton(text="/start")]
+                        keyboard = [[KeyboardButton(text="/start")]]
                     if (balance == 0) and (position > 0):
                         message += "Check portfolio stats or request portfolio closure\n"
                         keyboard = [[KeyboardButton(text="/portfolio")], [KeyboardButton(text="/close")]]
@@ -514,7 +514,7 @@ def action_approve(bot, update):
         elif action == 'SUPPORT':
             with db_engine.connect() as con:
                 mail = '*Support is notified and will contact you soon*'
-                ins = useraccounts.insert().values(userID=user_id, read=False, mail=mail, timestamp=datetime.utcnow())
+                ins = mail.insert().values(userID=user_id, read=False, mail=mail, timestamp=datetime.utcnow())
                 con.execute(ins)
             approve_action(action, timestamp, user_id)
         else:
