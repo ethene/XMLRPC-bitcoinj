@@ -218,8 +218,8 @@ def start(bot, update):
                 message += "Your wallet is yet empty.\nPlease top-up your account\n"
                 message += "by making a transfer to your main wallet to your address as below:\n"
                 message += "*%s*\n" % address
-                keyboard = [KeyboardButton(text="/start"), KeyboardButton(text="/statistics"),
-                            KeyboardButton(text="/help")]
+                keyboard = [[KeyboardButton(text="/start")], [KeyboardButton(text="/statistics")],
+                            [KeyboardButton(text="/help")]]
                 msg = "New user created [%s](tg://user?id=%s)\n" % (userID, userID)
                 bot.send_message(chat_id=TELEGRAM_CHANNEL_NAME, text=msg, parse_mode='Markdown')
             except:
@@ -265,8 +265,8 @@ def start(bot, update):
                 if balance == 0:
                     message += "Your wallet is yet empty\nPlease top-up your account\n"
                     message += "by making a transfer to your main wallet address\n"
-                    keyboard = [KeyboardButton(text="/start"), KeyboardButton(text="/statistics"),
-                                KeyboardButton(text="/help")]
+                    keyboard = [[KeyboardButton(text="/start")], [KeyboardButton(text="/statistics")],
+                                [KeyboardButton(text="/help")]]
 
                 else:
                     message += "Your balance is *%.8f* BTC\n" % (balance)
@@ -703,7 +703,8 @@ def plot_graph(df, name, label):
 if __name__ == "__main__":
     admin_keyboard = [[KeyboardButton(text="/statistics")], [KeyboardButton(text="/transfers")],
                       [KeyboardButton(text="/health")], [KeyboardButton(text="/actions")]]
-    user_keyboard = [KeyboardButton(text="/statistics")]
+    user_keyboard = [[KeyboardButton(text="/start")], [KeyboardButton(text="/statistics")],
+                     [KeyboardButton(text="/help")]]
 
     # TODO: handlers
     start_handler = CommandHandler('start', start)
