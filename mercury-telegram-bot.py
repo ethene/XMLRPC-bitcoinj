@@ -141,7 +141,6 @@ if not db_engine.dialect.has_table(db_engine, mail_table):
 else:
     mail = Table(mail_table, metadata, autoload=True)
 
-
 updater = Updater(token=TELEGRAM_BOT_TOKEN)
 dispatcher = updater.dispatcher
 
@@ -154,6 +153,21 @@ def getUTCtime():
     d = datetime.utcnow()
     unixtime = calendar.timegm(d.utctimetuple())
     return unixtime * 1000
+
+
+# TODO: help
+def bot_help(bot, update):
+    message = "This is your personal interface to the *Mercury* crypto hedge fund.\n"
+    message += "You can use your personal wallet to put _BTC_ funds under portfolio management\n"
+    message += "And withdraw them back with profit when position is ready to be closed.\n"
+    message += "First of all, you need to top up your account\n"
+    message += "Then you can /invest to buy a share in the common portfolio\n"
+    message += "You can check fund performance /statistics\n"
+    message += "or /contact administration at any time\n"
+    message += "When you have /portfolio you can check its performance as well\n"
+    message += "Requesting to /close your portfolio will return your funds when the position is ready\n"
+    message += "And then you can ask to /withdwraw the funds when they are back\n"
+    bot.send_message(chat_id=update.message.chat_id, text=message, parse_mode='Markdown')
 
 
 # TODO: start
@@ -170,7 +184,6 @@ def start(bot, update):
         rs = con.execute(stm)
         response = rs.fetchall()
         isadmin = False
-        freshuser = False
         message = None
         keyboard = None
 
@@ -188,18 +201,20 @@ def start(bot, update):
                 ins = log.insert().values(userID=userID, log='new user created', timestamp=datetime.utcnow())
                 con.execute(ins)
                 message = "Hello, *%s*!\nThis is your personal interface to the Mercury crypto hedge fund\n" % (
-                username)
+                    username)
                 message += "Your new account has just created\n"
                 message += "To see the fund performance use /statistics\n"
+                message += "or use /help for full command list\n"
                 message += "Your wallet is yet empty.\nPlease top-up your account\n"
                 message += "by making a transfer to your main wallet to your address as below:\n"
                 message += "*%s*\n" % address
-                keyboard = [KeyboardButton(text="/start"), KeyboardButton(text="/statistics")]
+                keyboard = [KeyboardButton(text="/start"), KeyboardButton(text="/statistics"),
+                            KeyboardButton(text="/help")]
             except:
                 logger.error(traceback.format_exc())
                 message = "Failed to create new user, please /contact admin"
                 keyboard = [[KeyboardButton(text="/contact")]]
-        #TODO: existing user
+        # TODO: existing user
         else:
             # user found in DB
             for u in response:
@@ -230,9 +245,11 @@ def start(bot, update):
                 balance = int(balance) / 1e8
                 if balance == 0:
                     message += "To see the fund performance use /statistics\n"
+                    message += "or read /help for full command list\n"
                     message += "Your wallet is yet empty.\nPlease top-up your account\n"
                     message += "by making a transfer to your main wallet address\n"
-                    keyboard = [[KeyboardButton(text="/start")], [KeyboardButton(text="/statistics")]]
+                    keyboard = [KeyboardButton(text="/start"), KeyboardButton(text="/statistics"),
+                                KeyboardButton(text="/help")]
 
                 else:
                     message += "Your balance is *%.8f*\n" % (balance)
@@ -296,7 +313,7 @@ def log_record(log_event, update):
     userfrom = update.effective_user
     logger.debug("userfrom : %s" % userfrom)
     userID = userfrom.id
-    #log = Table(log_table, metadata, autoload=True)
+    # log = Table(log_table, metadata, autoload=True)
     with db_engine.connect() as con:
         ins = log.insert().values(userID=userID, log=log_event, timestamp=datetime.utcnow())
         con.execute(ins)
@@ -334,7 +351,7 @@ def OTP_command(bot, update):
     if not isadmin:
         return
     OTP = update.message.text
-    log_event = 'OTP command: ' + OTP
+    log_event = 'OTP command: %s args: %s' % (OTP, last_args)
     userID = log_record(log_event, update)
     message = None
 
@@ -352,13 +369,13 @@ def OTP_command(bot, update):
         if message:
             bot.send_message(chat_id=update.message.chat_id, text=message, parse_mode='Markdown',
                              reply_markup=ReplyKeyboardMarkup(
-                                 keyboard=[admin_keyboard]))
+                                 keyboard=admin_keyboard))
 
     last_command = None
     last_args = None
 
 
-# TODO: cance0 OTP
+# TODO: cancel OTP
 def CancelOTP(bot, update):
     global last_command
     global last_args
@@ -379,7 +396,7 @@ def contact(bot, update):
     log_event = 'Support request is sent'
     userID = log_record(log_event, update)
     with db_engine.connect() as con:
-        #actions = Table(actions_table, metadata, autoload=True)
+        # actions = Table(actions_table, metadata, autoload=True)
         ins = actions.insert().values(userID=userID, action='SUPPORT', timestamp=datetime.utcnow())
         con.execute(ins)
         message = "Support request is sent.\n*Please wait to be contacted.*\n"
@@ -425,7 +442,7 @@ def unapproved_actions(bot, update):
 
     if message == "":
         message = "All actions were approved\n"
-        reply_markup = ReplyKeyboardMarkup(keyboard=[admin_keyboard])
+        reply_markup = ReplyKeyboardMarkup(keyboard=admin_keyboard)
     else:
         message += "Type *a[n]* to approve\n"
         reply_markup = ReplyKeyboardRemove()
@@ -469,7 +486,7 @@ def action_approve(bot, update):
         message = "Action *%s* approved:\n[%s](tg://user?id=%s) %s (%s)\n" % (
             action_id, username, user_id, action, timestamp.strftime("%d %b %H:%M:%S"))
         logger.debug("%s %s %s" % (action, user_address, user_withdrawn))
-        #TODO: INVEST APPROVE
+        # TODO: INVEST APPROVE
         if (action == 'INVEST') and user_address:
             logger.debug("invest action started")
             try:
@@ -488,7 +505,7 @@ def action_approve(bot, update):
                     if tx_value > 0:
                         with db_engine.connect() as con:
                             select_positions = select([positions]).where(positions.c.userID == user_id).order_by(
-                            desc(positions.c.timestamp))
+                                desc(positions.c.timestamp))
                             rs = con.execute(select_positions)
                             response = rs.fetchall()
 
@@ -524,7 +541,7 @@ def action_approve(bot, update):
 
     bot.send_message(chat_id=update.message.chat_id, text=message, parse_mode='Markdown',
                      reply_markup=ReplyKeyboardMarkup(
-                         keyboard=[admin_keyboard]))
+                         keyboard=admin_keyboard))
 
 
 def approve_action(action, timestamp, user_id):
@@ -641,6 +658,7 @@ if __name__ == "__main__":
 
     # TODO: handlers
     start_handler = CommandHandler('start', start)
+    help_handler = CommandHandler('help', bot_help)
     stats_handler = CommandHandler('statistics', stats)
     folio_handler = CommandHandler('portfolio', folio_stats)
     health_handler = CommandHandler('health', health_check)
@@ -653,6 +671,7 @@ if __name__ == "__main__":
     action_approve_handler = RegexHandler(pattern='^a\d{1,3}$', callback=action_approve)
 
     dispatcher.add_handler(start_handler)
+    dispatcher.add_handler(help_handler)
     dispatcher.add_handler(stats_handler)
     dispatcher.add_handler(folio_handler)
     dispatcher.add_handler(health_handler)
