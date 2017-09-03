@@ -521,7 +521,7 @@ def action_approve(bot, update):
 
                         approve_action(action, timestamp, user_id)
                         log_event = 'user: %s tx: %s val %s' % (user_id, tx_id, tx_value)
-                        userID = log_record(log_event, update)
+                        log_record(log_event, update)
 
             except:
                 logger.error(traceback.format_exc())
@@ -530,11 +530,13 @@ def action_approve(bot, update):
         # TODO: SUPPORT APPROVE
         elif action == 'SUPPORT':
             with db_engine.connect() as con:
-                message = '*Support is notified and will contact you soon*'
-                ins = mail.insert().values(userID=user_id, read=False, mail=message, timestamp=datetime.utcnow())
+                msg_to_user = '*Support is notified and will contact you soon*'
+                ins = mail.insert().values(userID=user_id, read=False, mail=msg_to_user, timestamp=datetime.utcnow())
                 con.execute(ins)
+            log_record(message, update)
             approve_action(action, timestamp, user_id)
         else:
+            log_record(message, update)
             approve_action(action, timestamp, user_id)
     else:
         message = "Action *%s* not found!\n" % (action_id)
@@ -544,6 +546,7 @@ def action_approve(bot, update):
                          keyboard=admin_keyboard))
 
 
+# TODO: fn - approve
 def approve_action(action, timestamp, user_id):
     with db_engine.connect() as con:
         upd = actions.update().values(approved=True).where(actions.c.userID == user_id).where(
