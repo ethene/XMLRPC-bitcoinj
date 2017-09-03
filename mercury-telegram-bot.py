@@ -112,6 +112,7 @@ if not db_engine.dialect.has_table(db_engine, actions_table):
     actions = Table(actions_table, metadata,
                     Column('userID', Integer, ForeignKey(useraccounts.c.ID)),
                     Column('action', String(255)), Column('approved', Boolean(), default=False),
+                    Column('args', String(255)),
                     Column('timestamp', DateTime, default=datetime.utcnow(), onupdate=func.utc_timestamp()))
     # Implement the creation
     metadata.create_all()
@@ -424,14 +425,27 @@ def invest(bot, update):
     log_event = 'Invest request is sent'
     userID = log_record(log_event, update)
     with db_engine.connect() as con:
-        ins = actions.insert().values(userID=userID, action='INVEST', timestamp=datetime.utcnow())
-        con.execute(ins)
-        message = "Invest request is sent.\n*Please wait until we double-check and process your request.*\n"
-        bot.send_message(chat_id=update.message.chat_id, text=message, parse_mode='Markdown',
-                         reply_markup=ReplyKeyboardMarkup(
-                             keyboard=[[KeyboardButton(text="/start")]]))
-        msg = "*New invest request from [%s](tg://user?id=%s)*\n" % (userID, userID)
-        bot.send_message(chat_id=TELEGRAM_CHANNEL_NAME, text=msg, parse_mode='Markdown')
+        stm = select([useraccounts]).where(useraccounts.c.ID == userID)
+        rs = con.execute(stm).fetchall()
+        address = rs[0].address
+        withdrawn = rs[0].withdrawn
+        try:
+            balance = XMLRPCServer.getInputValue(address) - withdrawn
+            logger.debug("balance %.8f" % (balance / 1e8))
+
+            ins = actions.insert().values(userID=userID, action='INVEST', args=balance, timestamp=datetime.utcnow())
+            con.execute(ins)
+            message = "Invest request is sent.\n*Please wait until we double-check and process your request.*\n"
+            bot.send_message(chat_id=update.message.chat_id, text=message, parse_mode='Markdown',
+                             reply_markup=ReplyKeyboardMarkup(
+                                 keyboard=[[KeyboardButton(text="/start")]]))
+            msg = "*New invest request from [%s](tg://user?id=%s)*\n" % (userID, userID)
+            bot.send_message(chat_id=TELEGRAM_CHANNEL_NAME, text=msg, parse_mode='Markdown')
+        except:
+            logger.error(traceback.format_exc())
+            msg = "*Invest request error from [%s](tg://user?id=%s)*\n" % (userID, userID)
+            bot.send_message(chat_id=TELEGRAM_CHANNEL_NAME, text=msg, parse_mode='Markdown')
+
 
 
 # TODO: actions
