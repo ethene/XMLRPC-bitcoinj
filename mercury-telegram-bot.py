@@ -162,16 +162,17 @@ def getUTCtime():
 
 # TODO: help
 def bot_help(bot, update):
-    message = "This is your personal interface to the *Mercury* crypto hedge fund.\n"
+    message = "This is your personal interface to the *Mercury* crypto hedge fund\n"
     message += "You can use your personal wallet\nto put _BTC_ funds under portfolio management\n"
-    message += "And withdraw them back with profit\nwhen position is ready to be closed.\n"
-    message += "First of all, you need to top up your account\n"
-    message += "Then you can /invest to buy a share in the common portfolio\n"
+    message += "And withdraw them back with profit\nwhen position is ready to be closed\n"
     message += "You can check fund performance /statistics\n"
+    message += "To participate, you need to top up your account\n"
+    message += "by sending funds to your personal wallet _BTC_ address\n"
+    message += "Then you can /invest to open your personal portfolio\n"
     message += "or /contact administration at any time\n"
     message += "When you have /portfolio you can check its performance as well\n"
     message += "Requesting to /close your portfolio will return your funds when the position is ready\n"
-    message += "And then you can ask to /withdwraw the funds when they are back\n"
+    # message += "And then you can ask to /withdwraw the funds when they are back\n"
     bot.send_message(chat_id=update.message.chat_id, text=message, parse_mode='Markdown')
 
 
@@ -209,7 +210,7 @@ def start(bot, update):
                 ins = log.insert().values(userID=userID, log='new user created % s' % username,
                                           timestamp=datetime.utcnow())
                 con.execute(ins)
-                message = "Hello, *%s*!\nThis is your personal interface to the Mercury crypto hedge fund\n" % (
+                message = "Hello, *%s*!\nThis is your personal interface to the *Mercury* crypto hedge fund\n" % (
                     username)
                 message += "Your new account has just created\n"
                 message += "To see the fund performance use /statistics\n"
@@ -242,7 +243,7 @@ def start(bot, update):
             if isadmin:
                 message = "Hello, admin *%s*!\nWelcome back to use the bot\n" % (username)
             else:
-                message = "Hello, *%s*!\nWelcome back to use the bot\n" % (username)
+                message = "Hello, *%s*!\nWelcome back to Mercury crypto hedge fund\n" % (username)
 
             select_positions = select([positions]).where(positions.c.userID == userID).order_by(
                 desc(positions.c.timestamp))
@@ -258,11 +259,11 @@ def start(bot, update):
                 logger.debug("balance %.8f" % (balance / 1e8))
                 unconfirmedTXs = XMLRPCServer.getUnconfirmedTransactions(address)
                 logger.debug("unconfirmed: %s" % unconfirmedTXs)
+                message += "Would you like to see our performance /statistics\n"
+                message += "or read /help for full command list?\n"
                 balance = int(balance) / 1e8
                 if balance == 0:
-                    message += "To see the fund performance use /statistics\n"
-                    message += "or read /help for full command list\n"
-                    message += "Your wallet is yet empty.\nPlease top-up your account\n"
+                    message += "Your wallet is yet empty\nPlease top-up your account\n"
                     message += "by making a transfer to your main wallet address\n"
                     keyboard = [KeyboardButton(text="/start"), KeyboardButton(text="/statistics"),
                                 KeyboardButton(text="/help")]
@@ -285,14 +286,14 @@ def start(bot, update):
                 invest_rs = con.execute(invest_actions).fetchall()
 
                 if len(invest_rs) > 0:
-                    message += "Waiting to add your balance to portfolio\n"
+                    message += "Waiting to update your portfolio\n"
                     keyboard = [[KeyboardButton(text="/start")]]
                 else:
                     position = int(position) / 1e8
+                    message += "Your portfolio is *%.8f* BTC\n" % (position)
                     if (balance == 0) and (position > 0):
-                        message += "Check /portfolio stats\n"
+                        message += "Would you check /portfolio stats?\n"
                         keyboard = [[KeyboardButton(text="/portfolio")]]
-                    message += "Your position is *%.8f* BTC\n" % (position)
                     message += "Your address is\n*%s*\n" % address
                     if (len(unconfirmedTXs) == 0) and (balance > 0):
                         message += "Please confirm creation of your portfolio by entering\n/invest\n"
