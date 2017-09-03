@@ -258,7 +258,7 @@ def start(bot, update):
                     desc(mail.c.timestamp))
                 mail_rs = con.execute(new_mail).fetchall()
                 for m in mail_rs:
-                    message += "*mail: %s\n" % m.mail
+                    message += "*new mail:* _%s_\n" % m.mail
 
                 upd = mail.update().values(read=True).where(
                     mail.c.userID == userID)
@@ -531,7 +531,7 @@ def action_approve(bot, update):
         # TODO: SUPPORT APPROVE
         elif action == 'SUPPORT':
             with db_engine.connect() as con:
-                msg_to_user = '*Support is notified and will contact you soon*'
+                msg_to_user = 'Support is notified and will contact you soon'
                 ins = mail.insert().values(userID=user_id, read=False, mail=msg_to_user, timestamp=datetime.utcnow())
                 con.execute(ins)
             log_record(message, update)
