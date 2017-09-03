@@ -113,8 +113,9 @@ if not db_engine.dialect.has_table(db_engine, actions_table):
                     Column('userID', Integer, ForeignKey(useraccounts.c.ID)),
                     Column('action', String(255)), Column('approved', Boolean(), default=False),
                     Column('args', String(255)),
-                    Column('timestamp', DateTime, default=datetime.utcnow(), onupdate=func.utc_timestamp(),
-                           primary_key=True))
+                    Column('timestamp', DateTime, default=datetime.utcnow(), onupdate=func.utc_timestamp()),
+                    Column('ID', Integer, primary_key=True, autoincrement=True)
+                    )
     # Implement the creation
     metadata.create_all()
 else:
@@ -126,8 +127,9 @@ if not db_engine.dialect.has_table(db_engine, log_table):
     log = Table(log_table, metadata,
                 Column('userID', Integer, ForeignKey(useraccounts.c.ID)),
                 Column('log', String(1024)),
-                Column('timestamp', DateTime, default=datetime.utcnow(), onupdate=func.utc_timestamp(),
-                       primary_key=True))
+                Column('timestamp', DateTime, default=datetime.utcnow(), onupdate=func.utc_timestamp()),
+                Column('ID', Integer, primary_key=True, autoincrement=True)
+                )
     # Implement the creation
     metadata.create_all()
 else:
@@ -139,8 +141,8 @@ if not db_engine.dialect.has_table(db_engine, mail_table):
     mail = Table(mail_table, metadata,
                  Column('userID', Integer, ForeignKey(useraccounts.c.ID)),
                  Column('mail', String(1024)), Column('read', Boolean(), default=False),
-                 Column('timestamp', DateTime, default=datetime.utcnow(), onupdate=func.utc_timestamp(),
-                        primary_key=True))
+                 Column('timestamp', DateTime, default=datetime.utcnow(), onupdate=func.utc_timestamp()),
+                 Column('ID', Integer, primary_key=True, autoincrement=True))
     # Implement the creation
     metadata.create_all()
 else:
