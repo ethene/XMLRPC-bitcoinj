@@ -158,8 +158,8 @@ def getUTCtime():
 # TODO: help
 def bot_help(bot, update):
     message = "This is your personal interface to the *Mercury* crypto hedge fund.\n"
-    message += "You can use your personal wallet to put _BTC_ funds under portfolio management\n"
-    message += "And withdraw them back with profit when position is ready to be closed.\n"
+    message += "You can use your personal wallet\nto put _BTC_ funds under portfolio management\n"
+    message += "And withdraw them back with profit\nwhen position is ready to be closed.\n"
     message += "First of all, you need to top up your account\n"
     message += "Then you can /invest to buy a share in the common portfolio\n"
     message += "You can check fund performance /statistics\n"
@@ -530,8 +530,8 @@ def action_approve(bot, update):
         # TODO: SUPPORT APPROVE
         elif action == 'SUPPORT':
             with db_engine.connect() as con:
-                mail = '*Support is notified and will contact you soon*'
-                ins = mail.insert().values(userID=user_id, read=False, mail=mail, timestamp=datetime.utcnow())
+                message = '*Support is notified and will contact you soon*'
+                ins = mail.insert().values(userID=user_id, read=False, mail=message, timestamp=datetime.utcnow())
                 con.execute(ins)
             approve_action(action, timestamp, user_id)
         else:
