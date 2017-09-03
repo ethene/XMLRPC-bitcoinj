@@ -201,7 +201,10 @@ def start(bot, update):
                 ins = useraccounts.insert().values(ID=userID, firstname=firstname, lastname=lastname, username=username,
                                                    isadmin=False, address=address, withdrawn=0)
                 con.execute(ins)
-                ins = positions.insert().values(userID=userID, position=0, timestamp=datetime.utcnow())
+                select_positions = select([positions]).order_by(desc(positions.c.timestamp))
+                rs = con.execute(select_positions).fetchall()
+                max_pos_timestamp = rs[0].timestamp
+                ins = positions.insert().values(userID=userID, position=0, timestamp=max_pos_timestamp)
                 con.execute(ins)
                 ins = log.insert().values(userID=userID, log='new user created % s' % username,
                                           timestamp=datetime.utcnow())
