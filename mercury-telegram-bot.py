@@ -247,6 +247,7 @@ def start(bot, update):
             withdrawn = response[0].withdrawn
 
             try:
+                logger.debug("address %s" % (address))
                 balance = XMLRPCServer.getInputValue(address) - withdrawn
                 logger.debug("balance %.8f" % (balance / 1e8))
                 unconfirmedTXs = XMLRPCServer.getUnconfirmedTransactions(address)
@@ -439,7 +440,7 @@ def invest(bot, update):
                 msg = "New invest request from [%s](tg://user?id=%s)\n" % (userID, userID)
                 bot.send_message(chat_id=TELEGRAM_CHANNEL_NAME, text=msg, parse_mode='Markdown')
             else:
-                message = "*Please top-up your wallet first and wait until your funds are confirmed.*"
+                message = "*You have insufficient balance.\nPlease top-up your wallet first and wait until your funds are confirmed.*"
             bot.send_message(chat_id=update.message.chat_id, text=message, parse_mode='Markdown',
                              reply_markup=ReplyKeyboardMarkup(
                                  keyboard=[[KeyboardButton(text="/start")]]))
