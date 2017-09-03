@@ -609,11 +609,11 @@ def transfers_show(bot, update):
     transfer_record = df.to_dict(orient='records')
     transfer_diff = round(transfer_record[0]['avg_balance_difference'] * 0.5, 6)
     if transfer_diff > 0:
-        direction = '*->*'
+        direction = '->'
         last_command = 'BW'
         last_args = transfer_diff
     elif transfer_diff < 0:
-        direction = '*<-*'
+        direction = '<-'
         last_command = 'PW'
         last_args = abs(transfer_diff)
 
