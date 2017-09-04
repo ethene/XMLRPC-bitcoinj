@@ -181,11 +181,12 @@ def bot_help(bot, update):
 
 # TODO: update
 def update_main(bot, update):
+    logger.debug("update callback")
     query = update.callback_query
     bot.answerCallbackQuery(callback_query_id=query.id, text="~~~Updated~~~")
     chat_id = query.message.chat_id
     address, isadmin, keyboard, message = StartMessage(bot, update)
-
+    logger.debug(message)
     bot.edit_message_text(text=message,
                           chat_id=chat_id,
                           message_id=query.message.message_id,
