@@ -192,9 +192,10 @@ def view_address(bot, update):
     bot.answerCallbackQuery(callback_query_id=query.id, text=address, show_alert=True)
 
 
-'''
+
 # TODO: update
 def update_main(bot, update):
+    '''
     logger.debug("update callback")
     query = update.callback_query
     bot.answerCallbackQuery(callback_query_id=query.id, text="~~~Updated~~~")
@@ -205,10 +206,10 @@ def update_main(bot, update):
                           chat_id=chat_id,
                           message_id=query.message.message_id,
                           reply_markup=InlineKeyboardMarkup(inline_keyboard=keyboard))
-'''
 
-# TODO: start
-def start(bot, update):
+    '''
+
+    chat_id = query.message.chat_id
     address, isadmin, keyboard, message = StartMessage(bot, update)
 
     if isadmin:
@@ -216,11 +217,33 @@ def start(bot, update):
 
     logger.debug("msg: %s" % message)
     if message and len(keyboard) > 0:
-        bot.send_message(chat_id=update.message.chat_id, text=message, parse_mode='Markdown',
+        bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown',
                          reply_markup=ReplyKeyboardRemove())
 
         if address:
-            bot.send_message(chat_id=update.message.chat_id, text="*%s*" % address, parse_mode='Markdown',
+            bot.send_message(chat_id=chat_id, text="*%s*" % address, parse_mode='Markdown',
+                             reply_markup=InlineKeyboardMarkup(inline_keyboard=keyboard))
+
+# TODO: start
+def start(bot, update):
+    try:
+        chat_id = update.message.chat_id
+    except:
+        query = update.callback_query
+        chat_id = query.message.chat_id
+
+    address, isadmin, keyboard, message = StartMessage(bot, update)
+
+    if isadmin:
+        keyboard += [[InlineKeyboardButton(text="admin functions", callback_data="/admin")]]
+
+    logger.debug("msg: %s" % message)
+    if message and len(keyboard) > 0:
+        bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown',
+                         reply_markup=ReplyKeyboardRemove())
+
+        if address:
+            bot.send_message(chat_id=chat_id, text="*%s*" % address, parse_mode='Markdown',
                              reply_markup=InlineKeyboardMarkup(inline_keyboard=keyboard))
 
 
