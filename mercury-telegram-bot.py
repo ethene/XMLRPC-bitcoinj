@@ -511,7 +511,7 @@ def contact(bot, update):
         # actions = Table(actions_table, metadata, autoload=True)
     # ins = actions.insert().values(userID=userID, action='SUPPORT', timestamp=datetime.utcnow())
     # con.execute(ins)
-    message = "Support request is sent.\n*Please wait to be contacted.*\n"
+    message = "Support request is sent.\nPlease wait to be contacted.\n"
     bot.answerCallbackQuery(callback_query_id=query.id, text=message, show_alert=True)
     # bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown',
     #                 reply_markup=ReplyKeyboardMarkup(
@@ -520,7 +520,7 @@ def contact(bot, update):
     bot.editMessageReplyMarkup(chat_id=chat_id, message_id=query.message.message_id,
                                reply_markup=InlineKeyboardMarkup(inline_keyboard=keyboard))
 
-    msg = "*New support request* from [%s](tg://user?id=%s)\n" % (userID, userID)
+    msg = "*Support request*\nfrom [%s](tg://user?id=%s)\n" % (userID, userID)
     bot.send_message(chat_id=TELEGRAM_CHANNEL_NAME, text=msg, parse_mode='Markdown')
 
 
