@@ -331,12 +331,14 @@ def start(bot, update):
 
 # TODO: folio stats
 def folio_stats(bot, update):
+    query = update.callback_query
+    chat_id = query.message.chat_id
     log_event = 'folio stats checked'
     userID = log_record(log_event, update)
     df = pd.read_sql_query(sql='SELECT * FROM ' + positions_table + ' WHERE `USERID` = ' + str(userID),
                            con=db_engine, index_col='timestamp')
     df_groupped = df.groupby(df.index)['position'].mean()
-    send_stats(bot, df_groupped, update)
+    send_stats(bot, df_groupped, chat_id)
 
 
 def log_record(log_event, update):
@@ -358,7 +360,7 @@ def stats(bot, update):
     send_stats(bot, df_groupped, update)
 
 
-def send_stats(bot, df_groupped, update):
+def send_stats(bot, df_groupped, chat_id):
     if len(df_groupped) > 0:
         # daily_pc = df_groupped.pct_change().dropna() * 365 * 100
         cumulative_pc = ((df_groupped - df_groupped.ix[0]) / df_groupped.ix[0]) * 100
@@ -370,7 +372,7 @@ def send_stats(bot, df_groupped, update):
         # bot.send_photo(chat_id=update.message.chat_id, photo=picture_1)
         picture_2 = open(pic_folder + '/' + pic_2_filename, 'rb')
         keyboard = [[KeyboardButton(text="/start")]]
-        bot.send_photo(chat_id=update.message.chat_id, photo=picture_2,
+        bot.send_photo(chat_id=chat_id, photo=picture_2,
                        reply_markup=ReplyKeyboardMarkup(keyboard=keyboard))
 
 
