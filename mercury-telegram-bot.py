@@ -326,7 +326,7 @@ def start(bot, update):
                              reply_markup=ReplyKeyboardMarkup(keyboard=keyboard))
             if address:
                 bot.send_message(chat_id=update.message.chat_id, text="*%s*" % address, parse_mode='Markdown',
-                                 reply_markup=InlineKeyboardMarkup(keyboard=keyboard))
+                                 reply_markup=InlineKeyboardMarkup(inline_keyboard=keyboard))
 
 
 # TODO: folio stats
