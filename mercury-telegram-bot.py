@@ -19,7 +19,7 @@ from sqlalchemy.sql import select
 from telegram import ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove, InlineKeyboardButton, \
     InlineKeyboardMarkup
 from telegram.error import (TelegramError)
-from telegram.ext import CommandHandler, RegexHandler
+from telegram.ext import CommandHandler, RegexHandler, CallbackQueryHandler
 from telegram.ext import Updater
 
 mpl.use('Agg')
@@ -718,7 +718,7 @@ if __name__ == "__main__":
     start_handler = CommandHandler('start', start)
     help_handler = CommandHandler('help', bot_help)
     stats_handler = CommandHandler('statistics', stats)
-    folio_handler = CommandHandler('portfolio', folio_stats)
+    # folio_handler = CommandHandler('portfolio', folio_stats)
     health_handler = CommandHandler('health', health_check)
     contact_handler = CommandHandler('contact', contact)
     invest_handler = CommandHandler('invest', invest)
@@ -727,6 +727,8 @@ if __name__ == "__main__":
     OTP_handler = RegexHandler(pattern='^\d{6}$', callback=OTP_command)
     OTP_cancel_handler = RegexHandler(pattern='^0$', callback=CancelOTP)
     action_approve_handler = RegexHandler(pattern='^a\d{1,3}$', callback=action_approve)
+
+    callback_handler = CallbackQueryHandler(callback=folio_stats, pattern='^/portfolio')
 
     dispatcher.add_handler(start_handler)
     dispatcher.add_handler(help_handler)
