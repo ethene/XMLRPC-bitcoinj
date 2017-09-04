@@ -16,7 +16,8 @@ import psutil
 from sqlalchemy import (create_engine, Table, Column, Integer, BigInteger, ForeignKey, DateTime,
                         String, Boolean, MetaData, desc, func)
 from sqlalchemy.sql import select
-from telegram import ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove
+from telegram import ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove, InlineKeyboardButton, \
+    InlineKeyboardMarkup
 from telegram.error import (TelegramError)
 from telegram.ext import CommandHandler, RegexHandler
 from telegram.ext import Updater
@@ -296,8 +297,9 @@ def start(bot, update):
                     message += "Your portfolio is *%.8f* BTC\n" % (position)
                     if (balance == 0) and (position > 0):
                         message += "Would you check /portfolio stats?\n"
-                        keyboard = [[KeyboardButton(text="/portfolio")]]
-                    if (len(unconfirmedTXs) == 0) and (balance > 0):
+                        # keyboard = [[KeyboardButton(text="/portfolio")]]
+                        keyboard = [[InlineKeyboardButton(text="portfolio stats", callback_data="/portfolio")]]
+                    elif (len(unconfirmedTXs) == 0) and (balance > 0):
                         message += "Please confirm creation of your portfolio by entering\n/invest\n"
                         keyboard = [[KeyboardButton(text="/invest")]]
                     for tx in unconfirmedTXs:
@@ -315,8 +317,8 @@ def start(bot, update):
                 msg = "Balance is unavailable [%s](tg://user?id=%s)\n" % (userID, userID)
                 bot.send_message(chat_id=TELEGRAM_CHANNEL_NAME, text=msg, parse_mode='Markdown')
 
-        if isadmin:
-            keyboard += admin_keyboard
+        # if isadmin:
+        #    keyboard += admin_keyboard
 
         logger.debug("msg: %s" % message)
         if message and keyboard:
@@ -324,7 +326,7 @@ def start(bot, update):
                              reply_markup=ReplyKeyboardMarkup(keyboard=keyboard))
             if address:
                 bot.send_message(chat_id=update.message.chat_id, text="*%s*" % address, parse_mode='Markdown',
-                                 reply_markup=ReplyKeyboardMarkup(keyboard=keyboard))
+                                 reply_markup=InlineKeyboardMarkup(keyboard=keyboard))
 
 
 # TODO: folio stats
