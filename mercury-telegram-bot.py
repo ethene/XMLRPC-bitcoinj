@@ -179,6 +179,7 @@ def bot_help(bot, update):
     bot.send_message(chat_id=update.message.chat_id, text=message, parse_mode='Markdown')
 
 
+'''
 # TODO: view_address
 def view_address(bot, update):
     query = update.callback_query
@@ -195,7 +196,7 @@ def view_address(bot, update):
 
 # TODO: update
 def update_main(bot, update):
-    '''
+
     logger.debug("update callback")
     query = update.callback_query
     bot.answerCallbackQuery(callback_query_id=query.id, text="~~~Updated~~~")
@@ -207,7 +208,7 @@ def update_main(bot, update):
                           message_id=query.message.message_id,
                           reply_markup=InlineKeyboardMarkup(inline_keyboard=keyboard))
 
-    '''
+
 
     chat_id = query.message.chat_id
     address, isadmin, keyboard, message = StartMessage(bot, update)
@@ -223,6 +224,15 @@ def update_main(bot, update):
         if address:
             bot.send_message(chat_id=chat_id, text="*%s*" % address, parse_mode='Markdown',
                              reply_markup=InlineKeyboardMarkup(inline_keyboard=keyboard))
+
+'''
+
+
+def admin_functions(bot, update):
+    query = update.callback_query
+    # bot.answerCallbackQuery(callback_query_id=query.id, text="~~~Updated~~~")
+    chat_id = query.message.chat_id
+    bot.editMessageReplyMarkup(chat_id=chat_id, message_id=query.message.message_id, reply_markup=admin_keyboard)
 
 # TODO: start
 def start(bot, update):
@@ -781,7 +791,7 @@ if __name__ == "__main__":
     # TODO: handlers
     start_handler = CommandHandler('start', start)
     help_handler = CommandHandler('help', bot_help)
-    stats_handler = CommandHandler('statistics', stats)
+    # stats_handler = CommandHandler('statistics', stats)
     # folio_handler = CommandHandler('portfolio', folio_stats)
     health_handler = CommandHandler('health', health_check)
     contact_handler = CommandHandler('contact', contact)
@@ -793,8 +803,10 @@ if __name__ == "__main__":
     action_approve_handler = RegexHandler(pattern='^a\d{1,3}$', callback=action_approve)
 
     folio_handler = CallbackQueryHandler(callback=folio_stats, pattern='^/portfolio')
+    stats_handler = CallbackQueryHandler(callback=stats, pattern='^/statistics')
     update_handler = CallbackQueryHandler(callback=start, pattern='^/update')
     view_address_handler = CallbackQueryHandler(callback=view_address, pattern='^/address')
+    admin_functions_handler = CallbackQueryHandler(callback=admin_functions, pattern='^/admin')
 
     dispatcher.add_handler(start_handler)
     dispatcher.add_handler(help_handler)
@@ -810,6 +822,7 @@ if __name__ == "__main__":
     dispatcher.add_handler(action_approve_handler)
     dispatcher.add_handler(update_handler)
     dispatcher.add_handler(view_address_handler)
+    dispatcher.add_handler(admin_functions_handler)
 
     dispatcher.add_error_handler(error_callback)
     updater.start_polling()
