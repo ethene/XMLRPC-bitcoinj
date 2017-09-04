@@ -545,7 +545,7 @@ def unapproved_actions(bot, update):
         return
     with db_engine.connect() as con:
         j = actions.join(useraccounts)
-        q = select([actions, useraccounts]).where(actions.c.approved == None).order_by(
+        q = select([actions, useraccounts]).where(actions.c.approved is None).order_by(
             desc(actions.c.timestamp)).select_from(j)
         rs = con.execute(q)
         response = rs.fetchall()
@@ -562,7 +562,7 @@ def unapproved_actions(bot, update):
 
     if message == "":
         message = "All actions were approved\n"
-        reply_markup = ReplyKeyboardMarkup(keyboard=admin_keyboard)
+        reply_markup = InlineKeyboardMarkup(inline_keyboard=admin_keyboard)
     else:
         message += "Type *a[n]* to approve\n"
         reply_markup = ReplyKeyboardRemove()
@@ -666,8 +666,8 @@ def action_approve(bot, update):
         message = "Action *%s* not found!\n" % (action_id)
 
     bot.send_message(chat_id=update.message.chat_id, text=message, parse_mode='Markdown',
-                     reply_markup=ReplyKeyboardMarkup(
-                         keyboard=admin_keyboard))
+                     reply_markup=InlineKeyboardMarkup(
+                         inline_keyboard=admin_keyboard))
 
 
 # TODO: fn - approve
@@ -751,7 +751,8 @@ def health_check(bot, update):
     message += "_updated %d s ago_\n" % ((getUTCtime() - health_record[0]['index']) / 1000)
 
     logger.debug(message)
-    bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown')
+    bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown',
+                     reply_markup=InlineKeyboardMarkup(inline_keyboard=admin_keyboard))
 
 
 # TODO: check_admin_privilege
@@ -795,7 +796,7 @@ if __name__ == "__main__":
     #                  [KeyboardButton(text="/health")], [KeyboardButton(text="/actions")]]
     admin_keyboard = [[InlineKeyboardButton(text="manage transfers", callback_data="/transfers")],
                       [InlineKeyboardButton(text="manage user actions", callback_data="/actions")],
-                      [InlineKeyboardButton(text="check bot helth", callback_data="/health")]]
+                      [InlineKeyboardButton(text="check bot health", callback_data="/health")]]
 
     # user_keyboard = [[KeyboardButton(text="/start")], [KeyboardButton(text="/statistics")],
     #                 [KeyboardButton(text="/help")]]
