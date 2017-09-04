@@ -309,7 +309,7 @@ def StartMessage(bot, update):
                 logger.error(traceback.format_exc())
                 message = "Failed to create new user"
                 keyboard += [[InlineKeyboardButton(text="contact support", callback_data="/contact")]]
-                msg = "failed to create user [%s](tg://user?id=%s)\n" % (userID, userID)
+                msg = "*Error:* failed to create user [%s](tg://user?id=%s)\n" % (userID, userID)
                 bot.send_message(chat_id=TELEGRAM_CHANNEL_NAME, text=msg, parse_mode='Markdown')
         # TODO: existing user
         else:
@@ -520,7 +520,7 @@ def contact(bot, update):
     bot.editMessageReplyMarkup(chat_id=chat_id, message_id=query.message.message_id,
                                reply_markup=InlineKeyboardMarkup(inline_keyboard=keyboard))
 
-    msg = "New support request from [%s](tg://user?id=%s)\n" % (userID, userID)
+    msg = "*New support request* from [%s](tg://user?id=%s)\n" % (userID, userID)
     bot.send_message(chat_id=TELEGRAM_CHANNEL_NAME, text=msg, parse_mode='Markdown')
 
 
@@ -836,6 +836,7 @@ if __name__ == "__main__":
     folio_handler = CallbackQueryHandler(pattern='^/portfolio', callback=folio_stats)
     stats_handler = CallbackQueryHandler(pattern='^/statistics', callback=stats)
     update_handler = CallbackQueryHandler(pattern='^/update', callback=start)
+    update_handler = CallbackQueryHandler(pattern='^/start', callback=start)
     health_handler = CallbackQueryHandler(pattern='^/health', callback=health_check)
     actions_handler = CallbackQueryHandler(pattern='^/actions', callback=unapproved_actions)
     transfers_show_handler = CallbackQueryHandler(pattern='^/transfers', callback=transfers_show)
