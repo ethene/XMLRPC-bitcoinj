@@ -179,6 +179,18 @@ def bot_help(bot, update):
     bot.send_message(chat_id=update.message.chat_id, text=message, parse_mode='Markdown')
 
 
+# TODO: view_address
+def view_address(bot, update):
+    query = update.callback_query
+    userfrom = update.effective_user
+    userID = userfrom.id
+
+    with db_engine.connect() as con:
+        user_select = select([useraccounts]).where(useraccounts.c.ID == userID)
+        rs = con.execute(user_select).fetchall()
+        address = rs[0].address
+    bot.answerCallbackQuery(callback_query_id=query.id, text=address, show_alert=True)
+
 # TODO: update
 def update_main(bot, update):
     logger.debug("update callback")
@@ -203,10 +215,11 @@ def start(bot, update):
     logger.debug("msg: %s" % message)
     if message and len(keyboard) > 0:
         bot.send_message(chat_id=update.message.chat_id, text=message, parse_mode='Markdown',
-                         reply_markup=ReplyKeyboardRemove())
+                         reply_markup=InlineKeyboardMarkup(inline_keyboard=keyboard))
+
         if address:
             bot.send_message(chat_id=update.message.chat_id, text="*%s*" % address, parse_mode='Markdown',
-                             reply_markup=InlineKeyboardMarkup(inline_keyboard=keyboard))
+                             reply_markup=ReplyKeyboardRemove())
 
 
 def StartMessage(bot, update):
@@ -326,7 +339,7 @@ def StartMessage(bot, update):
                     position = int(position) / 1e8
                     message += "Your portfolio is *%.8f* BTC\n" % (position)
                     if (balance == 0) and (position > 0):
-                        #message += "Would you check /portfolio stats?\n"
+                        # message += "Would you check /portfolio stats?\n"
                         # keyboard = [[KeyboardButton(text="/portfolio")]]
                         keyboard += [[InlineKeyboardButton(text="check portfolio stats", callback_data="/portfolio")]]
                     elif (len(unconfirmedTXs) == 0) and (balance > 0):
@@ -336,7 +349,8 @@ def StartMessage(bot, update):
                         message += "Pending transaction for: %s BTC\n" % (int(tx['value']) / 1e8)
                         message += "tx ID: *%s*\n" % tx['ID']
                         keyboard += [[InlineKeyboardButton(text="update", callback_data="/update")]]
-                    message += "Your address is\n"
+                    # message += "Your address is\n"
+                    keyboard += [[InlineKeyboardButton(text="wallet address", callback_data="/address")]]
 
             except:
                 logger.error(traceback.format_exc())
@@ -755,6 +769,7 @@ if __name__ == "__main__":
 
     folio_handler = CallbackQueryHandler(callback=folio_stats, pattern='^/portfolio')
     update_handler = CallbackQueryHandler(callback=update_main, pattern='^/update')
+    view_address_handler = CallbackQueryHandler(callback=view_address, pattern='^/address')
 
     dispatcher.add_handler(start_handler)
     dispatcher.add_handler(help_handler)
@@ -769,6 +784,7 @@ if __name__ == "__main__":
     dispatcher.add_handler(actions_handler)
     dispatcher.add_handler(action_approve_handler)
     dispatcher.add_handler(update_handler)
+    dispatcher.add_handler(view_address_handler)
 
     dispatcher.add_error_handler(error_callback)
     updater.start_polling()
