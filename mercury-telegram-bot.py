@@ -234,6 +234,7 @@ def admin_functions(bot, update):
     chat_id = query.message.chat_id
     bot.editMessageReplyMarkup(chat_id=chat_id, message_id=query.message.message_id, reply_markup=admin_keyboard)
 
+
 # TODO: start
 def start(bot, update):
     try:
@@ -385,7 +386,7 @@ def StartMessage(bot, update):
                         message += "tx ID: *%s*\n" % tx['ID']
                         keyboard += [[InlineKeyboardButton(text="update", callback_data="/update")]]
                     message += "Your address is\n"
-                    #keyboard += [[InlineKeyboardButton(text="wallet address", callback_data="/address")]]
+                    # keyboard += [[InlineKeyboardButton(text="wallet address", callback_data="/address")]]
 
             except:
                 logger.error(traceback.format_exc())
@@ -468,10 +469,11 @@ def OTP_command(bot, update):
         elif 'transactID' in result:
             message = 'BitMEX -> Polo transfer created, ID: *%s*' % result['transactID']
 
+        keyboard = [[KeyboardButton(text="/start")]]
         if message:
             bot.send_message(chat_id=update.message.chat_id, text=message, parse_mode='Markdown',
                              reply_markup=ReplyKeyboardMarkup(
-                                 keyboard=admin_keyboard))
+                                 keyboard=keyboard))
 
     last_command = None
     last_args = None
@@ -489,8 +491,9 @@ def CancelOTP(bot, update):
     last_command = None
     last_args = None
     message = "Command cancelled"
+    keyboard = [[KeyboardButton(text="/start")]]
     bot.send_message(chat_id=update.message.chat_id, text=message, reply_markup=ReplyKeyboardMarkup(
-        keyboard=admin_keyboard))
+        keyboard=keyboard))
 
 
 # TODO: contact
@@ -782,30 +785,33 @@ def plot_graph(df, name, label):
 if __name__ == "__main__":
     # admin_keyboard = [[KeyboardButton(text="/statistics")], [KeyboardButton(text="/transfers")],
     #                  [KeyboardButton(text="/health")], [KeyboardButton(text="/actions")]]
-    admin_keyboard = [[KeyboardButton(text="/statistics")], [KeyboardButton(text="/transfers")],
-                      [KeyboardButton(text="/health")], [KeyboardButton(text="/actions")]]
+    admin_keyboard = [[InlineKeyboardButton(text="manage transfers", callback_data="/transfers")],
+                      [InlineKeyboardButton(text="manage user actions", callback_data="/actions")],
+                      [InlineKeyboardButton(text="check bot helth", callback_data="/health")]]
 
-    user_keyboard = [[KeyboardButton(text="/start")], [KeyboardButton(text="/statistics")],
-                     [KeyboardButton(text="/help")]]
+    # user_keyboard = [[KeyboardButton(text="/start")], [KeyboardButton(text="/statistics")],
+    #                 [KeyboardButton(text="/help")]]
 
     # TODO: handlers
     start_handler = CommandHandler('start', start)
     help_handler = CommandHandler('help', bot_help)
     # stats_handler = CommandHandler('statistics', stats)
     # folio_handler = CommandHandler('portfolio', folio_stats)
-    health_handler = CommandHandler('health', health_check)
+    # health_handler = CommandHandler('health', health_check)
     contact_handler = CommandHandler('contact', contact)
     invest_handler = CommandHandler('invest', invest)
-    actions_handler = CommandHandler('actions', unapproved_actions)
-    transfers_show_handler = CommandHandler('transfers', transfers_show)
+    # actions_handler = CommandHandler('actions', unapproved_actions)
+    #transfers_show_handler = CommandHandler('transfers', transfers_show)
     OTP_handler = RegexHandler(pattern='^\d{6}$', callback=OTP_command)
     OTP_cancel_handler = RegexHandler(pattern='^0$', callback=CancelOTP)
     action_approve_handler = RegexHandler(pattern='^a\d{1,3}$', callback=action_approve)
 
-    folio_handler = CallbackQueryHandler(callback=folio_stats, pattern='^/portfolio')
-    stats_handler = CallbackQueryHandler(callback=stats, pattern='^/statistics')
-    update_handler = CallbackQueryHandler(callback=start, pattern='^/update')
-
+    folio_handler = CallbackQueryHandler(pattern='^/portfolio', callback=folio_stats)
+    stats_handler = CallbackQueryHandler(pattern='^/statistics', callback=stats)
+    update_handler = CallbackQueryHandler(pattern='^/update', callback=start)
+    health_handler = CallbackQueryHandler(pattern='^/health', callback=health_check)
+    actions_handler = CallbackQueryHandler(pattern='^/actions', callback=unapproved_actions)
+    transfers_show_handler = CallbackQueryHandler(pattern='^transfers', callback=transfers_show)
     admin_functions_handler = CallbackQueryHandler(callback=admin_functions, pattern='^/admin')
 
     dispatcher.add_handler(start_handler)
