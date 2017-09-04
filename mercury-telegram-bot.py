@@ -179,8 +179,35 @@ def bot_help(bot, update):
     bot.send_message(chat_id=update.message.chat_id, text=message, parse_mode='Markdown')
 
 
+# TODO: update
+def update_main(bot, update):
+    query = update.callback_query
+    chat_id = query.message.chat_id
+    address, isadmin, keyboard, message = StartMessage(bot, update)
+
+    bot.edit_message_text(text=message,
+                          chat_id=chat_id,
+                          message_id=query.message.message_id,
+                          reply_markup=InlineKeyboardMarkup(inline_keyboard=keyboard))
+
+
 # TODO: start
 def start(bot, update):
+    address, isadmin, keyboard, message = StartMessage(bot, update)
+
+    if isadmin:
+        keyboard += [[InlineKeyboardButton(text="admin functions", callback_data="/admin")]]
+
+    logger.debug("msg: %s" % message)
+    if message and len(keyboard) > 0:
+        bot.send_message(chat_id=update.message.chat_id, text=message, parse_mode='Markdown',
+                         reply_markup=ReplyKeyboardRemove())
+        if address:
+            bot.send_message(chat_id=update.message.chat_id, text="*%s*" % address, parse_mode='Markdown',
+                             reply_markup=InlineKeyboardMarkup(inline_keyboard=keyboard))
+
+
+def StartMessage(bot, update):
     with db_engine.connect() as con:
         userfrom = update.effective_user
         logger.debug("userfrom : %s" % userfrom)
@@ -317,17 +344,7 @@ def start(bot, update):
                 keyboard += [[InlineKeyboardButton(text="contact support", callback_data="/contact")]]
                 msg = "Balance is unavailable [%s](tg://user?id=%s)\n" % (userID, userID)
                 bot.send_message(chat_id=TELEGRAM_CHANNEL_NAME, text=msg, parse_mode='Markdown')
-
-        if isadmin:
-            keyboard += [[InlineKeyboardButton(text="admin functions", callback_data="/admin")]]
-
-        logger.debug("msg: %s" % message)
-        if message and len(keyboard) > 0:
-            bot.send_message(chat_id=update.message.chat_id, text=message, parse_mode='Markdown',
-                             reply_markup=ReplyKeyboardRemove())
-            if address:
-                bot.send_message(chat_id=update.message.chat_id, text="*%s*" % address, parse_mode='Markdown',
-                                 reply_markup=InlineKeyboardMarkup(inline_keyboard=keyboard))
+    return address, isadmin, keyboard, message
 
 
 # TODO: folio stats
@@ -735,6 +752,7 @@ if __name__ == "__main__":
     action_approve_handler = RegexHandler(pattern='^a\d{1,3}$', callback=action_approve)
 
     folio_handler = CallbackQueryHandler(callback=folio_stats, pattern='^/portfolio')
+    update_handler = CallbackQueryHandler(callback=update_main, pattern='^/update')
 
     dispatcher.add_handler(start_handler)
     dispatcher.add_handler(help_handler)
@@ -748,6 +766,7 @@ if __name__ == "__main__":
     dispatcher.add_handler(invest_handler)
     dispatcher.add_handler(actions_handler)
     dispatcher.add_handler(action_approve_handler)
+    dispatcher.add_handler(update_handler)
 
     dispatcher.add_error_handler(error_callback)
     updater.start_polling()
