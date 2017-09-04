@@ -812,7 +812,7 @@ if __name__ == "__main__":
     update_handler = CallbackQueryHandler(pattern='^/update', callback=start)
     health_handler = CallbackQueryHandler(pattern='^/health', callback=health_check)
     actions_handler = CallbackQueryHandler(pattern='^/actions', callback=unapproved_actions)
-    transfers_show_handler = CallbackQueryHandler(pattern='^transfers', callback=transfers_show)
+    transfers_show_handler = CallbackQueryHandler(pattern='^/transfers', callback=transfers_show)
     admin_functions_handler = CallbackQueryHandler(callback=admin_functions, pattern='^/admin')
 
     dispatcher.add_handler(start_handler)
