@@ -303,7 +303,7 @@ def StartMessage(bot, update):
                 # message += "*%s*\n" % address
                 keyboard += [[InlineKeyboardButton(text="update", callback_data="/update")],
                              [InlineKeyboardButton(text="view fund performance", callback_data='/statistics')]]
-                msg = "New user created [%s](tg://user?id=%s)\n" % (userID, userID)
+                msg = "*New user created:* [%s](tg://user?id=%s)\n" % (userID, userID)
                 bot.send_message(chat_id=TELEGRAM_CHANNEL_NAME, text=msg, parse_mode='Markdown')
             except:
                 logger.error(traceback.format_exc())
@@ -400,8 +400,7 @@ def StartMessage(bot, update):
 
 # TODO: folio stats
 def folio_stats(bot, update):
-    query = update.callback_query
-    chat_id = query.message.chat_id
+    chat_id = get_chat_id(update)
     log_event = 'folio stats checked'
     userID = log_record(log_event, update)
     df = pd.read_sql_query(sql='SELECT * FROM ' + positions_table + ' WHERE `USERID` = ' + str(userID),
@@ -427,11 +426,12 @@ def get_userID(update):
 
 # TODO: stats
 def stats(bot, update):
+    chat_id = get_chat_id(update)
     log_event = 'hedge fund stats checked'
     log_record(log_event, update)
     df = pd.read_sql_query(sql='SELECT * FROM ' + balance_table, con=db_engine, index_col='index')
     df_groupped = df.groupby(df.timestamp.dt.date)['totalbalance'].mean()
-    send_stats(bot, df_groupped, update)
+    send_stats(bot, df_groupped, chat_id)
 
 
 def send_stats(bot, df_groupped, chat_id):
