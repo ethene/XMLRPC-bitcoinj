@@ -298,10 +298,10 @@ def StartMessage(bot, update):
                 message += "Your new account has just created\n"
                 # message += "To see the fund performance use /statistics\n"
                 # message += "or use /help for full command list\n"
-                message += "Your wallet is yet empty.\nPlease top-up your account\n"
+                message += "Your wallet is yet empty\nPlease top-up your account\n"
                 message += "by making a transfer to your main wallet to your address as below:\n"
                 # message += "*%s*\n" % address
-                keyboard += [[InlineKeyboardButton(text="update", callback_data="/update")],
+                keyboard += [[InlineKeyboardButton(text="update", callback_data="/start")],
                              [InlineKeyboardButton(text="view fund performance", callback_data='/statistics')]]
                 msg = "*New user created:* [%s](tg://user?id=%s)\n" % (userID, userID)
                 bot.send_message(chat_id=TELEGRAM_CHANNEL_NAME, text=msg, parse_mode='Markdown')
@@ -348,7 +348,7 @@ def StartMessage(bot, update):
                     message += "by making a transfer to your main wallet address\n"
                     # keyboard = [[KeyboardButton(text="/start")], [KeyboardButton(text="/statistics")],
                     #            [KeyboardButton(text="/help")]]
-                    keyboard += [[InlineKeyboardButton(text="update", callback_data="/update")],
+                    keyboard += [[InlineKeyboardButton(text="update", callback_data="/start")],
                                  [InlineKeyboardButton(text="view fund performance", callback_data='/statistics')]]
                 else:
                     message += "Your balance is *%.8f* BTC\n" % (balance)
@@ -369,7 +369,7 @@ def StartMessage(bot, update):
 
                 if len(invest_rs) > 0:
                     message += "Waiting to update your portfolio\n"
-                    keyboard += [[InlineKeyboardButton(text="update", callback_data="/update")]]
+                    keyboard += [[InlineKeyboardButton(text="update", callback_data="/start")]]
                 else:
                     position = int(position) / 1e8
                     message += "Your portfolio is *%.8f* BTC\n" % (position)
@@ -383,7 +383,7 @@ def StartMessage(bot, update):
                     for tx in unconfirmedTXs:
                         message += "Pending transaction for: %s BTC\n" % (int(tx['value']) / 1e8)
                         message += "tx ID: *%s*\n" % tx['ID']
-                        keyboard += [[InlineKeyboardButton(text="update", callback_data="/update")]]
+                        keyboard += [[InlineKeyboardButton(text="update", callback_data="/start")]]
                     message += "Your address is\n"
                     # keyboard += [[InlineKeyboardButton(text="wallet address", callback_data="/address")]]
 
@@ -835,7 +835,7 @@ if __name__ == "__main__":
 
     folio_handler = CallbackQueryHandler(pattern='^/portfolio', callback=folio_stats)
     stats_handler = CallbackQueryHandler(pattern='^/statistics', callback=stats)
-    update_handler = CallbackQueryHandler(pattern='^/update', callback=start)
+    # update_handler = CallbackQueryHandler(pattern='^/update', callback=start)
     update_handler = CallbackQueryHandler(pattern='^/start', callback=start)
     health_handler = CallbackQueryHandler(pattern='^/health', callback=health_check)
     actions_handler = CallbackQueryHandler(pattern='^/actions', callback=unapproved_actions)
