@@ -319,7 +319,7 @@ def start(bot, update):
                 bot.send_message(chat_id=TELEGRAM_CHANNEL_NAME, text=msg, parse_mode='Markdown')
 
         if isadmin:
-            keyboard += admin_keyboard
+            keyboard += [[InlineKeyboardButton(text="admin functions", callback_data="/admin")]]
 
         logger.debug("msg: %s" % message)
         if message and len(keyboard) > 0:
@@ -712,8 +712,11 @@ def plot_graph(df, name, label):
 
 
 if __name__ == "__main__":
+    # admin_keyboard = [[KeyboardButton(text="/statistics")], [KeyboardButton(text="/transfers")],
+    #                  [KeyboardButton(text="/health")], [KeyboardButton(text="/actions")]]
     admin_keyboard = [[KeyboardButton(text="/statistics")], [KeyboardButton(text="/transfers")],
                       [KeyboardButton(text="/health")], [KeyboardButton(text="/actions")]]
+
     user_keyboard = [[KeyboardButton(text="/start")], [KeyboardButton(text="/statistics")],
                      [KeyboardButton(text="/help")]]
 
