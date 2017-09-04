@@ -805,7 +805,7 @@ if __name__ == "__main__":
     folio_handler = CallbackQueryHandler(callback=folio_stats, pattern='^/portfolio')
     stats_handler = CallbackQueryHandler(callback=stats, pattern='^/statistics')
     update_handler = CallbackQueryHandler(callback=start, pattern='^/update')
-    view_address_handler = CallbackQueryHandler(callback=view_address, pattern='^/address')
+
     admin_functions_handler = CallbackQueryHandler(callback=admin_functions, pattern='^/admin')
 
     dispatcher.add_handler(start_handler)
@@ -821,7 +821,6 @@ if __name__ == "__main__":
     dispatcher.add_handler(actions_handler)
     dispatcher.add_handler(action_approve_handler)
     dispatcher.add_handler(update_handler)
-    dispatcher.add_handler(view_address_handler)
     dispatcher.add_handler(admin_functions_handler)
 
     dispatcher.add_error_handler(error_callback)
