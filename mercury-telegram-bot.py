@@ -292,7 +292,7 @@ def StartMessage(bot, update):
                 message = "Hello, *%s*!\nThis is your personal interface to the *Mercury* crypto hedge fund\n" % (
                     username)
                 message += "Your new account has just created\n"
-                message += "To see the fund performance use /statistics\n"
+                # message += "To see the fund performance use /statistics\n"
                 # message += "or use /help for full command list\n"
                 message += "Your wallet is yet empty.\nPlease top-up your account\n"
                 message += "by making a transfer to your main wallet to your address as below:\n"
@@ -338,7 +338,7 @@ def StartMessage(bot, update):
                 logger.debug("balance %.8f" % (balance / 1e8))
                 unconfirmedTXs = XMLRPCServer.getUnconfirmedTransactions(address)
                 logger.debug("unconfirmed: %s" % unconfirmedTXs)
-                message += "Would you like to see our performance /statistics\n"
+                #message += "Would you like to see our performance /statistics\n"
                 # message += "or read /help for full command list?\n"
                 balance = int(balance) / 1e8
                 if balance == 0:
@@ -795,7 +795,8 @@ def plot_graph(df, name, label):
 if __name__ == "__main__":
     # admin_keyboard = [[KeyboardButton(text="/statistics")], [KeyboardButton(text="/transfers")],
     #                  [KeyboardButton(text="/health")], [KeyboardButton(text="/actions")]]
-    admin_keyboard = [[InlineKeyboardButton(text="manage transfers", callback_data="/transfers")],
+    admin_keyboard = [[InlineKeyboardButton(text="go back", callback_data="/start")],
+                      [InlineKeyboardButton(text="manage transfers", callback_data="/transfers")],
                       [InlineKeyboardButton(text="manage user actions", callback_data="/actions")],
                       [InlineKeyboardButton(text="check bot health", callback_data="/health")]]
 
