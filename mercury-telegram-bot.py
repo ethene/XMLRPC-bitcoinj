@@ -191,6 +191,8 @@ def view_address(bot, update):
         address = rs[0].address
     bot.answerCallbackQuery(callback_query_id=query.id, text=address, show_alert=True)
 
+
+'''
 # TODO: update
 def update_main(bot, update):
     logger.debug("update callback")
@@ -203,7 +205,7 @@ def update_main(bot, update):
                           chat_id=chat_id,
                           message_id=query.message.message_id,
                           reply_markup=InlineKeyboardMarkup(inline_keyboard=keyboard))
-
+'''
 
 # TODO: start
 def start(bot, update):
@@ -215,11 +217,11 @@ def start(bot, update):
     logger.debug("msg: %s" % message)
     if message and len(keyboard) > 0:
         bot.send_message(chat_id=update.message.chat_id, text=message, parse_mode='Markdown',
-                         reply_markup=InlineKeyboardMarkup(inline_keyboard=keyboard))
+                         reply_markup=ReplyKeyboardRemove())
 
         if address:
             bot.send_message(chat_id=update.message.chat_id, text="*%s*" % address, parse_mode='Markdown',
-                             reply_markup=ReplyKeyboardRemove())
+                             reply_markup=InlineKeyboardMarkup(inline_keyboard=keyboard))
 
 
 def StartMessage(bot, update):
@@ -263,7 +265,7 @@ def StartMessage(bot, update):
                 # message += "or use /help for full command list\n"
                 message += "Your wallet is yet empty.\nPlease top-up your account\n"
                 message += "by making a transfer to your main wallet to your address as below:\n"
-                message += "*%s*\n" % address
+                # message += "*%s*\n" % address
                 keyboard += [[InlineKeyboardButton(text="update", callback_data="/update")],
                              [InlineKeyboardButton(text="view fund performance", callback_data='/statistics')]]
                 msg = "New user created [%s](tg://user?id=%s)\n" % (userID, userID)
@@ -349,8 +351,8 @@ def StartMessage(bot, update):
                         message += "Pending transaction for: %s BTC\n" % (int(tx['value']) / 1e8)
                         message += "tx ID: *%s*\n" % tx['ID']
                         keyboard += [[InlineKeyboardButton(text="update", callback_data="/update")]]
-                    # message += "Your address is\n"
-                    keyboard += [[InlineKeyboardButton(text="wallet address", callback_data="/address")]]
+                    message += "Your address is\n"
+                    #keyboard += [[InlineKeyboardButton(text="wallet address", callback_data="/address")]]
 
             except:
                 logger.error(traceback.format_exc())
@@ -768,7 +770,7 @@ if __name__ == "__main__":
     action_approve_handler = RegexHandler(pattern='^a\d{1,3}$', callback=action_approve)
 
     folio_handler = CallbackQueryHandler(callback=folio_stats, pattern='^/portfolio')
-    update_handler = CallbackQueryHandler(callback=update_main, pattern='^/update')
+    update_handler = CallbackQueryHandler(callback=start, pattern='^/update')
     view_address_handler = CallbackQueryHandler(callback=view_address, pattern='^/address')
 
     dispatcher.add_handler(start_handler)
