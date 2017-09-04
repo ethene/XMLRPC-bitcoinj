@@ -182,6 +182,7 @@ def bot_help(bot, update):
 # TODO: update
 def update_main(bot, update):
     query = update.callback_query
+    bot.answerCallbackQuery(callback_query_id=query.id, text="~~~Updated~~~")
     chat_id = query.message.chat_id
     address, isadmin, keyboard, message = StartMessage(bot, update)
 
@@ -291,7 +292,7 @@ def StartMessage(bot, update):
                 unconfirmedTXs = XMLRPCServer.getUnconfirmedTransactions(address)
                 logger.debug("unconfirmed: %s" % unconfirmedTXs)
                 message += "Would you like to see our performance /statistics\n"
-                message += "or read /help for full command list?\n"
+                # message += "or read /help for full command list?\n"
                 balance = int(balance) / 1e8
                 if balance == 0:
                     message += "Your wallet is yet empty\nPlease top-up your account\n"
@@ -324,7 +325,7 @@ def StartMessage(bot, update):
                     position = int(position) / 1e8
                     message += "Your portfolio is *%.8f* BTC\n" % (position)
                     if (balance == 0) and (position > 0):
-                        message += "Would you check /portfolio stats?\n"
+                        #message += "Would you check /portfolio stats?\n"
                         # keyboard = [[KeyboardButton(text="/portfolio")]]
                         keyboard += [[InlineKeyboardButton(text="check portfolio stats", callback_data="/portfolio")]]
                     elif (len(unconfirmedTXs) == 0) and (balance > 0):
