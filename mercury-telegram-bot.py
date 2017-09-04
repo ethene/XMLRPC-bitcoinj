@@ -16,7 +16,7 @@ import psutil
 from sqlalchemy import (create_engine, Table, Column, Integer, BigInteger, ForeignKey, DateTime,
                         String, Boolean, MetaData, desc, func)
 from sqlalchemy.sql import select
-from telegram import ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove, InlineKeyboardButton, \
+from telegram import ReplyKeyboardRemove, InlineKeyboardButton, \
     InlineKeyboardMarkup
 from telegram.error import (TelegramError)
 from telegram.ext import CommandHandler, RegexHandler, CallbackQueryHandler
@@ -303,8 +303,6 @@ def StartMessage(bot, update):
                 bot.send_message(chat_id=TELEGRAM_CHANNEL_NAME, text=msg, parse_mode='Markdown')
             except:
                 logger.error(traceback.format_exc())
-                log_event = 'failed to create user'
-                log_record(log_event, update)
                 message = "Failed to create new user"
                 keyboard += [[InlineKeyboardButton(text="contact support", callback_data="/contact")]]
                 msg = "failed to create user [%s](tg://user?id=%s)\n" % (userID, userID)
@@ -409,12 +407,17 @@ def folio_stats(bot, update):
 
 
 def log_record(log_event, update):
-    userfrom = update.effective_user
-    logger.debug("userfrom : %s" % userfrom)
-    userID = userfrom.id
+    userID = get_userID(update)
     with db_engine.connect() as con:
         ins = log.insert().values(userID=userID, log=log_event, timestamp=datetime.utcnow())
         con.execute(ins)
+    return userID
+
+
+def get_userID(update):
+    userfrom = update.effective_user
+    logger.debug("userfrom : %s" % userfrom)
+    userID = userfrom.id
     return userID
 
 
@@ -438,9 +441,9 @@ def send_stats(bot, df_groupped, chat_id):
         # picture_1 = open(pic_folder + '/' + pic_1_filename, 'rb')
         # bot.send_photo(chat_id=update.message.chat_id, photo=picture_1)
         picture_2 = open(pic_folder + '/' + pic_2_filename, 'rb')
-        keyboard = [[KeyboardButton(text="/start")]]
+        keyboard = [[InlineKeyboardButton(text="go back", callback_data="/start")]]
         bot.send_photo(chat_id=chat_id, photo=picture_2,
-                       reply_markup=ReplyKeyboardMarkup(keyboard=keyboard))
+                       reply_markup=InlineKeyboardMarkup(inline_keyboard=keyboard))
 
 
 # TODO: OTP command
@@ -466,11 +469,11 @@ def OTP_command(bot, update):
         elif 'transactID' in result:
             message = 'BitMEX -> Polo transfer created, ID: *%s*' % result['transactID']
 
-        keyboard = [[KeyboardButton(text="/start")]]
         if message:
+            keyboard = [[InlineKeyboardButton(text="go back", callback_data="/start")]]
             bot.send_message(chat_id=update.message.chat_id, text=message, parse_mode='Markdown',
-                             reply_markup=ReplyKeyboardMarkup(
-                                 keyboard=keyboard))
+                             reply_markup=InlineKeyboardMarkup(
+                                 inline_keyboard=keyboard))
 
     last_command = None
     last_args = None
@@ -488,25 +491,33 @@ def CancelOTP(bot, update):
     last_command = None
     last_args = None
     message = "Command cancelled"
-    keyboard = [[KeyboardButton(text="/start")]]
-    bot.send_message(chat_id=update.message.chat_id, text=message, reply_markup=ReplyKeyboardMarkup(
-        keyboard=keyboard))
+    keyboard = [[InlineKeyboardButton(text="go back", callback_data="/start")]]
+    bot.send_message(chat_id=update.message.chat_id, text=message, parse_mode='Markdown',
+                     reply_markup=InlineKeyboardMarkup(
+                         inline_keyboard=keyboard))
 
 
 # TODO: contact
 def contact(bot, update):
-    log_event = 'Support request is sent'
-    userID = log_record(log_event, update)
-    with db_engine.connect() as con:
+    query = update.callback_query
+    chat_id = get_chat_id(update)
+    # log_event = 'Support request is sent'
+    userID = get_userID(update)
+    # with db_engine.connect() as con:
         # actions = Table(actions_table, metadata, autoload=True)
-        ins = actions.insert().values(userID=userID, action='SUPPORT', timestamp=datetime.utcnow())
-        con.execute(ins)
-        message = "Support request is sent.\n*Please wait to be contacted.*\n"
-        bot.send_message(chat_id=update.message.chat_id, text=message, parse_mode='Markdown',
-                         reply_markup=ReplyKeyboardMarkup(
-                             keyboard=[[KeyboardButton(text="/start")]]))
-        msg = "New support request from [%s](tg://user?id=%s)\n" % (userID, userID)
-        bot.send_message(chat_id=TELEGRAM_CHANNEL_NAME, text=msg, parse_mode='Markdown')
+    # ins = actions.insert().values(userID=userID, action='SUPPORT', timestamp=datetime.utcnow())
+    # con.execute(ins)
+    message = "Support request is sent.\n*Please wait to be contacted.*\n"
+    bot.answerCallbackQuery(callback_query_id=query.id, text=message, show_alert=True)
+    # bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown',
+    #                 reply_markup=ReplyKeyboardMarkup(
+    #                     keyboard=[[KeyboardButton(text="/start")]]))
+    keyboard = [[InlineKeyboardButton(text="go back", callback_data="/start")]]
+    bot.editMessageReplyMarkup(chat_id=chat_id, message_id=query.message.message_id,
+                               reply_markup=InlineKeyboardMarkup(inline_keyboard=keyboard))
+
+    msg = "New support request from [%s](tg://user?id=%s)\n" % (userID, userID)
+    bot.send_message(chat_id=TELEGRAM_CHANNEL_NAME, text=msg, parse_mode='Markdown')
 
 
 # TODO: invest
@@ -529,9 +540,10 @@ def invest(bot, update):
                 bot.send_message(chat_id=TELEGRAM_CHANNEL_NAME, text=msg, parse_mode='Markdown')
             else:
                 message = "*You have insufficient balance.\nPlease top-up your wallet first and wait until your funds are confirmed.*"
+            keyboard = [[InlineKeyboardButton(text="go back", callback_data="/start")]]
             bot.send_message(chat_id=update.message.chat_id, text=message, parse_mode='Markdown',
-                             reply_markup=ReplyKeyboardMarkup(
-                                 keyboard=[[KeyboardButton(text="/start")]]))
+                             reply_markup=InlineKeyboardMarkup(
+                                 inline_keyboard=keyboard))
         except:
             logger.error(traceback.format_exc())
             msg = "Invest request error from [%s](tg://user?id=%s)\n" % (userID, userID)
@@ -809,8 +821,8 @@ if __name__ == "__main__":
     # stats_handler = CommandHandler('statistics', stats)
     # folio_handler = CommandHandler('portfolio', folio_stats)
     # health_handler = CommandHandler('health', health_check)
-    contact_handler = CommandHandler('contact', contact)
-    invest_handler = CommandHandler('invest', invest)
+    # contact_handler = CommandHandler('contact', contact)
+    # invest_handler = CommandHandler('invest', invest)
     # actions_handler = CommandHandler('actions', unapproved_actions)
     # transfers_show_handler = CommandHandler('transfers', transfers_show)
     OTP_handler = RegexHandler(pattern='^\d{6}$', callback=OTP_command)
@@ -823,7 +835,9 @@ if __name__ == "__main__":
     health_handler = CallbackQueryHandler(pattern='^/health', callback=health_check)
     actions_handler = CallbackQueryHandler(pattern='^/actions', callback=unapproved_actions)
     transfers_show_handler = CallbackQueryHandler(pattern='^/transfers', callback=transfers_show)
-    admin_functions_handler = CallbackQueryHandler(callback=admin_functions, pattern='^/admin')
+    admin_functions_handler = CallbackQueryHandler(pattern='^/admin', callback=admin_functions)
+    contact_handler = CallbackQueryHandler(pattern='^/contact', callback=contact)
+    invest_handler = CallbackQueryHandler(pattern='^/invest', callback=invest)
 
     dispatcher.add_handler(start_handler)
     dispatcher.add_handler(help_handler)
