@@ -540,6 +540,7 @@ def invest(bot, update):
 
 # TODO: actions
 def unapproved_actions(bot, update):
+    chat_id = get_chat_id(update)
     isadmin = check_admin_privilege(update)
     if not isadmin:
         return
@@ -566,7 +567,7 @@ def unapproved_actions(bot, update):
     else:
         message += "Type *a[n]* to approve\n"
         reply_markup = ReplyKeyboardRemove()
-    bot.send_message(chat_id=update.message.chat_id, text=message, parse_mode='Markdown',
+    bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown',
                      reply_markup=reply_markup)
 
 
