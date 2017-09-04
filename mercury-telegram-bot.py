@@ -232,7 +232,8 @@ def admin_functions(bot, update):
     query = update.callback_query
     # bot.answerCallbackQuery(callback_query_id=query.id, text="~~~Updated~~~")
     chat_id = query.message.chat_id
-    bot.editMessageReplyMarkup(chat_id=chat_id, message_id=query.message.message_id, reply_markup=admin_keyboard)
+    bot.editMessageReplyMarkup(chat_id=chat_id, message_id=query.message.message_id,
+                               reply_markup=InlineKeyboardMarkup(inline_keyboard=admin_keyboard))
 
 
 # TODO: start
@@ -801,7 +802,7 @@ if __name__ == "__main__":
     contact_handler = CommandHandler('contact', contact)
     invest_handler = CommandHandler('invest', invest)
     # actions_handler = CommandHandler('actions', unapproved_actions)
-    #transfers_show_handler = CommandHandler('transfers', transfers_show)
+    # transfers_show_handler = CommandHandler('transfers', transfers_show)
     OTP_handler = RegexHandler(pattern='^\d{6}$', callback=OTP_command)
     OTP_cancel_handler = RegexHandler(pattern='^0$', callback=CancelOTP)
     action_approve_handler = RegexHandler(pattern='^a\d{1,3}$', callback=action_approve)
