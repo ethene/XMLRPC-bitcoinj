@@ -238,11 +238,7 @@ def admin_functions(bot, update):
 
 # TODO: start
 def start(bot, update):
-    try:
-        chat_id = update.message.chat_id
-    except:
-        query = update.callback_query
-        chat_id = query.message.chat_id
+    chat_id = get_chat_id(update)
 
     address, isadmin, keyboard, message = StartMessage(bot, update)
 
@@ -684,6 +680,7 @@ def approve_action(action, timestamp, user_id):
 
 # TODO: transfers_show
 def transfers_show(bot, update):
+    chat_id = get_chat_id(update)
     global last_command
     global last_args
     isadmin = check_admin_privilege(update)
@@ -708,14 +705,24 @@ def transfers_show(bot, update):
 
     message += "_Current UTC now is_ %s\n" % (datetime.utcnow().strftime("%H:%M:%S"))
     message += "send OTP to confirm or 0 to cancel"
-    bot.send_message(chat_id=update.message.chat_id, text=message, reply_markup=ReplyKeyboardRemove(),
+    bot.send_message(chat_id=chat_id, text=message, reply_markup=ReplyKeyboardRemove(),
                      parse_mode='Markdown')
     last_command = 'BW'
     last_args = transfer_diff
 
 
+def get_chat_id(update):
+    try:
+        chat_id = update.message.chat_id
+    except:
+        query = update.callback_query
+        chat_id = query.message.chat_id
+    return chat_id
+
+
 # TODO: health
 def health_check(bot, update):
+    chat_id = get_chat_id(update)
     isadmin = check_admin_privilege(update)
     if not isadmin:
         return
@@ -744,7 +751,7 @@ def health_check(bot, update):
     message += "_updated %d s ago_\n" % ((getUTCtime() - health_record[0]['index']) / 1000)
 
     logger.debug(message)
-    bot.send_message(chat_id=update.message.chat_id, text=message, parse_mode='Markdown')
+    bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown')
 
 
 # TODO: check_admin_privilege
