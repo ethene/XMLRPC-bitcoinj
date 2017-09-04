@@ -728,7 +728,7 @@ if __name__ == "__main__":
     OTP_cancel_handler = RegexHandler(pattern='^0$', callback=CancelOTP)
     action_approve_handler = RegexHandler(pattern='^a\d{1,3}$', callback=action_approve)
 
-    callback_handler = CallbackQueryHandler(callback=folio_stats, pattern='^/portfolio')
+    folio_handler = CallbackQueryHandler(callback=folio_stats, pattern='^/portfolio')
 
     dispatcher.add_handler(start_handler)
     dispatcher.add_handler(help_handler)
