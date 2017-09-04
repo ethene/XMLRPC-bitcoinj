@@ -241,17 +241,21 @@ def start(bot, update):
     chat_id = get_chat_id(update)
 
     address, isadmin, keyboard, message = StartMessage(bot, update)
+    logger.debug(keyboard)
+    logger.debug(message)
 
     if isadmin:
         keyboard += [[InlineKeyboardButton(text="admin functions", callback_data="/admin")]]
 
     logger.debug("msg: %s" % message)
     if message and len(keyboard) > 0:
-        bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown',
-                         reply_markup=ReplyKeyboardRemove())
-
         if address:
+            bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown',
+                         reply_markup=ReplyKeyboardRemove())
             bot.send_message(chat_id=chat_id, text="*%s*" % address, parse_mode='Markdown',
+                             reply_markup=InlineKeyboardMarkup(inline_keyboard=keyboard))
+        else:
+            bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown',
                              reply_markup=InlineKeyboardMarkup(inline_keyboard=keyboard))
 
 
