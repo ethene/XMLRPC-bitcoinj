@@ -471,7 +471,7 @@ def OTP_command(bot, update):
         if 'error' in result:
             message = result['error']['message']
         elif 'transactID' in result:
-            message = 'BitMEX -> Polo transfer created, ID: *%s*' % result['transactID']
+            message = 'BitMEX -> Polo transfer created\nID: *%s*' % result['transactID']
 
         if message:
             keyboard = [[InlineKeyboardButton(text="go back", callback_data="/start")]]
@@ -764,6 +764,12 @@ def health_check(bot, update):
     for r in health_record[0]:
         if r not in ['index', 'timestamp']:
             message += "_%s_ is alive: *%s*\n" % (r, health_record[0][r] == 1)
+
+    with db_engine.connect() as con:
+        select_positions = select([positions]).order_by(desc(positions.c.timestamp))
+        rs = con.execute(select_positions).fetchall()
+        max_pos_timestamp = rs[0].timestamp
+        message += "_position updated %d s ago_\n" % ((getUTCtime() - max_pos_timestamp) / 1000)
     message += "_time is_ *%s* _UTC_\n" % (datetime.utcnow().strftime("%H:%M:%S"))
     message += "_updated %d s ago_\n" % ((getUTCtime() - health_record[0]['index']) / 1000)
 
