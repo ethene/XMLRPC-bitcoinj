@@ -715,12 +715,12 @@ def transfers_show(bot, update):
         last_command = 'PW'
         last_args = abs(transfer_diff)
 
-    message = "_BitMEX_ %s _Poloniex_ %.6f\n" % (direction, abs(transfer_diff))
+    message = "_BitMEX_ %s _Poloniex_ *%.6f*\n" % (direction, abs(transfer_diff))
     result = bitmex.min_withdrawal_fee()
     logger.debug(result)
-    message += "_Min fee is:_ %s\n" % (result['minFee'] / XBt_TO_XBT)
+    message += "_Min fee is:_ *%s*\n" % (result['minFee'] / XBt_TO_XBT)
 
-    message += "_Current UTC now is_ %s\n" % (datetime.utcnow().strftime("%H:%M:%S"))
+    message += "_Current UTC now is_ *%s*\n" % (datetime.utcnow().strftime("%H:%M:%S"))
     message += "send OTP to confirm or 0 to cancel"
     bot.send_message(chat_id=chat_id, text=message, reply_markup=ReplyKeyboardRemove(),
                      parse_mode='Markdown')
