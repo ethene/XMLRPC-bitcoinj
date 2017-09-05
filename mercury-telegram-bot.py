@@ -769,6 +769,7 @@ def health_check(bot, update):
         select_positions = select([positions]).order_by(desc(positions.c.timestamp))
         rs = con.execute(select_positions).fetchall()
         max_pos_timestamp = rs[0].timestamp
+        max_pos_timestamp = calendar.timegm(max_pos_timestamp.utctimetuple()) * 1000
         message += "_position updated %d s ago_\n" % ((getUTCtime() - max_pos_timestamp) / 1000)
     message += "_time is_ *%s* _UTC_\n" % (datetime.utcnow().strftime("%H:%M:%S"))
     message += "_updated %d s ago_\n" % ((getUTCtime() - health_record[0]['index']) / 1000)
