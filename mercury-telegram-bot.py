@@ -234,7 +234,7 @@ def start(bot, update):
 
             bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown',
                              reply_markup=ReplyKeyboardRemove())
-            bot.send_message(chat_id=chat_id, text="[%s](bitcoin:%s)" % (address, address), parse_mode='Markdown',
+            bot.send_message(chat_id=chat_id, text="[%s](bitcoin://%s)" % (address, address), parse_mode='Markdown',
                              reply_markup=InlineKeyboardMarkup(inline_keyboard=keyboard))
         else:
             if isadmin:
