@@ -44,6 +44,8 @@ def error_callback(bot, update, error):
 
 XMLRPCServer = xmlrpc.client.ServerProxy('http://localhost:8000')
 
+block_explorer = 'https://www.blocktrail.com/tBTC/tx/'
+
 actions_table = 'telegram_actions'
 log_table = 'telegram_log'
 mail_table = 'telegram_mail'
@@ -378,11 +380,11 @@ def StartMessage(bot, update):
                         # keyboard = [[KeyboardButton(text="/portfolio")]]
                         keyboard += [[InlineKeyboardButton(text="check portfolio stats", callback_data="/portfolio")]]
                     elif (len(unconfirmedTXs) == 0) and (balance > 0):
-                        message += "Please confirm creation of your portfolio by entering\n/invest\n"
-                        keyboard += [[InlineKeyboardButton(text="Yes, please", callback_data="/invest")]]
+                        message += "If you agree to proceed with creation of your portfolio click below:\n"
+                        keyboard += [[InlineKeyboardButton(text="Yes, I agree", callback_data="/invest")]]
                     for tx in unconfirmedTXs:
                         message += "Pending transaction for: %s BTC\n" % (int(tx['value']) / 1e8)
-                        message += "tx ID: *%s*\n" % tx['ID']
+                        message += "tx ID: [%s](%s%s)\n" % (tx['ID'], block_explorer, tx['ID'])
                         keyboard += [[InlineKeyboardButton(text="update", callback_data="/start")]]
                     message += "Your address is\n"
                     # keyboard += [[InlineKeyboardButton(text="wallet address", callback_data="/address")]]
@@ -445,7 +447,7 @@ def send_stats(bot, df_groupped, chat_id):
         # picture_1 = open(pic_folder + '/' + pic_1_filename, 'rb')
         # bot.send_photo(chat_id=update.message.chat_id, photo=picture_1)
         picture_2 = open(pic_folder + '/' + pic_2_filename, 'rb')
-        keyboard = [[InlineKeyboardButton(text="go back", callback_data="/start")]]
+        keyboard = admin_keyboard
         bot.send_photo(chat_id=chat_id, photo=picture_2,
                        reply_markup=InlineKeyboardMarkup(inline_keyboard=keyboard))
 
@@ -474,7 +476,7 @@ def OTP_command(bot, update):
             message = 'BitMEX -> Polo transfer created\nID: *%s*' % result['transactID']
 
         if message:
-            keyboard = [[InlineKeyboardButton(text="go back", callback_data="/start")]]
+            keyboard = back_button
             bot.send_message(chat_id=update.message.chat_id, text=message, parse_mode='Markdown',
                              reply_markup=InlineKeyboardMarkup(
                                  inline_keyboard=keyboard))
@@ -495,7 +497,7 @@ def CancelOTP(bot, update):
     last_command = None
     last_args = None
     message = "Command cancelled"
-    keyboard = [[InlineKeyboardButton(text="go back", callback_data="/start")]]
+    keyboard = back_button
     bot.send_message(chat_id=update.message.chat_id, text=message, parse_mode='Markdown',
                      reply_markup=InlineKeyboardMarkup(
                          inline_keyboard=keyboard))
@@ -516,7 +518,7 @@ def contact(bot, update):
     # bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown',
     #                 reply_markup=ReplyKeyboardMarkup(
     #                     keyboard=[[KeyboardButton(text="/start")]]))
-    keyboard = [[InlineKeyboardButton(text="go back", callback_data="/start")]]
+    keyboard = back_button
     bot.editMessageReplyMarkup(chat_id=chat_id, message_id=query.message.message_id,
                                reply_markup=InlineKeyboardMarkup(inline_keyboard=keyboard))
 
@@ -539,12 +541,12 @@ def invest(bot, update):
             if balance > 0:
                 ins = actions.insert().values(userID=userID, action='INVEST', args=balance, timestamp=datetime.utcnow())
                 con.execute(ins)
-                message = "Invest request is sent.\n*Please wait until we double-check and process your request.*\n"
+                message = "You have agreed to proceed.\nWe will send you a note you when your request is approved.\nThank you for your patience.\n"
                 msg = "New invest request from [%s](tg://user?id=%s)\n" % (userID, userID)
                 bot.send_message(chat_id=TELEGRAM_CHANNEL_NAME, text=msg, parse_mode='Markdown')
             else:
                 message = "*You have insufficient balance.\nPlease top-up your wallet first and wait until your funds are confirmed.*"
-            keyboard = [[InlineKeyboardButton(text="go back", callback_data="/start")]]
+            keyboard = back_button
             bot.send_message(chat_id=update.message.chat_id, text=message, parse_mode='Markdown',
                              reply_markup=InlineKeyboardMarkup(
                                  inline_keyboard=keyboard))
@@ -657,6 +659,9 @@ def action_approve(bot, update):
                             con.execute(upd)
                             msg_to_user = 'Portfolio is created: %.8f BTC, %8f fee paid' % (
                                 tx_value / 1e8, (balance - tx_value) / 1e8)
+                            bot.send_message(chat_id=user_id, text=msg_to_user, parse_mode='Markdown',
+                                             reply_markup=InlineKeyboardMarkup(
+                                                 inline_keyboard=admin_keyboard))
                             ins = mail.insert().values(userID=user_id, read=False, mail=msg_to_user,
                                                        timestamp=datetime.utcnow())
                             con.execute(ins)
@@ -823,6 +828,7 @@ if __name__ == "__main__":
                       [InlineKeyboardButton(text="manage user actions", callback_data="/actions")],
                       [InlineKeyboardButton(text="check bot health", callback_data="/health")]]
 
+    back_button = [[InlineKeyboardButton(text="go back", callback_data="/start")]]
     # user_keyboard = [[KeyboardButton(text="/start")], [KeyboardButton(text="/statistics")],
     #                 [KeyboardButton(text="/help")]]
 
