@@ -601,8 +601,8 @@ def unapproved_actions(bot, update):
                 i, username, user_id, action, action_args, timestamp.strftime("%d %b %H:%M:%S"))
 
             keyboard += [[InlineKeyboardButton(
-                text=("%s %s" % (emoji.emojize("approve :hash: ", use_aliases=True), emoji_count[i])),
-                callback_data=("/a%s" % i))]]
+                text=("%s" % (emoji_count[i])),
+                callback_data=("a%s" % i))]]
 
     if message == "":
         message = "All actions were approved\n"
