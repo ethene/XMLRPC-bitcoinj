@@ -581,7 +581,7 @@ def unapproved_actions(bot, update):
     if not isadmin:
         return
 
-    keyboard = None
+    keyboard = []
     with db_engine.connect() as con:
         j = actions.join(useraccounts)
         q = select([actions, useraccounts]).where(actions.c.approved == None).order_by(
