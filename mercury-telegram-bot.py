@@ -253,7 +253,7 @@ def start(bot, update):
     if message and len(keyboard) > 0:
         if address:
             keyboard += [[InlineKeyboardButton(text="contact support", callback_data="/contact")]]
-            keyboard += back_button
+            keyboard += [[InlineKeyboardButton(text="update", callback_data="/start")]]
             bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown',
                          reply_markup=ReplyKeyboardRemove())
             bot.send_message(chat_id=chat_id, text="*%s*" % address, parse_mode='Markdown',
@@ -350,8 +350,7 @@ def StartMessage(bot, update):
                     message += "by making a transfer to your main wallet address\n"
                     # keyboard = [[KeyboardButton(text="/start")], [KeyboardButton(text="/statistics")],
                     #            [KeyboardButton(text="/help")]]
-                    keyboard += [[InlineKeyboardButton(text="update", callback_data="/start")],
-                                 [InlineKeyboardButton(text="view fund performance", callback_data='/statistics')]]
+                    keyboard += [[InlineKeyboardButton(text="view fund performance", callback_data='/statistics')]]
                 else:
                     message += "Your balance is *%.8f* BTC\n" % (balance)
 
@@ -371,7 +370,7 @@ def StartMessage(bot, update):
 
                 if len(invest_rs) > 0:
                     message += "Waiting to update your portfolio\n"
-                    keyboard += [[InlineKeyboardButton(text="update", callback_data="/start")]]
+                    # keyboard += [[InlineKeyboardButton(text="update", callback_data="/start")]]
                 else:
                     position = int(position) / 1e8
                     message += "Your portfolio is *%.8f* BTC\n" % (position)
