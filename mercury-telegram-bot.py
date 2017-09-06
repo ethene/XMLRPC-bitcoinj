@@ -523,7 +523,7 @@ def CancelOTP(bot, update):
 # TODO: contact
 def contact(bot, update):
     query = update.callback_query
-    #chat_id = get_chat_id(update)
+    # chat_id = get_chat_id(update)
     user_id = get_userID(update)
     message = "\nSupport request is sent.\nPlease wait to be contacted.\n"
     bot.answerCallbackQuery(callback_query_id=query.id, text=message, show_alert=True)
@@ -859,8 +859,6 @@ if __name__ == "__main__":
                              text="%s check bot health" % emoji.emojize(":battery:", use_aliases=True),
                              callback_data="/health")]] + back_button
 
-    back_button = [[InlineKeyboardButton(text="%s" % emoji.emojize(":heart_decoration: go home", use_aliases=True),
-                                         callback_data="/start")]]
     # TODO: handlers
     start_handler = CommandHandler('start', start)
     help_handler = CommandHandler('help', bot_help)
