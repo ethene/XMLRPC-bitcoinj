@@ -624,7 +624,9 @@ def action_approve(bot, update):
     isadmin = check_admin_privilege(update)
     if not isadmin:
         return
-    action_id = update.message.text.split("a")[1]
+    query = update.callback_query
+    # chat_id = query.message.chat_id
+    action_id = query.message.text.split("a")[1]
     found = False
     with db_engine.connect() as con:
         j = actions.join(useraccounts)
