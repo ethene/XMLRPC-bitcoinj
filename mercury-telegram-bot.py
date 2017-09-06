@@ -527,7 +527,7 @@ def contact(bot, update):
         con.execute(ins)
     keyboard = back_button
     #bot.editMessageReplyMarkup(chat_id=chat_id, message_id=query.message.message_id,
-                               reply_markup=InlineKeyboardMarkup(inline_keyboard=keyboard))
+    #                           reply_markup=InlineKeyboardMarkup(inline_keyboard=keyboard))
     # bot.edit_message_text(text="Support contacted, ",
     chat_id = query.message.chat_id,
               message_id = query.message.message_id)
