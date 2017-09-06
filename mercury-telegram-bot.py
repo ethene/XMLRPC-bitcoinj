@@ -344,15 +344,15 @@ def StartMessage(bot, update):
                 logger.debug("balance %.8f" % (balance / 1e8))
                 unconfirmedTXs = XMLRPCServer.getUnconfirmedTransactions(address)
                 logger.debug("unconfirmed: %s" % unconfirmedTXs)
-                # message += "Would you like to see our performance /statistics\n"
-                # message += "or read /help for full command list?\n"
+
                 balance = int(balance) / 1e8
                 if balance == 0:
                     message += "Your wallet is yet empty\nPlease top-up your account\n"
                     message += "by making a transfer to your main wallet address\n"
-                    # keyboard = [[KeyboardButton(text="/start")], [KeyboardButton(text="/statistics")],
-                    #            [KeyboardButton(text="/help")]]
-                    keyboard += [[InlineKeyboardButton(text="view fund performance", callback_data='/statistics')]]
+                    keyboard += [[InlineKeyboardButton(
+                        text="%s view fund performance" % (
+                            emoji.emojize(':chart_with_upwards_trend:', use_aliases=True)),
+                        callback_data='/statistics')]]
                 else:
                     message += "Your balance is *%.8f* BTC\n" % (balance)
 
@@ -848,8 +848,6 @@ def plot_graph(df, name, label):
 
 if __name__ == "__main__":
     # TODO: keyboards
-    # admin_keyboard = [[KeyboardButton(text="/statistics")], [KeyboardButton(text="/transfers")],
-    #                  [KeyboardButton(text="/health")], [KeyboardButton(text="/actions")]]
     admin_keyboard = [[InlineKeyboardButton(
         text="manage transfers %s" % emoji.emojize(":arrows_clockwise:", use_aliases=True),
         callback_data="/transfers")],
@@ -859,22 +857,11 @@ if __name__ == "__main__":
 
     back_button = [[InlineKeyboardButton(text="%s" % emoji.emojize(":heart_decoration: go home", use_aliases=True),
                                          callback_data="/start")]]
-    # user_keyboard = [[KeyboardButton(text="/start")], [KeyboardButton(text="/statistics")],
-    #                 [KeyboardButton(text="/help")]]
-
     # TODO: handlers
     start_handler = CommandHandler('start', start)
     help_handler = CommandHandler('help', bot_help)
-    # stats_handler = CommandHandler('statistics', stats)
-    # folio_handler = CommandHandler('portfolio', folio_stats)
-    # health_handler = CommandHandler('health', health_check)
-    # contact_handler = CommandHandler('contact', contact)
-    # invest_handler = CommandHandler('invest', invest)
-    # actions_handler = CommandHandler('actions', unapproved_actions)
-    # transfers_show_handler = CommandHandler('transfers', transfers_show)
     OTP_handler = RegexHandler(pattern='^\d{6}$', callback=OTP_command)
     OTP_cancel_handler = RegexHandler(pattern='^0$', callback=CancelOTP)
-    # action_approve_handler = RegexHandler(pattern='^a\d{1,3}$', callback=action_approve)
 
     folio_handler = CallbackQueryHandler(pattern='^/portfolio', callback=folio_stats)
     stats_handler = CallbackQueryHandler(pattern='^/statistics', callback=stats)
