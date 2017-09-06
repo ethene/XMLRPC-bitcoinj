@@ -252,6 +252,8 @@ def start(bot, update):
     logger.debug("msg: %s" % message)
     if message and len(keyboard) > 0:
         if address:
+            keyboard += [[InlineKeyboardButton(text="contact support", callback_data="/contact")]]
+            keyboard += back_button
             bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown',
                          reply_markup=ReplyKeyboardRemove())
             bot.send_message(chat_id=chat_id, text="*%s*" % address, parse_mode='Markdown',
@@ -303,14 +305,12 @@ def StartMessage(bot, update):
                 message += "Your wallet is yet empty\nPlease top-up your account\n"
                 message += "by making a transfer to your main wallet to your address as below:\n"
                 # message += "*%s*\n" % address
-                keyboard += [[InlineKeyboardButton(text="update", callback_data="/start")],
-                             [InlineKeyboardButton(text="view fund performance", callback_data='/statistics')]]
+                keyboard += [[InlineKeyboardButton(text="view fund performance", callback_data='/statistics')]]
                 msg = "*New user created:* [%s](tg://user?id=%s)\n" % (userID, userID)
                 bot.send_message(chat_id=TELEGRAM_CHANNEL_NAME, text=msg, parse_mode='Markdown')
             except:
                 logger.error(traceback.format_exc())
                 message = "Failed to create new user"
-                keyboard += [[InlineKeyboardButton(text="contact support", callback_data="/contact")]]
                 msg = "*Error:* failed to create user [%s](tg://user?id=%s)\n" % (userID, userID)
                 bot.send_message(chat_id=TELEGRAM_CHANNEL_NAME, text=msg, parse_mode='Markdown')
         # TODO: existing user
@@ -385,7 +385,7 @@ def StartMessage(bot, update):
                     for tx in unconfirmedTXs:
                         message += "Pending transaction for: %s BTC\n" % (int(tx['value']) / 1e8)
                         message += "tx ID: [%s](%s%s)\n" % (tx['ID'], block_explorer, tx['ID'])
-                        keyboard += [[InlineKeyboardButton(text="update", callback_data="/start")]]
+                        # keyboard += [[InlineKeyboardButton(text="update", callback_data="/start")]]
                     message += "Your address is\n"
                     # keyboard += [[InlineKeyboardButton(text="wallet address", callback_data="/address")]]
 
