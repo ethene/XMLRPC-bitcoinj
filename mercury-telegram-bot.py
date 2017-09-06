@@ -361,7 +361,7 @@ def StartMessage(bot, update):
                     desc(mail.c.timestamp))
                 mail_rs = con.execute(new_mail).fetchall()
                 for m in mail_rs:
-                    message += "*new mail* %s %s\n" % (emoji.emojize(':email:'), m.mail)
+                    message += "*new mail* %s %s\n" % (emoji.emojize(':email:', use_aliases=True), m.mail)
 
                 upd = mail.update().values(read=True).where(
                     mail.c.userID == userID)
