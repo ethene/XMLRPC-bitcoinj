@@ -554,7 +554,7 @@ def invest(bot, update):
             bot.send_message(chat_id=TELEGRAM_CHANNEL_NAME, text=msg, parse_mode='Markdown')
 
 
-# TODO: actions
+# TODO: show unapproved actions
 def unapproved_actions(bot, update):
     chat_id = get_chat_id(update)
     isadmin = check_admin_privilege(update)
@@ -562,7 +562,7 @@ def unapproved_actions(bot, update):
         return
     with db_engine.connect() as con:
         j = actions.join(useraccounts)
-        q = select([actions, useraccounts]).where(actions.c.approved is None).order_by(
+        q = select([actions, useraccounts]).where(actions.c.approved == None).order_by(
             desc(actions.c.timestamp)).select_from(j)
         rs = con.execute(q)
         response = rs.fetchall()
