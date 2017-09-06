@@ -555,7 +555,7 @@ def show_users(bot, update):
         q = select([positions, useraccounts]).where(positions.c.timestamp == max_pos_timestamp).where(
             positions.c.position > 0).order_by(
             desc(positions.c.position)).select_from(j)
-        rs = con.execute(select_positions).fetchall()
+        rs = con.execute(q).fetchall()
         for u in rs:
             username = u.username
             user_id = u.userID,
