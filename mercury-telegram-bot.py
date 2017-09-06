@@ -288,12 +288,12 @@ def StartMessage(bot, update):
                 keyboard += [[InlineKeyboardButton(
                     text="%s view fund performance" % (emoji.emojize(':chart_with_upwards_trend:', use_aliases=True)),
                     callback_data='/statistics')]]
-                msg = "*New user created:* [%s](tg://user?id=%s)\n" % (userID, userID)
+                msg = "*New user created:* [%s](tg://user?id=%s)\n" % (username, userID)
                 bot.send_message(chat_id=TELEGRAM_CHANNEL_NAME, text=msg, parse_mode='Markdown')
             except:
                 logger.error(traceback.format_exc())
                 message = "Failed to create new user"
-                msg = "*Error:* failed to create user [%s](tg://user?id=%s)\n" % (userID, userID)
+                msg = "*Error:* failed to create user [%s](tg://user?id=%s)\n" % (username, userID)
                 bot.send_message(chat_id=TELEGRAM_CHANNEL_NAME, text=msg, parse_mode='Markdown')
         # TODO: existing user
         else:
@@ -381,7 +381,7 @@ def StartMessage(bot, update):
                     text="%s contact support" % (
                         emoji.emojize(':warning:', use_aliases=True)),
                     callback_data='/contact')]]
-                msg = "Balance is unavailable [%s](tg://user?id=%s)\n" % (userID, userID)
+                msg = "Balance is unavailable [%s](tg://user?id=%s)\n" % (username, userID)
                 bot.send_message(chat_id=TELEGRAM_CHANNEL_NAME, text=msg, parse_mode='Markdown')
     return address, isadmin, keyboard, message
 
@@ -501,9 +501,12 @@ def contact(bot, update):
         msg_to_user = '\n\n*Support request is sent.\nPlease wait to be contacted.*\n'
         ins = mail.insert().values(userID=user_id, read=False, mail=msg_to_user, timestamp=datetime.utcnow())
         con.execute(ins)
+        user_select = select([useraccounts]).where(useraccounts.c.ID == userID)
+        rs = con.execute(user_select).fetchall()
+        username = rs[0].username
     # keyboard = back_button
 
-    msg = "*Support request*\nfrom [%s](tg://user?id=%s)\n" % (user_id, user_id)
+    msg = "*Support request*\nfrom [%s](tg://user?id=%s)\n" % (username, user_id)
     bot.send_message(chat_id=TELEGRAM_CHANNEL_NAME, text=msg, parse_mode='Markdown')
     start(bot, update)
 
@@ -518,6 +521,7 @@ def invest(bot, update):
         stm = select([useraccounts]).where(useraccounts.c.ID == userID)
         rs = con.execute(stm).fetchall()
         address = rs[0].address
+        username = rs[0].username
         withdrawn = rs[0].withdrawn
         try:
             balance = XMLRPCServer.getInputValue(address) - withdrawn
@@ -526,7 +530,7 @@ def invest(bot, update):
                 ins = actions.insert().values(userID=userID, action='INVEST', args=balance, timestamp=datetime.utcnow())
                 con.execute(ins)
                 message = "You have agreed to proceed.\nWe will send you a note you when your request is approved.\nThank you for your patience.\n"
-                msg = "New invest request from [%s](tg://user?id=%s)\n" % (userID, userID)
+                msg = "New invest request from [%s](tg://user?id=%s)\n" % (username, userID)
                 bot.send_message(chat_id=TELEGRAM_CHANNEL_NAME, text=msg, parse_mode='Markdown')
             else:
                 message = "*You have insufficient balance.\nPlease top-up your wallet first and wait until your funds are confirmed.*"
@@ -536,7 +540,7 @@ def invest(bot, update):
                                  inline_keyboard=keyboard))
         except:
             logger.error(traceback.format_exc())
-            msg = "Invest request error from [%s](tg://user?id=%s)\n" % (userID, userID)
+            msg = "Invest request error from [%s](tg://user?id=%s)\n" % (username, userID)
             bot.send_message(chat_id=TELEGRAM_CHANNEL_NAME, text=msg, parse_mode='Markdown')
 
 
@@ -560,7 +564,7 @@ def show_users(bot, update):
             username = u.username
             user_id = u.userID,
             position = u.position
-            message += "%s [%s](tg://user?id=%s) *%.6f*\n" % (username, username, user_id, (position / 1e8))
+            message += "[%s](tg://user?id=%s) *%.6f*\n" % (username, username, user_id, (position / 1e8))
 
         if message:
             bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown',
