@@ -846,7 +846,7 @@ def plot_graph(df, name, label):
 
 if __name__ == "__main__":
     # TODO: keyboards
-    back_button = [[InlineKeyboardButton(text="%s" % emoji.emojize(":heart_decoration: go home", use_aliases=True),
+    back_button = [[InlineKeyboardButton(text="%s" % emoji.emojize(":love: go home", use_aliases=True),
                                          callback_data="/start")]]
 
     admin_keyboard = [[InlineKeyboardButton(
