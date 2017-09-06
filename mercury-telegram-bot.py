@@ -514,6 +514,10 @@ def contact(bot, update):
     # con.execute(ins)
     message = "Support request is sent.\nPlease wait to be contacted.\n"
     bot.answerCallbackQuery(callback_query_id=query.id, text=message, show_alert=True)
+
+    # ReplyMarkup(chat_id=chat_id, message_id=query.message.message_id,
+    #                          reply_markup=InlineKeyboardMarkup(inline_keyboard=keyboard))
+
     # bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown',
     #                 reply_markup=ReplyKeyboardMarkup(
     #                     keyboard=[[KeyboardButton(text="/start")]]))
@@ -522,11 +526,14 @@ def contact(bot, update):
         ins = mail.insert().values(userID=user_id, read=False, mail=msg_to_user, timestamp=datetime.utcnow())
         con.execute(ins)
     keyboard = back_button
-    bot.editMessageReplyMarkup(chat_id=chat_id, message_id=query.message.message_id,
+    #bot.editMessageReplyMarkup(chat_id=chat_id, message_id=query.message.message_id,
                                reply_markup=InlineKeyboardMarkup(inline_keyboard=keyboard))
-
+    # bot.edit_message_text(text="Support contacted, ",
+    chat_id = query.message.chat_id,
+              message_id = query.message.message_id)
     msg = "*Support request*\nfrom [%s](tg://user?id=%s)\n" % (user_id, user_id)
     bot.send_message(chat_id=TELEGRAM_CHANNEL_NAME, text=msg, parse_mode='Markdown')
+    start(bot, update)
 
 
 # TODO: invest
