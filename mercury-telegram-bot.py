@@ -303,12 +303,11 @@ def StartMessage(bot, update):
                 message = "Hello, *%s*!\nThis is your personal interface to the *Mercury* crypto hedge fund\n" % (
                     username)
                 message += "Your new account has just created\n"
-                # message += "To see the fund performance use /statistics\n"
-                # message += "or use /help for full command list\n"
                 message += "Your wallet is yet empty\nPlease top-up your account\n"
                 message += "by making a transfer to your main wallet to your address as below:\n"
-                # message += "*%s*\n" % address
-                keyboard += [[InlineKeyboardButton(text="view fund performance", callback_data='/statistics')]]
+                keyboard += [[InlineKeyboardButton(
+                    text="%s view fund performance" % (emoji.emojize(':chart_with_upwards_trend:', use_aliases=True)),
+                    callback_data='/statistics')]]
                 msg = "*New user created:* [%s](tg://user?id=%s)\n" % (userID, userID)
                 bot.send_message(chat_id=TELEGRAM_CHANNEL_NAME, text=msg, parse_mode='Markdown')
             except:
@@ -380,7 +379,10 @@ def StartMessage(bot, update):
                     if (balance == 0) and (position > 0):
                         # message += "Would you check /portfolio stats?\n"
                         # keyboard = [[KeyboardButton(text="/portfolio")]]
-                        keyboard += [[InlineKeyboardButton(text="check portfolio stats", callback_data="/portfolio")]]
+                        keyboard += [[InlineKeyboardButton(
+                            text="%s check portfolio stats" % (
+                                emoji.emojize(':chart:', use_aliases=True)),
+                            callback_data='/portfolio')]]
                     elif (len(unconfirmedTXs) == 0) and (balance > 0):
                         message += "If you agree to proceed with creation of your portfolio click below:\n"
                         keyboard += [[InlineKeyboardButton(text="Yes, I agree", callback_data="/invest")]]
@@ -851,11 +853,11 @@ if __name__ == "__main__":
     admin_keyboard = [[InlineKeyboardButton(
         text="manage transfers %s" % emoji.emojize(":arrows_clockwise:", use_aliases=True),
         callback_data="/transfers")],
-                      [InlineKeyboardButton(text="manage user actions", callback_data="/actions")],
-                      [InlineKeyboardButton(text="check bot health", callback_data="/health")],
-                      [InlineKeyboardButton(text="go back", callback_data="/start")]]
+        [InlineKeyboardButton(text="manage user actions", callback_data="/actions")],
+        [InlineKeyboardButton(text="check bot health", callback_data="/health")],
+        [InlineKeyboardButton(text="go back", callback_data="/start")]]
 
-    back_button = [[InlineKeyboardButton(text="%s" % emoji.emojize(":arrows_clockwise: go home", use_aliases=True),
+    back_button = [[InlineKeyboardButton(text="%s" % emoji.emojize(":heart_decoration: go home", use_aliases=True),
                                          callback_data="/start")]]
     # user_keyboard = [[KeyboardButton(text="/start")], [KeyboardButton(text="/statistics")],
     #                 [KeyboardButton(text="/help")]]
