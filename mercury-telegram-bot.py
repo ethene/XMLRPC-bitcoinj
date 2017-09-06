@@ -255,7 +255,7 @@ def start(bot, update):
             keyboard += [[InlineKeyboardButton(text="contact support", callback_data="/contact")]]
             keyboard += [[InlineKeyboardButton(text="update", callback_data="/start")]]
             bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown',
-                         reply_markup=ReplyKeyboardRemove())
+                             reply_markup=ReplyKeyboardRemove())
             bot.send_message(chat_id=chat_id, text="*%s*" % address, parse_mode='Markdown',
                              reply_markup=InlineKeyboardMarkup(inline_keyboard=keyboard))
         else:
@@ -342,7 +342,7 @@ def StartMessage(bot, update):
                 logger.debug("balance %.8f" % (balance / 1e8))
                 unconfirmedTXs = XMLRPCServer.getUnconfirmedTransactions(address)
                 logger.debug("unconfirmed: %s" % unconfirmedTXs)
-                #message += "Would you like to see our performance /statistics\n"
+                # message += "Would you like to see our performance /statistics\n"
                 # message += "or read /help for full command list?\n"
                 balance = int(balance) / 1e8
                 if balance == 0:
@@ -509,7 +509,7 @@ def contact(bot, update):
     # log_event = 'Support request is sent'
     user_id = get_userID(update)
     # with db_engine.connect() as con:
-        # actions = Table(actions_table, metadata, autoload=True)
+    # actions = Table(actions_table, metadata, autoload=True)
     # ins = actions.insert().values(userID=userID, action='SUPPORT', timestamp=datetime.utcnow())
     # con.execute(ins)
     message = "Support request is sent.\nPlease wait to be contacted.\n"
@@ -526,7 +526,7 @@ def contact(bot, update):
         ins = mail.insert().values(userID=user_id, read=False, mail=msg_to_user, timestamp=datetime.utcnow())
         con.execute(ins)
     keyboard = back_button
-    #bot.editMessageReplyMarkup(chat_id=chat_id, message_id=query.message.message_id,
+    # bot.editMessageReplyMarkup(chat_id=chat_id, message_id=query.message.message_id,
     #                           reply_markup=InlineKeyboardMarkup(inline_keyboard=keyboard))
     # bot.edit_message_text(text="Support contacted, ",
     # chat_id = query.message.chat_id,
@@ -845,10 +845,10 @@ if __name__ == "__main__":
     # TODO: keyboards
     # admin_keyboard = [[KeyboardButton(text="/statistics")], [KeyboardButton(text="/transfers")],
     #                  [KeyboardButton(text="/health")], [KeyboardButton(text="/actions")]]
-    admin_keyboard = [[InlineKeyboardButton(text="go back", callback_data="/start")],
-                      [InlineKeyboardButton(text="manage transfers", callback_data="/transfers")],
+    admin_keyboard = [[InlineKeyboardButton(text="manage transfers", callback_data="/transfers")],
                       [InlineKeyboardButton(text="manage user actions", callback_data="/actions")],
-                      [InlineKeyboardButton(text="check bot health", callback_data="/health")]]
+                      [InlineKeyboardButton(text="check bot health", callback_data="/health")],
+                      [InlineKeyboardButton(text="go back", callback_data="/start")]]
 
     back_button = [[InlineKeyboardButton(text="go back", callback_data="/start")]]
     # user_keyboard = [[KeyboardButton(text="/start")], [KeyboardButton(text="/statistics")],
@@ -866,7 +866,7 @@ if __name__ == "__main__":
     # transfers_show_handler = CommandHandler('transfers', transfers_show)
     OTP_handler = RegexHandler(pattern='^\d{6}$', callback=OTP_command)
     OTP_cancel_handler = RegexHandler(pattern='^0$', callback=CancelOTP)
-    #action_approve_handler = RegexHandler(pattern='^a\d{1,3}$', callback=action_approve)
+    # action_approve_handler = RegexHandler(pattern='^a\d{1,3}$', callback=action_approve)
 
     folio_handler = CallbackQueryHandler(pattern='^/portfolio', callback=folio_stats)
     stats_handler = CallbackQueryHandler(pattern='^/statistics', callback=stats)
