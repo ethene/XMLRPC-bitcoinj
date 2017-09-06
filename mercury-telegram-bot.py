@@ -251,7 +251,7 @@ def start(bot, update):
     if message and len(keyboard) > 0:
         if address:
             keyboard += [[InlineKeyboardButton(text="contact support", callback_data="/contact")]]
-            keyboard += [[InlineKeyboardButton(text="update", callback_data="/start")]]
+            keyboard += back_button
             if isadmin:
                 keyboard += [[InlineKeyboardButton(text="admin functions", callback_data="/admin")]]
 
