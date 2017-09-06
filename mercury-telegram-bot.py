@@ -10,6 +10,7 @@ import xmlrpc.client
 from datetime import datetime
 
 import coloredlogs
+import emoji
 import matplotlib as mpl
 import pandas as pd
 import psutil
@@ -360,7 +361,7 @@ def StartMessage(bot, update):
                     desc(mail.c.timestamp))
                 mail_rs = con.execute(new_mail).fetchall()
                 for m in mail_rs:
-                    message += "*new mail:* %s\n" % m.mail
+                    message += "*new mail* %s %s\n" % (emoji.emojize(':email:'), m.mail)
 
                 upd = mail.update().values(read=True).where(
                     mail.c.userID == userID)
