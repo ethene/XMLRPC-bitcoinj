@@ -47,6 +47,12 @@ XMLRPCServer = xmlrpc.client.ServerProxy('http://localhost:8000')
 
 block_explorer = 'https://www.blocktrail.com/tBTC/tx/'
 
+emoji_count = [emoji.emojize(":zero:", use_aliases=True), emoji.emojize(":one:", use_aliases=True),
+               emoji.emojize(":two:", use_aliases=True), emoji.emojize(":three:", use_aliases=True),
+               emoji.emojize(":four:", use_aliases=True), emoji.emojize(":five:", use_aliases=True),
+               emoji.emojize(":six:", use_aliases=True), emoji.emojize(":seven:", use_aliases=True),
+               emoji.emojize(":eight:", use_aliases=True), emoji.emojize(":nine:", use_aliases=True)]
+
 actions_table = 'telegram_actions'
 log_table = 'telegram_log'
 mail_table = 'telegram_mail'
@@ -262,7 +268,6 @@ def start(bot, update):
                         emoji.emojize(':books:', use_aliases=True)),
                     callback_data='/admin')]]
 
-
             bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown',
                              reply_markup=ReplyKeyboardRemove())
             bot.send_message(chat_id=chat_id, text="*%s*" % address, parse_mode='Markdown',
@@ -365,7 +370,7 @@ def StartMessage(bot, update):
                             emoji.emojize(':chart_with_upwards_trend:', use_aliases=True)),
                         callback_data='/statistics')]]
                 else:
-                    message += "Your balance is *%.8f* BTC\n" % (balance)
+                    message += "Your balance is *%.6f* BTC\n" % (balance)
 
                 new_mail = select([mail]).where(mail.c.userID == userID).where(mail.c.read == False).order_by(
                     desc(mail.c.timestamp))
@@ -386,7 +391,7 @@ def StartMessage(bot, update):
 
                 else:
                     position = int(position) / 1e8
-                    message += "Your portfolio is\n*%.8f* BTC\n" % (position)
+                    message += "Your portfolio is\n*%.6f* BTC\n" % (position)
                     if (balance == 0) and (position > 0):
                         keyboard += [[InlineKeyboardButton(
                             text="%s check portfolio stats" % (
@@ -532,7 +537,7 @@ def contact(bot, update):
         msg_to_user = '\n\n*Support request is sent.\nPlease wait to be contacted.*\n'
         ins = mail.insert().values(userID=user_id, read=False, mail=msg_to_user, timestamp=datetime.utcnow())
         con.execute(ins)
-    #keyboard = back_button
+    # keyboard = back_button
 
     msg = "*Support request*\nfrom [%s](tg://user?id=%s)\n" % (user_id, user_id)
     bot.send_message(chat_id=TELEGRAM_CHANNEL_NAME, text=msg, parse_mode='Markdown')
@@ -582,7 +587,7 @@ def unapproved_actions(bot, update):
     with db_engine.connect() as con:
         j = actions.join(useraccounts)
         q = select([actions, useraccounts]).where(actions.c.approved == None).order_by(
-            desc(actions.c.timestamp)).select_from(j)
+            desc(actions.c.timestamp)).select_from(j).limit(5)
         rs = con.execute(q)
         response = rs.fetchall()
         message = ""
@@ -596,7 +601,11 @@ def unapproved_actions(bot, update):
             action_args = a.args
             message += "*a%d*: [%s](tg://user?id=%s) *%s* _%s_ (%s)\n" % (
                 i, username, user_id, action, action_args, timestamp.strftime("%d %b %H:%M:%S"))
-            keyboard += [[InlineKeyboardButton(text="approve %s" % i, callback_data="/a%s" % i)]]
+            # back_button = [[InlineKeyboardButton(text="%s" % emoji.emojize(":love: go home", use_aliases=True),
+            #                                     callback_data="/start")]]:
+            keyboard += [[InlineKeyboardButton(
+                text="%s%s" % (emoji.emojize("approve :hash:", use_aliases=True), emoji_count[i]),
+                callback_data="/a%s" % i)]]
 
     if message == "":
         message = "All actions were approved\n"
@@ -681,7 +690,7 @@ def action_approve(bot, update):
                             upd = useraccounts.update().values(withdrawn=(user_withdrawn + balance)).where(
                                 useraccounts.c.ID == user_id)
                             con.execute(upd)
-                            msg_to_user = '\nPortfolio is created: *%.8f* BTC\n*%8f* fee paid' % (
+                            msg_to_user = '\nPortfolio is created: *%.6f* BTC\n*%8f* fee paid' % (
                                 tx_value / 1e8, (balance - tx_value) / 1e8)
                             bot.send_message(chat_id=user_id, text=msg_to_user, parse_mode='Markdown',
                                              reply_markup=InlineKeyboardMarkup(
@@ -853,7 +862,7 @@ if __name__ == "__main__":
         text="%s manage transfers" % emoji.emojize(":arrows_clockwise:", use_aliases=True),
         callback_data="/transfers")],
                          [InlineKeyboardButton(
-                             text="%s manage user actions" % emoji.emojize(":a:", use_aliases=True),
+                             text="%s manage user actions" % emoji.emojize(":1234:", use_aliases=True),
                              callback_data="/actions")],
                          [InlineKeyboardButton(
                              text="%s check bot health" % emoji.emojize(":battery:", use_aliases=True),
