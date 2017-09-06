@@ -560,7 +560,7 @@ def show_users(bot, update):
             username = u.username
             user_id = u.userID,
             position = u.position
-            message += "[%s](tg://user?id=%s) *%s*\n" % (username, user_id, position)
+            message += "[%s](tg://user?id=%s) *%.6f*\n" % (username, user_id, (position / 1e8))
 
         if message:
             bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown',
