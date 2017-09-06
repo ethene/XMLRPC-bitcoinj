@@ -250,10 +250,18 @@ def start(bot, update):
     logger.debug("msg: %s" % message)
     if message and len(keyboard) > 0:
         if address:
-            keyboard += [[InlineKeyboardButton(text="contact support", callback_data="/contact")]]
+            keyboard += [[InlineKeyboardButton(
+                text="%s contact support" % (
+                    emoji.emojize(':pager:', use_aliases=True)),
+                callback_data='/contact')]]
             keyboard += back_button
             if isadmin:
-                keyboard += [[InlineKeyboardButton(text="admin functions", callback_data="/admin")]]
+                # keyboard += [[InlineKeyboardButton(text="admin functions", callback_data="/admin")]]
+                keyboard += [[InlineKeyboardButton(
+                    text="%s admin functions" % (
+                        emoji.emojize(':books:', use_aliases=True)),
+                    callback_data='/admin')]]
+
 
             bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown',
                              reply_markup=ReplyKeyboardRemove())
@@ -261,7 +269,10 @@ def start(bot, update):
                              reply_markup=InlineKeyboardMarkup(inline_keyboard=keyboard))
         else:
             if isadmin:
-                keyboard += [[InlineKeyboardButton(text="admin functions", callback_data="/admin")]]
+                keyboard += [[InlineKeyboardButton(
+                    text="%s admin functions" % (
+                        emoji.emojize(':books:', use_aliases=True)),
+                    callback_data='/admin')]]
             bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown',
                              reply_markup=InlineKeyboardMarkup(inline_keyboard=keyboard))
 
@@ -372,33 +383,35 @@ def StartMessage(bot, update):
 
                 if len(invest_rs) > 0:
                     message += "Waiting to update your portfolio\n"
-                    # keyboard += [[InlineKeyboardButton(text="update", callback_data="/start")]]
+
                 else:
                     position = int(position) / 1e8
                     message += "Your portfolio is\n*%.8f* BTC\n" % (position)
                     if (balance == 0) and (position > 0):
-                        # message += "Would you check /portfolio stats?\n"
-                        # keyboard = [[KeyboardButton(text="/portfolio")]]
                         keyboard += [[InlineKeyboardButton(
                             text="%s check portfolio stats" % (
                                 emoji.emojize(':chart:', use_aliases=True)),
                             callback_data='/portfolio')]]
                     elif (len(unconfirmedTXs) == 0) and (balance > 0):
                         message += "If you agree to proceed with creation of your portfolio click below:\n"
-                        keyboard += [[InlineKeyboardButton(text="Yes, I agree", callback_data="/invest")]]
+                        keyboard += [[InlineKeyboardButton(
+                            text="%s OK, I agree" % (
+                                emoji.emojize(':ok_hand:', use_aliases=True)),
+                            callback_data='/invest')]]
                     for tx in unconfirmedTXs:
                         message += "Pending transaction for: %s BTC\n" % (int(tx['value']) / 1e8)
                         message += "tx ID: [%s](%s%s)\n" % (tx['ID'], block_explorer, tx['ID'])
-                        # keyboard += [[InlineKeyboardButton(text="update", callback_data="/start")]]
                     message += "Your address is\n"
-                    # keyboard += [[InlineKeyboardButton(text="wallet address", callback_data="/address")]]
 
             except:
                 logger.error(traceback.format_exc())
                 log_event = 'balance unavailable'
                 log_record(log_event, update)
                 message += "*Balance is unavailable*"
-                keyboard += [[InlineKeyboardButton(text="contact support", callback_data="/contact")]]
+                keyboard += [[InlineKeyboardButton(
+                    text="%s contact support" % (
+                        emoji.emojize(':pager:', use_aliases=True)),
+                    callback_data='/contact')]]
                 msg = "Balance is unavailable [%s](tg://user?id=%s)\n" % (userID, userID)
                 bot.send_message(chat_id=TELEGRAM_CHANNEL_NAME, text=msg, parse_mode='Markdown')
     return address, isadmin, keyboard, message
@@ -510,32 +523,17 @@ def CancelOTP(bot, update):
 # TODO: contact
 def contact(bot, update):
     query = update.callback_query
-    chat_id = get_chat_id(update)
-    # log_event = 'Support request is sent'
+    #chat_id = get_chat_id(update)
     user_id = get_userID(update)
-    # with db_engine.connect() as con:
-    # actions = Table(actions_table, metadata, autoload=True)
-    # ins = actions.insert().values(userID=userID, action='SUPPORT', timestamp=datetime.utcnow())
-    # con.execute(ins)
     message = "\nSupport request is sent.\nPlease wait to be contacted.\n"
     bot.answerCallbackQuery(callback_query_id=query.id, text=message, show_alert=True)
 
-    # ReplyMarkup(chat_id=chat_id, message_id=query.message.message_id,
-    #                          reply_markup=InlineKeyboardMarkup(inline_keyboard=keyboard))
-
-    # bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown',
-    #                 reply_markup=ReplyKeyboardMarkup(
-    #                     keyboard=[[KeyboardButton(text="/start")]]))
     with db_engine.connect() as con:
         msg_to_user = '\n\n*Support request is sent.\nPlease wait to be contacted.*\n'
         ins = mail.insert().values(userID=user_id, read=False, mail=msg_to_user, timestamp=datetime.utcnow())
         con.execute(ins)
-    keyboard = back_button
-    # bot.editMessageReplyMarkup(chat_id=chat_id, message_id=query.message.message_id,
-    #                           reply_markup=InlineKeyboardMarkup(inline_keyboard=keyboard))
-    # bot.edit_message_text(text="Support contacted, ",
-    # chat_id = query.message.chat_id,
-    # message_id = query.message.message_id)
+    #keyboard = back_button
+
     msg = "*Support request*\nfrom [%s](tg://user?id=%s)\n" % (user_id, user_id)
     bot.send_message(chat_id=TELEGRAM_CHANNEL_NAME, text=msg, parse_mode='Markdown')
     start(bot, update)
@@ -848,12 +846,18 @@ def plot_graph(df, name, label):
 
 if __name__ == "__main__":
     # TODO: keyboards
+    back_button = [[InlineKeyboardButton(text="%s" % emoji.emojize(":heart_decoration: go home", use_aliases=True),
+                                         callback_data="/start")]]
+
     admin_keyboard = [[InlineKeyboardButton(
-        text="manage transfers %s" % emoji.emojize(":arrows_clockwise:", use_aliases=True),
+        text="%s manage transfers" % emoji.emojize(":arrows_clockwise:", use_aliases=True),
         callback_data="/transfers")],
-        [InlineKeyboardButton(text="manage user actions", callback_data="/actions")],
-        [InlineKeyboardButton(text="check bot health", callback_data="/health")],
-        [InlineKeyboardButton(text="go back", callback_data="/start")]]
+                         [InlineKeyboardButton(
+                             text="%s manage user actions" % emoji.emojize(":a:", use_aliases=True),
+                             callback_data="/actions")],
+                         [InlineKeyboardButton(
+                             text="%s check bot health" % emoji.emojize(":battery:", use_aliases=True),
+                             callback_data="/health")]] + back_button
 
     back_button = [[InlineKeyboardButton(text="%s" % emoji.emojize(":heart_decoration: go home", use_aliases=True),
                                          callback_data="/start")]]
