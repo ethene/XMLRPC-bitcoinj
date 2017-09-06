@@ -200,42 +200,7 @@ def view_address(bot, update):
         rs = con.execute(user_select).fetchall()
         address = rs[0].address
     bot.answerCallbackQuery(callback_query_id=query.id, text=address, show_alert=True)
-
-
-
-# TODO: update
-def update_main(bot, update):
-
-    logger.debug("update callback")
-    query = update.callback_query
-    bot.answerCallbackQuery(callback_query_id=query.id, text="~~~Updated~~~")
-    chat_id = query.message.chat_id
-    address, isadmin, keyboard, message = StartMessage(bot, update)
-    logger.debug(message)
-    bot.edit_message_text(text=message,
-                          chat_id=chat_id,
-                          message_id=query.message.message_id,
-                          reply_markup=InlineKeyboardMarkup(inline_keyboard=keyboard))
-
-
-
-    chat_id = query.message.chat_id
-    address, isadmin, keyboard, message = StartMessage(bot, update)
-
-    if isadmin:
-        keyboard += [[InlineKeyboardButton(text="admin functions", callback_data="/admin")]]
-
-    logger.debug("msg: %s" % message)
-    if message and len(keyboard) > 0:
-        bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown',
-                         reply_markup=ReplyKeyboardRemove())
-
-        if address:
-            bot.send_message(chat_id=chat_id, text="*%s*" % address, parse_mode='Markdown',
-                             reply_markup=InlineKeyboardMarkup(inline_keyboard=keyboard))
-
 '''
-
 
 def admin_functions(bot, update):
     query = update.callback_query
@@ -262,10 +227,9 @@ def start(bot, update):
                 callback_data='/contact')]]
             keyboard += back_button
             if isadmin:
-                # keyboard += [[InlineKeyboardButton(text="admin functions", callback_data="/admin")]]
                 keyboard += [[InlineKeyboardButton(
                     text="%s admin functions" % (
-                        emoji.emojize(':books:', use_aliases=True)),
+                        emoji.emojize(':memo:', use_aliases=True)),
                     callback_data='/admin')]]
 
             bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown',
@@ -395,7 +359,7 @@ def StartMessage(bot, update):
                     if (balance == 0) and (position > 0):
                         keyboard += [[InlineKeyboardButton(
                             text="%s check portfolio stats" % (
-                                emoji.emojize(':chart:', use_aliases=True)),
+                                emoji.emojize(':moneybag:', use_aliases=True)),
                             callback_data='/portfolio')]]
                     elif (len(unconfirmedTXs) == 0) and (balance > 0):
                         message += "If you agree to proceed with creation of your portfolio click below:\n"
@@ -415,7 +379,7 @@ def StartMessage(bot, update):
                 message += "*Balance is unavailable*"
                 keyboard += [[InlineKeyboardButton(
                     text="%s contact support" % (
-                        emoji.emojize(':pager:', use_aliases=True)),
+                        emoji.emojize(':warning:', use_aliases=True)),
                     callback_data='/contact')]]
                 msg = "Balance is unavailable [%s](tg://user?id=%s)\n" % (userID, userID)
                 bot.send_message(chat_id=TELEGRAM_CHANNEL_NAME, text=msg, parse_mode='Markdown')
