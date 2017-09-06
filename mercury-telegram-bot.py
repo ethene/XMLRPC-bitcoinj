@@ -540,6 +540,34 @@ def invest(bot, update):
             bot.send_message(chat_id=TELEGRAM_CHANNEL_NAME, text=msg, parse_mode='Markdown')
 
 
+# TODO: show users with positions
+def show_users(bot, update):
+    chat_id = get_chat_id(update)
+    isadmin = check_admin_privilege(update)
+    if not isadmin:
+        return
+    message = ""
+    with db_engine.connect() as con:
+        select_positions = select([positions]).order_by(desc(positions.c.timestamp))
+        rs = con.execute(select_positions).fetchall()
+        max_pos_timestamp = rs[0].timestamp
+        j = positions.join(useraccounts)
+        q = select([positions, useraccounts]).where(positions.c.timestamp == max_pos_timestamp).where(
+            positions.c.position > 0).order_by(
+            desc(positions.c.position)).select_from(j)
+        rs = con.execute(select_positions).fetchall()
+        for u in rs:
+            username = u.username
+            user_id = u.userID,
+            position = u.position
+            message += "[%s](tg://user?id=%s) *%s*\n" % (username, user_id, position)
+
+        if message:
+            bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown',
+                             reply_markup=InlineKeyboardMarkup(
+                                 inline_keyboard=admin_keyboard))
+
+
 # TODO: show unapproved actions
 def unapproved_actions(bot, update):
     chat_id = get_chat_id(update)
@@ -825,6 +853,9 @@ if __name__ == "__main__":
         text="%s manage transfers" % emoji.emojize(":arrows_clockwise:", use_aliases=True),
         callback_data="/transfers")],
                          [InlineKeyboardButton(
+                             text="%s users with positions" % emoji.emojize(":busts_in_silhouette:", use_aliases=True),
+                             callback_data="/users")],
+                         [InlineKeyboardButton(
                              text="%s manage user actions" % emoji.emojize(":1234:", use_aliases=True),
                              callback_data="/actions")],
                          [InlineKeyboardButton(
@@ -839,7 +870,7 @@ if __name__ == "__main__":
 
     folio_handler = CallbackQueryHandler(pattern='^/portfolio', callback=folio_stats)
     stats_handler = CallbackQueryHandler(pattern='^/statistics', callback=stats)
-    # update_handler = CallbackQueryHandler(pattern='^/update', callback=start)
+    users_handler = CallbackQueryHandler(pattern='^/users', callback=show_users)
     update_handler = CallbackQueryHandler(pattern='^/start', callback=start)
     health_handler = CallbackQueryHandler(pattern='^/health', callback=health_check)
     actions_handler = CallbackQueryHandler(pattern='^/actions', callback=unapproved_actions)
@@ -862,6 +893,7 @@ if __name__ == "__main__":
     dispatcher.add_handler(actions_handler)
     dispatcher.add_handler(action_approve_handler)
     dispatcher.add_handler(update_handler)
+    dispatcher.add_handler(users_handler)
     dispatcher.add_handler(admin_functions_handler)
 
     dispatcher.add_error_handler(error_callback)
