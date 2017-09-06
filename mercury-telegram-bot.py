@@ -529,8 +529,8 @@ def contact(bot, update):
     #bot.editMessageReplyMarkup(chat_id=chat_id, message_id=query.message.message_id,
     #                           reply_markup=InlineKeyboardMarkup(inline_keyboard=keyboard))
     # bot.edit_message_text(text="Support contacted, ",
-    chat_id = query.message.chat_id,
-              message_id = query.message.message_id)
+    # chat_id = query.message.chat_id,
+    # message_id = query.message.message_id)
     msg = "*Support request*\nfrom [%s](tg://user?id=%s)\n" % (user_id, user_id)
     bot.send_message(chat_id=TELEGRAM_CHANNEL_NAME, text=msg, parse_mode='Markdown')
     start(bot, update)
