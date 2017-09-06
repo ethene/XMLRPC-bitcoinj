@@ -528,6 +528,8 @@ def contact(bot, update):
 
 # TODO: invest
 def invest(bot, update):
+    query = update.callback_query
+    chat_id = get_chat_id(update)
     log_event = 'Invest request is sent'
     userID = log_record(log_event, update)
     with db_engine.connect() as con:
@@ -547,7 +549,7 @@ def invest(bot, update):
             else:
                 message = "*You have insufficient balance.\nPlease top-up your wallet first and wait until your funds are confirmed.*"
             keyboard = back_button
-            bot.send_message(chat_id=update.message.chat_id, text=message, parse_mode='Markdown',
+            bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown',
                              reply_markup=InlineKeyboardMarkup(
                                  inline_keyboard=keyboard))
         except:
@@ -639,7 +641,7 @@ def action_approve(bot, update):
                 if send_result:
                     tx_id = send_result['TX']
                     tx_value = int(send_result['value'])
-                    message += 'TX ID: *%s*\n' % tx_id
+                    message += "tX ID: [%s](%s%s)\n" % (tx_id, block_explorer, tx_id)
                     message += 'TX value: *%s*\n' % tx_value
                     if tx_value > 0:
                         with db_engine.connect() as con:
@@ -657,7 +659,7 @@ def action_approve(bot, update):
                             upd = useraccounts.update().values(withdrawn=(user_withdrawn + balance)).where(
                                 useraccounts.c.ID == user_id)
                             con.execute(upd)
-                            msg_to_user = 'Portfolio is created: %.8f BTC, %8f fee paid' % (
+                            msg_to_user = '\nPortfolio is created: *%.8f* BTC\n*%8f* fee paid' % (
                                 tx_value / 1e8, (balance - tx_value) / 1e8)
                             bot.send_message(chat_id=user_id, text=msg_to_user, parse_mode='Markdown',
                                              reply_markup=InlineKeyboardMarkup(
