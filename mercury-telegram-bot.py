@@ -451,7 +451,7 @@ def send_stats(bot, df_groupped, chat_id):
         picture_2 = open(pic_folder + '/' + pic_2_filename, 'rb')
         keyboard = ReplyKeyboardRemove()
         bot.send_photo(chat_id=chat_id, photo=picture_2,
-                       reply_markup=InlineKeyboardMarkup(inline_keyboard=keyboard))
+                       reply_markup=keyboard)
 
 
 # TODO: OTP command
