@@ -607,7 +607,7 @@ def unapproved_actions(bot, update):
     if message == "":
         message = "All actions were approved\n"
         # reply_markup = InlineKeyboardMarkup(inline_keyboard=admin_keyboard)
-    else:
+    # else:
     # message += "Type *a[n]* to approve\n"
     # reply_markup = ReplyKeyboardRemove()
     if keyboard:
