@@ -525,7 +525,7 @@ def contact(bot, update):
     #                 reply_markup=ReplyKeyboardMarkup(
     #                     keyboard=[[KeyboardButton(text="/start")]]))
     with db_engine.connect() as con:
-        msg_to_user = '\n*Support request is sent.\nPlease wait to be contacted.*\n'
+        msg_to_user = '\n\n*Support request is sent.\nPlease wait to be contacted.*\n'
         ins = mail.insert().values(userID=user_id, read=False, mail=msg_to_user, timestamp=datetime.utcnow())
         con.execute(ins)
     keyboard = back_button
@@ -848,12 +848,15 @@ if __name__ == "__main__":
     # TODO: keyboards
     # admin_keyboard = [[KeyboardButton(text="/statistics")], [KeyboardButton(text="/transfers")],
     #                  [KeyboardButton(text="/health")], [KeyboardButton(text="/actions")]]
-    admin_keyboard = [[InlineKeyboardButton(text="manage transfers", callback_data="/transfers")],
+    admin_keyboard = [[InlineKeyboardButton(
+        text="manage transfers %s" % emoji.emojize(":arrows_clockwise:", use_aliases=True),
+        callback_data="/transfers")],
                       [InlineKeyboardButton(text="manage user actions", callback_data="/actions")],
                       [InlineKeyboardButton(text="check bot health", callback_data="/health")],
                       [InlineKeyboardButton(text="go back", callback_data="/start")]]
 
-    back_button = [[InlineKeyboardButton(text="go back", callback_data="/start")]]
+    back_button = [[InlineKeyboardButton(text="%s" % emoji.emojize(":arrows_counterclockwise:", use_aliases=True),
+                                         callback_data="/start")]]
     # user_keyboard = [[KeyboardButton(text="/start")], [KeyboardButton(text="/statistics")],
     #                 [KeyboardButton(text="/help")]]
 
