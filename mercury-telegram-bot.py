@@ -587,7 +587,7 @@ def unapproved_actions(bot, update):
     with db_engine.connect() as con:
         j = actions.join(useraccounts)
         q = select([actions, useraccounts]).where(actions.c.approved == None).order_by(
-            desc(actions.c.timestamp)).select_from(j).limit(5)
+            desc(actions.c.timestamp)).select_from(j).limit(9)
         rs = con.execute(q)
         response = rs.fetchall()
         message = ""
