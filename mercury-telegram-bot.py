@@ -223,7 +223,7 @@ def start(bot, update):
         if address:
             keyboard += [[InlineKeyboardButton(
                 text="%s contact support" % (
-                    emoji.emojize(':pager:', use_aliases=True)),
+                    emoji.emojize(':warning:', use_aliases=True)),
                 callback_data='/contact')]]
             keyboard += back_button
             if isadmin:
@@ -565,8 +565,7 @@ def unapproved_actions(bot, update):
             action_args = a.args
             message += "*a%d*: [%s](tg://user?id=%s) *%s* _%s_ (%s)\n" % (
                 i, username, user_id, action, action_args, timestamp.strftime("%d %b %H:%M:%S"))
-            # back_button = [[InlineKeyboardButton(text="%s" % emoji.emojize(":love: go home", use_aliases=True),
-            #                                     callback_data="/start")]]:
+
             keyboard += [[InlineKeyboardButton(
                 text="%s%s" % (emoji.emojize("approve :hash:", use_aliases=True), emoji_count[i]),
                 callback_data="/a%s" % i)]]
@@ -819,7 +818,7 @@ def plot_graph(df, name, label):
 
 if __name__ == "__main__":
     # TODO: keyboards
-    back_button = [[InlineKeyboardButton(text="%s" % emoji.emojize(":love: go home", use_aliases=True),
+    back_button = [[InlineKeyboardButton(text="%s" % emoji.emojize(":arrow_up_small: go home", use_aliases=True),
                                          callback_data="/start")]]
 
     admin_keyboard = [[InlineKeyboardButton(
