@@ -855,7 +855,7 @@ if __name__ == "__main__":
                       [InlineKeyboardButton(text="check bot health", callback_data="/health")],
                       [InlineKeyboardButton(text="go back", callback_data="/start")]]
 
-    back_button = [[InlineKeyboardButton(text="%s" % emoji.emojize(":arrows_counterclockwise:", use_aliases=True),
+    back_button = [[InlineKeyboardButton(text="%s" % emoji.emojize(":arrows_clockwise: go home", use_aliases=True),
                                          callback_data="/start")]]
     # user_keyboard = [[KeyboardButton(text="/start")], [KeyboardButton(text="/statistics")],
     #                 [KeyboardButton(text="/help")]]
