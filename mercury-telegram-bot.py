@@ -375,7 +375,7 @@ def StartMessage(bot, update):
                     # keyboard += [[InlineKeyboardButton(text="update", callback_data="/start")]]
                 else:
                     position = int(position) / 1e8
-                    message += "Your portfolio is *%.8f* BTC\n" % (position)
+                    message += "Your portfolio is\n*%.8f* BTC\n" % (position)
                     if (balance == 0) and (position > 0):
                         # message += "Would you check /portfolio stats?\n"
                         # keyboard = [[KeyboardButton(text="/portfolio")]]
@@ -448,7 +448,7 @@ def send_stats(bot, df_groupped, chat_id):
         # picture_1 = open(pic_folder + '/' + pic_1_filename, 'rb')
         # bot.send_photo(chat_id=update.message.chat_id, photo=picture_1)
         picture_2 = open(pic_folder + '/' + pic_2_filename, 'rb')
-        keyboard = admin_keyboard
+        keyboard = ReplyKeyboardRemove()
         bot.send_photo(chat_id=chat_id, photo=picture_2,
                        reply_markup=InlineKeyboardMarkup(inline_keyboard=keyboard))
 
@@ -514,7 +514,7 @@ def contact(bot, update):
     # actions = Table(actions_table, metadata, autoload=True)
     # ins = actions.insert().values(userID=userID, action='SUPPORT', timestamp=datetime.utcnow())
     # con.execute(ins)
-    message = "Support request is sent.\nPlease wait to be contacted.\n"
+    message = "\nSupport request is sent.\nPlease wait to be contacted.\n"
     bot.answerCallbackQuery(callback_query_id=query.id, text=message, show_alert=True)
 
     # ReplyMarkup(chat_id=chat_id, message_id=query.message.message_id,
