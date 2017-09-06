@@ -564,6 +564,8 @@ def unapproved_actions(bot, update):
     isadmin = check_admin_privilege(update)
     if not isadmin:
         return
+
+    keyboard = None
     with db_engine.connect() as con:
         j = actions.join(useraccounts)
         q = select([actions, useraccounts]).where(actions.c.approved == None).order_by(
@@ -578,21 +580,28 @@ def unapproved_actions(bot, update):
             user_id = a.userID
             action = a.action
             timestamp = a.timestamp
-            message += "*a%d*: [%s](tg://user?id=%s) %s (%s)\n" % (
-                i, username, user_id, action, timestamp.strftime("%d %b %H:%M:%S"))
+            action_args = a.args
+            message += "*a%d*: [%s](tg://user?id=%s) *%s* _%s_ (%s)\n" % (
+                i, username, user_id, action, action_args, timestamp.strftime("%d %b %H:%M:%S"))
+            keyboard += [[InlineKeyboardButton(text="approve %s" % i, callback_data="/a%s" % i)]]
 
     if message == "":
         message = "All actions were approved\n"
         # reply_markup = InlineKeyboardMarkup(inline_keyboard=admin_keyboard)
     else:
         message += "Type *a[n]* to approve\n"
-    reply_markup = ReplyKeyboardRemove()
+    # reply_markup = ReplyKeyboardRemove()
+    if keyboard:
+        reply_markup = InlineKeyboardMarkup(inline_keyboard=keyboard)
+    else:
+        reply_markup = ReplyKeyboardRemove()
     bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown',
                      reply_markup=reply_markup)
 
 
 # TODO: action_approve
 def action_approve(bot, update):
+    chat_id = get_chat_id(update)
     isadmin = check_admin_privilege(update)
     if not isadmin:
         return
@@ -663,7 +672,7 @@ def action_approve(bot, update):
                                 tx_value / 1e8, (balance - tx_value) / 1e8)
                             bot.send_message(chat_id=user_id, text=msg_to_user, parse_mode='Markdown',
                                              reply_markup=InlineKeyboardMarkup(
-                                                 inline_keyboard=admin_keyboard))
+                                                 inline_keyboard=back_button))
                             ins = mail.insert().values(userID=user_id, read=False, mail=msg_to_user,
                                                        timestamp=datetime.utcnow())
                             con.execute(ins)
@@ -689,7 +698,7 @@ def action_approve(bot, update):
     else:
         message = "Action *%s* not found!\n" % (action_id)
 
-    bot.send_message(chat_id=update.message.chat_id, text=message, parse_mode='Markdown',
+    bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown',
                      reply_markup=InlineKeyboardMarkup(
                          inline_keyboard=admin_keyboard))
 
@@ -823,6 +832,7 @@ def plot_graph(df, name, label):
 
 
 if __name__ == "__main__":
+    # TODO: keyboards
     # admin_keyboard = [[KeyboardButton(text="/statistics")], [KeyboardButton(text="/transfers")],
     #                  [KeyboardButton(text="/health")], [KeyboardButton(text="/actions")]]
     admin_keyboard = [[InlineKeyboardButton(text="go back", callback_data="/start")],
@@ -846,7 +856,7 @@ if __name__ == "__main__":
     # transfers_show_handler = CommandHandler('transfers', transfers_show)
     OTP_handler = RegexHandler(pattern='^\d{6}$', callback=OTP_command)
     OTP_cancel_handler = RegexHandler(pattern='^0$', callback=CancelOTP)
-    action_approve_handler = RegexHandler(pattern='^a\d{1,3}$', callback=action_approve)
+    #action_approve_handler = RegexHandler(pattern='^a\d{1,3}$', callback=action_approve)
 
     folio_handler = CallbackQueryHandler(pattern='^/portfolio', callback=folio_stats)
     stats_handler = CallbackQueryHandler(pattern='^/statistics', callback=stats)
@@ -858,6 +868,7 @@ if __name__ == "__main__":
     admin_functions_handler = CallbackQueryHandler(pattern='^/admin', callback=admin_functions)
     contact_handler = CallbackQueryHandler(pattern='^/contact', callback=contact)
     invest_handler = CallbackQueryHandler(pattern='^/invest', callback=invest)
+    action_approve_handler = CallbackQueryHandler(pattern='^a\d{1,3}$', callback=action_approve)
 
     dispatcher.add_handler(start_handler)
     dispatcher.add_handler(help_handler)
