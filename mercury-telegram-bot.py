@@ -560,11 +560,13 @@ def show_users(bot, update):
             positions.c.position > 0).order_by(
             desc(positions.c.position)).select_from(j)
         rs = con.execute(q).fetchall()
+        i = 0
         for u in rs:
+            i += 1
             username = u.username
             user_id = u.userID,
             position = u.position
-            message += "[%s](tg://user?id=%s) *%.6f*\n" % (username, username, user_id, (position / 1e8))
+            message += "%d: [%s](tg://user?id=%s) *%.6f*\n" % (i, username, user_id, (position / 1e8))
 
         if message:
             bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown',
