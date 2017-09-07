@@ -423,7 +423,7 @@ def readtc(bot, update):
     userID = get_userID(update)
     data = update.callback_query.data
     # chat_id = query.message.chat_id
-    page_id = int(data.split("readtc")[1])
+    page_id = int(str.split(data, "readtc")[1])
     with db_engine.connect() as con:
         tc_select = select([mercury_tc])
         rs = con.execute(tc_select).fetchall()
@@ -692,7 +692,7 @@ def action_approve(bot, update):
         return
     data = update.callback_query.data
     # chat_id = query.message.chat_id
-    action_id = data.split("a")[1]
+    action_id = str.split(data, "a")[1]
     found = False
     with db_engine.connect() as con:
         j = actions.join(useraccounts)
