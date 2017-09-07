@@ -420,9 +420,8 @@ def all_columns(model_or_table=None, wrap=None):
 # TODO: Terms and Conditions:
 def readtc(bot, update):
     chat_id = get_chat_id(update)
-    userID = get_userID(update)
     data = update.callback_query.data
-    # chat_id = query.message.chat_id
+
     logger.debug(data)
     page_id = int(str.split(data, "readtc")[1])
     logger.debug(page_id)
@@ -434,20 +433,31 @@ def readtc(bot, update):
         tc_headers = re.findall(r"(\*)(.+)(\*)", tc_text)
         keyboard = []
         i = 0
+        myheader = ""
         for h in tc_headers:
             i += 1
             if i != page_id:
                 keyboard += [[InlineKeyboardButton(
                     text="%s" % (h[1]),
                 callback_data='/readtc' + str(i))]]
+            else:
+                myheader = h[1]
 
         logger.debug(tc_page)
         logger.debug(tc_headers)
         keyboard += back_button
 
-        bot.send_message(chat_id=chat_id, text=tc_page, parse_mode='Markdown',
-                         reply_markup=InlineKeyboardMarkup(
-                             inline_keyboard=keyboard))
+        query = update.callback_query
+
+        bot.answerCallbackQuery(callback_query_id=query.id, text=myheader)
+        # bot.editMessageReplyMarkup(chat_id=chat_id, message_id=query.message.message_id,
+        #                           reply_markup=InlineKeyboardMarkup(inline_keyboard=keyboard))
+        bot.editMessageText(chat_id=chat_id, message_id=query.message.message_id,
+                            reply_markup=InlineKeyboardMarkup(inline_keyboard=keyboard))
+
+        # bot.send_message(chat_id=chat_id, text=tc_page, parse_mode='Markdown',
+        #                 reply_markup=InlineKeyboardMarkup(
+        #                     inline_keyboard=keyboard))
 
 
 # TODO: folio stats
