@@ -559,7 +559,7 @@ def show_users(bot, update):
     isadmin = check_admin_privilege(update)
     if not isadmin:
         return
-    message = ""
+    message = None
     with db_engine.connect() as con:
         select_positions = select([positions]).order_by(desc(positions.c.timestamp))
         rs = con.execute(select_positions).fetchall()
@@ -575,7 +575,7 @@ def show_users(bot, update):
             username = u.username
             user_id = u.userID,
             position = u.position
-            message += "%d: [%s](tg://user?id=%s) *%.6f*\n" % (i, username, user_id, (position / 1e8))
+            message += "*%d*: [%s](tg://user?id=%s) *%.6f*\n" % (i, username, user_id, (position / 1e8))
 
         if message:
             bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown',
