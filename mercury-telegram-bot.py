@@ -578,6 +578,7 @@ def show_users(bot, update):
             message += "*%d*: [%s](tg://user?id=%s) *%.6f*\n" % (i, username, user_id, (position / 1e8))
 
         if message:
+            logger.debug(message)
             bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown',
                              reply_markup=InlineKeyboardMarkup(
                                  inline_keyboard=admin_keyboard))
@@ -623,6 +624,7 @@ def unapproved_actions(bot, update):
         reply_markup = InlineKeyboardMarkup(inline_keyboard=keyboard)
     else:
         reply_markup = ReplyKeyboardRemove()
+    logger.debug(message)
     bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown',
                      reply_markup=reply_markup)
 
