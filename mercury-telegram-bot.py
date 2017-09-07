@@ -225,7 +225,7 @@ def start(bot, update):
     tc_button = [[InlineKeyboardButton(
         text="%s terms and conditions" % (
             emoji.emojize(':mag_right:', use_aliases=True)),
-        callback_data='/readtc0')]]
+        callback_data='/readtc1')]]
     keyboard = tc_button + keyboard
 
     if message and len(keyboard) > 0:
