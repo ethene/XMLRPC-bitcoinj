@@ -603,7 +603,7 @@ def unapproved_actions(bot, update):
         for a in response:
             i += 1
             username = a.username
-            user_id = a.userID
+            user_id = a.userID[0]
             action = a.action
             timestamp = a.timestamp
             action_args = a.args
