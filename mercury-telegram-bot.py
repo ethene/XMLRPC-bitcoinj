@@ -351,7 +351,7 @@ def StartMessage(bot, update):
                 invest_rs = con.execute(invest_actions).fetchall()
 
                 if len(invest_rs) > 0:
-                    message += "Waiting to update your portfolio\n"
+                    message += "Waiting for your portfolio to be created\n"
 
                 else:
                     position = int(position) / 1e8
@@ -523,26 +523,35 @@ def invest(bot, update):
         address = rs[0].address
         username = rs[0].username
         withdrawn = rs[0].withdrawn
-        try:
-            balance = XMLRPCServer.getInputValue(address) - withdrawn
-            logger.debug("balance %.8f" % (balance / 1e8))
-            if balance > 0:
-                ins = actions.insert().values(userID=userID, action='INVEST', args=balance, timestamp=datetime.utcnow())
-                con.execute(ins)
-                message = "You have agreed to proceed.\nWe will send you a note you when your request is approved.\nThank you for your patience.\n"
-                msg = "New invest request from [%s](tg://user?id=%s)\n" % (username, userID)
+        invest_actions = select([actions]).where(actions.c.userID == userID).where(
+            actions.c.action == 'INVEST').where(actions.c.approved == None)
+        invest_rs = con.execute(invest_actions).fetchall()
+        message = None
+        if len(invest_rs) > 0:
+            message = "You have sent the request already\nPlease wait until we approve it\n"
+        else:
+            try:
+                balance = XMLRPCServer.getInputValue(address) - withdrawn
+                logger.debug("balance %.8f" % (balance / 1e8))
+                if balance > 0:
+                    ins = actions.insert().values(userID=userID, action='INVEST', args=balance,
+                                                  timestamp=datetime.utcnow())
+                    con.execute(ins)
+                    message = "You have agreed to proceed.\nWe will send you a note you when your request is approved.\nThank you for your patience.\n"
+                    msg = "New invest request from [%s](tg://user?id=%s)\n" % (username, userID)
+                    bot.send_message(chat_id=TELEGRAM_CHANNEL_NAME, text=msg, parse_mode='Markdown')
+                else:
+                    message = "*You have insufficient balance.\nPlease top-up your wallet first and wait until your funds are confirmed.*"
+
+            except:
+                logger.error(traceback.format_exc())
+                msg = "Invest request error from [%s](tg://user?id=%s)\n" % (username, userID)
                 bot.send_message(chat_id=TELEGRAM_CHANNEL_NAME, text=msg, parse_mode='Markdown')
-            else:
-                message = "*You have insufficient balance.\nPlease top-up your wallet first and wait until your funds are confirmed.*"
+        if message:
             keyboard = back_button
             bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown',
                              reply_markup=InlineKeyboardMarkup(
                                  inline_keyboard=keyboard))
-        except:
-            logger.error(traceback.format_exc())
-            msg = "Invest request error from [%s](tg://user?id=%s)\n" % (username, userID)
-            bot.send_message(chat_id=TELEGRAM_CHANNEL_NAME, text=msg, parse_mode='Markdown')
-
 
 # TODO: show users with positions
 def show_users(bot, update):
