@@ -436,8 +436,9 @@ def readtc(bot, update):
         i = 0
         for h in tc_headers:
             i += 1
-            keyboard += [[InlineKeyboardButton(
-                text="*%s*" % (h[1]),
+            if i != page_id:
+                keyboard += [[InlineKeyboardButton(
+                    text="%s" % (h[1]),
                 callback_data='/readtc' + str(i))]]
 
         logger.debug(tc_page)
