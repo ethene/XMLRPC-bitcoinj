@@ -431,7 +431,7 @@ def readtc(bot, update):
         rs = con.execute(tc_select).fetchall()
         tc_text = rs[0].tc
         tc_page = str.split(tc_text, "<br>")[page_id]
-        tc_headers = re.findall(r"(\*)(.+)(\*)", tc_page)
+        tc_headers = re.findall(r"(\*)(.+)(\*)", tc_text)
         logger.debug(tc_page)
         logger.debug(tc_headers)
         keyboard = back_button
