@@ -932,7 +932,6 @@ if __name__ == "__main__":
 
     # TODO: handlers
     start_handler = CommandHandler('start', start)
-    help_handler = CommandHandler('help', bot_help)
     OTP_handler = RegexHandler(pattern='^\d{6}$', callback=OTP_command)
     OTP_cancel_handler = RegexHandler(pattern='^0$', callback=CancelOTP)
 
@@ -950,7 +949,7 @@ if __name__ == "__main__":
     tc_handler = CallbackQueryHandler(pattern='^/readtc\d', callback=readtc)
 
     dispatcher.add_handler(start_handler)
-    dispatcher.add_handler(help_handler)
+    dispatcher.add_handler(tc_handler)
     dispatcher.add_handler(stats_handler)
     dispatcher.add_handler(folio_handler)
     dispatcher.add_handler(health_handler)
