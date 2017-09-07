@@ -559,7 +559,7 @@ def show_users(bot, update):
     isadmin = check_admin_privilege(update)
     if not isadmin:
         return
-    message = None
+    message = ""
     with db_engine.connect() as con:
         select_positions = select([positions]).order_by(desc(positions.c.timestamp))
         rs = con.execute(select_positions).fetchall()
