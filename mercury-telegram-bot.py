@@ -388,8 +388,6 @@ def StartMessage(bot, update):
                         message += "Pending new transaction for: %s BTC\n" % (int(tx['value']) / 1e8)
                         message += "tx ID: [%s](%s%s)\n" % (tx['ID'], block_explorer, tx['ID'])
 
-                    if
-
                     else:
                         message += "Your balance is *%.6f* BTC\n" % (balance)
                     message += "Your address is%s\n" % (emoji.emojize(':arrow_heading_down:', use_aliases=True))
