@@ -573,7 +573,7 @@ def show_users(bot, update):
         for u in rs:
             i += 1
             username = u.username
-            user_id = u.userID,
+            user_id = u.userID
             position = u.position
             message += "*%d*: [%s](tg://user?id=%s) *%.6f*\n" % (i, username, user_id, (position / 1e8))
 
@@ -603,7 +603,7 @@ def unapproved_actions(bot, update):
         for a in response:
             i += 1
             username = a.username
-            user_id = a.userID[0]
+            user_id = a.userID
             action = a.action
             timestamp = a.timestamp
             action_args = a.args
