@@ -442,7 +442,7 @@ def readtc(bot, update):
 
         logger.debug(tc_page)
         logger.debug(tc_headers)
-        keyboard = back_button
+        keyboard += back_button
 
         bot.send_message(chat_id=chat_id, text=tc_page, parse_mode='Markdown',
                          reply_markup=InlineKeyboardMarkup(
