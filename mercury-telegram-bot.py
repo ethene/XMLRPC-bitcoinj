@@ -411,9 +411,11 @@ def StartMessage(bot, update):
     return address, isadmin, keyboard, message
 
 
+'''
 def all_columns(model_or_table=None, wrap=None):
     table = getattr(model_or_table, '__table__', model_or_table)
     return [wrap(col) for col in table.c.keys()]
+'''
 
 # TODO: Terms and Conditions:
 def readtc(bot, update):
@@ -424,7 +426,7 @@ def readtc(bot, update):
     # chat_id = query.message.chat_id
     page_id = data.split("readtc")[1]
     with db_engine.connect() as con:
-        tc_select = select(all_columns(tc_table))
+        tc_select = select([mercury_tc])
         rs = con.execute(tc_select).fetchall()
         tc_text = rs[0].tc
         tc_page = tc_text.split("<br>")[page_id]
