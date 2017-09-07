@@ -202,6 +202,7 @@ def view_address(bot, update):
     bot.answerCallbackQuery(callback_query_id=query.id, text=address, show_alert=True)
 '''
 
+
 def admin_functions(bot, update):
     query = update.callback_query
     # bot.answerCallbackQuery(callback_query_id=query.id, text="~~~Updated~~~")
@@ -307,9 +308,11 @@ def StartMessage(bot, update):
             con.execute(ins)
 
             if isadmin:
-                message = "Hello, admin *%s*!\nWelcome back to use the bot\n" % (username)
+                message = "Hello, admin *%s*!\nWelcome back to use the bot %s\n" % (
+                    username, emoji.emojize(':purple_heart:', use_aliases=True))
             else:
-                message = "Hello, *%s*!\nWelcome back to Mercury crypto hedge fund\n" % (username)
+                message = "Hello, *%s*!\nWelcome back to Mercury crypto hedge fund %s\n" % (
+                    username, emoji.emojize(':currency_exchange:', use_aliases=True))
 
             select_positions = select([positions]).where(positions.c.userID == userID).order_by(
                 desc(positions.c.timestamp))
@@ -328,7 +331,8 @@ def StartMessage(bot, update):
 
                 balance = int(balance) / 1e8
                 if balance == 0:
-                    message += "Your wallet is yet empty\nPlease top-up your account\n"
+                    message += "Your wallet is yet empty " \
+                               "%s\nPlease top-up your account\n" % emoji.emojize(':o:', use_aliases=True)
                     message += "by making a transfer to your main wallet address\n"
                     keyboard += [[InlineKeyboardButton(
                         text="%s view fund performance" % (
@@ -371,7 +375,7 @@ def StartMessage(bot, update):
                     for tx in unconfirmedTXs:
                         message += "Pending transaction for: %s BTC\n" % (int(tx['value']) / 1e8)
                         message += "tx ID: [%s](%s%s)\n" % (tx['ID'], block_explorer, tx['ID'])
-                    message += "Your address is\%sn" % (emoji.emojize(':arrow_heading_down:', use_aliases=True))
+                    message += "Your address is%s\n" % (emoji.emojize(':arrow_heading_down:', use_aliases=True))
 
 
             except:
@@ -554,6 +558,7 @@ def invest(bot, update):
             bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown',
                              reply_markup=InlineKeyboardMarkup(
                                  inline_keyboard=keyboard))
+
 
 # TODO: show users with positions
 def show_users(bot, update):
