@@ -390,7 +390,7 @@ def StartMessage(bot, update):
 
                     else:
                         message += "Your balance is *%.6f* BTC\n" % (balance)
-                    message += "Your address is%s\n" % (emoji.emojize(':arrow_heading_down:', use_aliases=True))
+                    message += "Your address is %s\n" % (emoji.emojize(':arrow_heading_down:', use_aliases=True))
 
 
             except:
@@ -411,15 +411,20 @@ def StartMessage(bot, update):
     return address, isadmin, keyboard, message
 
 
+def all_columns(model_or_table=None, wrap=None):
+    table = getattr(model_or_table, '__table__', model_or_table)
+    return [wrap(col) for col in table.c.keys()]
+
 # TODO: Terms and Conditions:
 def readtc(bot, update):
+
     chat_id = get_chat_id(update)
     userID = get_userID(update)
     data = update.callback_query.data
     # chat_id = query.message.chat_id
     page_id = data.split("readtc")[1]
     with db_engine.connect() as con:
-        tc_select = select([tc_table])
+        tc_select = select(all_columns(tc_table))
         rs = con.execute(tc_select).fetchall()
         tc_text = rs[0].tc
         tc_page = tc_text.split("<br>")[page_id]
