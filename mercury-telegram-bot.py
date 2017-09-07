@@ -432,13 +432,17 @@ def readtc(bot, update):
         tc_text = rs[0].tc
         tc_page = str.split(tc_text, "<br>")[page_id]
         tc_headers = re.findall(r"(\*)(.+)(\*)", tc_text)
+        keyboard = []
+        i = 0
+        for h in tc_headers:
+            i += 1
+            keyboard += [[InlineKeyboardButton(
+                text="*%s*" % (h[1]),
+                callback_data='/readtc' + str(i))]]
+
         logger.debug(tc_page)
         logger.debug(tc_headers)
         keyboard = back_button
-        tc_button = [[InlineKeyboardButton(
-            text="%s terms and conditions" % (
-                emoji.emojize(':mag_right:', use_aliases=True)),
-            callback_data='/readtc1')]]
 
         bot.send_message(chat_id=chat_id, text=tc_page, parse_mode='Markdown',
                          reply_markup=InlineKeyboardMarkup(
