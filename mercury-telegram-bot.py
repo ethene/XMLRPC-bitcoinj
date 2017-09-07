@@ -574,7 +574,7 @@ def show_users(bot, update):
             logger.debug(u)
             i += 1
             username = u.username
-            user_id = u[0]
+            user_id = u.userID
             position = u.position
             message += "*%d*: [%s](tg://user?id=%s) *%.6f*\n" % (i, username, user_id, (position / 1e8))
 
