@@ -424,7 +424,7 @@ def readtc(bot, update):
     userID = get_userID(update)
     data = update.callback_query.data
     # chat_id = query.message.chat_id
-    page_id = data.split("readtc")[1]
+    page_id = int(data.split("readtc")[1])
     with db_engine.connect() as con:
         tc_select = select([mercury_tc])
         rs = con.execute(tc_select).fetchall()
