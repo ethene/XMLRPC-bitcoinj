@@ -452,7 +452,7 @@ def readtc(bot, update):
         bot.answerCallbackQuery(callback_query_id=query.id, text=myheader)
         # bot.editMessageReplyMarkup(chat_id=chat_id, message_id=query.message.message_id,
         #                           reply_markup=InlineKeyboardMarkup(inline_keyboard=keyboard))
-        bot.editMessageText(chat_id=chat_id, message_id=query.message.message_id, text=tc_page,
+        bot.editMessageText(chat_id=chat_id, message_id=query.message.message_id, text=tc_page, parse_mode='Markdown',
                             reply_markup=InlineKeyboardMarkup(inline_keyboard=keyboard))
 
         # bot.send_message(chat_id=chat_id, text=tc_page, parse_mode='Markdown',
