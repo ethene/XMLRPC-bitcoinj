@@ -571,9 +571,10 @@ def show_users(bot, update):
         rs = con.execute(q).fetchall()
         i = 0
         for u in rs:
+            logger.debug(u)
             i += 1
             username = u.username
-            user_id = u.userID
+            user_id = u[1]
             position = u.position
             message += "*%d*: [%s](tg://user?id=%s) *%.6f*\n" % (i, username, user_id, (position / 1e8))
 
