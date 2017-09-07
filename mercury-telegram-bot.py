@@ -4,6 +4,7 @@
 # TODO: imports
 import calendar
 import logging
+import re
 import shutil
 import traceback
 import xmlrpc.client
@@ -60,6 +61,7 @@ useraccounts_table = 'telegram_useraccounts'
 positions_table = 'mercury_positions'
 balance_table = 'mercury_balance'
 balance_diff_table = 'avg_balance_difference'
+tc_table = 'mercury_TC'
 pic_folder = './pictures'
 pic_1_filename = 'balance.png'
 pic_2_filename = 'cumulative.png'
@@ -158,6 +160,7 @@ if not db_engine.dialect.has_table(db_engine, mail_table):
 else:
     mail = Table(mail_table, metadata, autoload=True)
 
+mercury_tc = Table(tc_table, metadata, autoload=True)
 updater = Updater(token=TELEGRAM_BOT_TOKEN)
 dispatcher = updater.dispatcher
 
@@ -171,6 +174,8 @@ def getUTCtime():
     unixtime = calendar.timegm(d.utctimetuple())
     return unixtime * 1000
 
+
+'''
 
 # TODO: help
 def bot_help(bot, update):
@@ -188,7 +193,7 @@ def bot_help(bot, update):
     bot.send_message(chat_id=update.message.chat_id, text=message, parse_mode='Markdown')
 
 
-'''
+
 # TODO: view_address
 def view_address(bot, update):
     query = update.callback_query
@@ -216,10 +221,13 @@ def start(bot, update):
     chat_id = get_chat_id(update)
 
     address, isadmin, keyboard, message = StartMessage(bot, update)
-    logger.debug(keyboard)
-    logger.debug(message)
 
-    logger.debug("msg: %s" % message)
+    tc_button = [[InlineKeyboardButton(
+        text="%s terms and conditions" % (
+            emoji.emojize(':mag_right:', use_aliases=True)),
+        callback_data='/readtc0')]]
+    keyboard = tc_button + keyboard
+
     if message and len(keyboard) > 0:
         if address:
             keyboard += [[InlineKeyboardButton(
@@ -233,6 +241,9 @@ def start(bot, update):
                         emoji.emojize(':memo:', use_aliases=True)),
                     callback_data='/admin')]]
 
+            logger.debug(keyboard)
+            logger.debug(message)
+
             bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown',
                              reply_markup=ReplyKeyboardRemove())
             bot.send_message(chat_id=chat_id, text="[%s](https://testnet.manu.backend.hamburg/faucet)" % (address),
@@ -244,6 +255,10 @@ def start(bot, update):
                     text="%s admin functions" % (
                         emoji.emojize(':books:', use_aliases=True)),
                     callback_data='/admin')]]
+
+            logger.debug(keyboard)
+            logger.debug(message)
+
             bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown',
                              reply_markup=InlineKeyboardMarkup(inline_keyboard=keyboard))
 
@@ -330,16 +345,6 @@ def StartMessage(bot, update):
                 logger.debug("unconfirmed: %s" % unconfirmedTXs)
 
                 balance = int(balance) / 1e8
-                if balance == 0:
-                    message += "Your wallet is yet empty " \
-                               "%s\nPlease top-up your account\n" % emoji.emojize(':o:', use_aliases=True)
-                    message += "by making a transfer to your main wallet address\n"
-                    keyboard += [[InlineKeyboardButton(
-                        text="%s view fund performance" % (
-                            emoji.emojize(':chart_with_upwards_trend:', use_aliases=True)),
-                        callback_data='/statistics')]]
-                else:
-                    message += "Your balance is *%.6f* BTC\n" % (balance)
 
                 new_mail = select([mail]).where(mail.c.userID == userID).where(mail.c.read == False).order_by(
                     desc(mail.c.timestamp))
@@ -360,21 +365,33 @@ def StartMessage(bot, update):
 
                 else:
                     position = int(position) / 1e8
-                    message += "Your portfolio is\n*%.6f* BTC\n" % (position)
-                    if (balance == 0) and (position > 0):
+                    message += "Your portfolio now worth *%.4f* BTC\n" % (position)
+
+                    if position > 0:
                         keyboard += [[InlineKeyboardButton(
                             text="%s check portfolio stats" % (
                                 emoji.emojize(':moneybag:', use_aliases=True)),
                             callback_data='/portfolio')]]
-                    elif (len(unconfirmedTXs) == 0) and (balance > 0):
-                        message += "If you agree to proceed with creation of your portfolio click below:\n"
+                    if (len(unconfirmedTXs) == 0) and (balance > 0):
+                        message = "Your balance is: %.6f BTC\n" % balance
+                        message += "If you agree to add  funds your portfolio click below:\n" % balance
                         keyboard += [[InlineKeyboardButton(
                             text="%s OK, I agree" % (
                                 emoji.emojize(':ok_hand:', use_aliases=True)),
                             callback_data='/invest')]]
+                    elif balance == 0:
+                        message += "Your wallet is yet empty " \
+                                   "%s\nPlease top-up your account\n" % emoji.emojize(':o:', use_aliases=True)
+                        message += "by making a transfer to your main wallet address\n"
+
                     for tx in unconfirmedTXs:
-                        message += "Pending transaction for: %s BTC\n" % (int(tx['value']) / 1e8)
+                        message += "Pending new transaction for: %s BTC\n" % (int(tx['value']) / 1e8)
                         message += "tx ID: [%s](%s%s)\n" % (tx['ID'], block_explorer, tx['ID'])
+
+                    if
+
+                    else:
+                        message += "Your balance is *%.6f* BTC\n" % (balance)
                     message += "Your address is%s\n" % (emoji.emojize(':arrow_heading_down:', use_aliases=True))
 
 
@@ -384,12 +401,41 @@ def StartMessage(bot, update):
                 log_record(log_event, update)
                 message += "*Balance is unavailable*"
                 keyboard += [[InlineKeyboardButton(
+                    text="%s view fund performance" % (
+                        emoji.emojize(':chart_with_upwards_trend:', use_aliases=True)),
+                    callback_data='/statistics')]]
+                keyboard += [[InlineKeyboardButton(
                     text="%s contact support" % (
                         emoji.emojize(':warning:', use_aliases=True)),
                     callback_data='/contact')]]
                 msg = "Balance is unavailable [%s](tg://user?id=%s)\n" % (username, userID)
                 bot.send_message(chat_id=TELEGRAM_CHANNEL_NAME, text=msg, parse_mode='Markdown')
     return address, isadmin, keyboard, message
+
+
+# TODO: Terms and Conditions:
+def readtc(bot, update):
+    chat_id = get_chat_id(update)
+    userID = get_userID(update)
+    data = update.callback_query.data
+    # chat_id = query.message.chat_id
+    page_id = data.split("readtc")[1]
+    with db_engine.connect() as con:
+        tc_select = select([tc_table])
+        rs = con.execute(tc_select).fetchall()
+        tc_text = rs[0].tc
+        tc_page = tc_text.split("<br>")[page_id]
+        tc_headers = re.findall(r"(\*)(.+)(\*)", tc_page)
+        logger.debug(tc_page)
+        logger.debug(tc_headers)
+        keyboard = back_button
+        tc_button = [[InlineKeyboardButton(
+            text="%s terms and conditions" % (
+                emoji.emojize(':mag_right:', use_aliases=True)),
+            callback_data='/readtc0')]]
+        bot.send_message(chat_id=chat_id, text=tc_page, parse_mode='Markdown',
+                         reply_markup=InlineKeyboardMarkup(
+                             inline_keyboard=keyboard))
 
 
 # TODO: folio stats
@@ -433,11 +479,7 @@ def send_stats(bot, df_groupped, chat_id):
         # daily_pc = df_groupped.pct_change().dropna() * 365 * 100
         cumulative_pc = ((df_groupped - df_groupped.ix[0]) / df_groupped.ix[0]) * 100
 
-        # plot_graph(daily_pc, pic_1_filename, 'Yearly %')
         plot_graph(cumulative_pc, pic_2_filename, 'Return On Investment, %')
-
-        # picture_1 = open(pic_folder + '/' + pic_1_filename, 'rb')
-        # bot.send_photo(chat_id=update.message.chat_id, photo=picture_1)
         picture_2 = open(pic_folder + '/' + pic_2_filename, 'rb')
         keyboard = ReplyKeyboardRemove()
         bot.send_photo(chat_id=chat_id, photo=picture_2,
@@ -468,7 +510,7 @@ def OTP_command(bot, update):
             message = 'BitMEX -> Polo transfer created\nID: *%s*' % result['transactID']
 
         if message:
-            keyboard = back_button
+            keyboard = admin_keyboard
             bot.send_message(chat_id=update.message.chat_id, text=message, parse_mode='Markdown',
                              reply_markup=InlineKeyboardMarkup(
                                  inline_keyboard=keyboard))
@@ -484,13 +526,14 @@ def CancelOTP(bot, update):
     isadmin = check_admin_privilege(update)
     if not isadmin:
         return
+    chat_id = get_chat_id(update)
     log_event = 'Cancel OTP'
     log_record(log_event, update)
     last_command = None
     last_args = None
     message = "Command cancelled"
-    keyboard = back_button
-    bot.send_message(chat_id=update.message.chat_id, text=message, parse_mode='Markdown',
+    keyboard = admin_keyboard
+    bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown',
                      reply_markup=InlineKeyboardMarkup(
                          inline_keyboard=keyboard))
 
@@ -906,6 +949,7 @@ if __name__ == "__main__":
     contact_handler = CallbackQueryHandler(pattern='^/contact', callback=contact)
     invest_handler = CallbackQueryHandler(pattern='^/invest', callback=invest)
     action_approve_handler = CallbackQueryHandler(pattern='^a\d{1,3}$', callback=action_approve)
+    tc_handler = CallbackQueryHandler(pattern='^/readtc\d', callback=readtc)
 
     dispatcher.add_handler(start_handler)
     dispatcher.add_handler(help_handler)
