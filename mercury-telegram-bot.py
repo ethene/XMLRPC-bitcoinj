@@ -423,7 +423,9 @@ def readtc(bot, update):
     userID = get_userID(update)
     data = update.callback_query.data
     # chat_id = query.message.chat_id
+    logger.debug(data)
     page_id = int(str.split(data, "readtc")[1])
+    logger.debug(page_id)
     with db_engine.connect() as con:
         tc_select = select([mercury_tc])
         rs = con.execute(tc_select).fetchall()
@@ -437,6 +439,7 @@ def readtc(bot, update):
             text="%s terms and conditions" % (
                 emoji.emojize(':mag_right:', use_aliases=True)),
             callback_data='/readtc1')]]
+
         bot.send_message(chat_id=chat_id, text=tc_page, parse_mode='Markdown',
                          reply_markup=InlineKeyboardMarkup(
                              inline_keyboard=keyboard))
