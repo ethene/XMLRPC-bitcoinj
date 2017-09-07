@@ -371,7 +371,8 @@ def StartMessage(bot, update):
                     for tx in unconfirmedTXs:
                         message += "Pending transaction for: %s BTC\n" % (int(tx['value']) / 1e8)
                         message += "tx ID: [%s](%s%s)\n" % (tx['ID'], block_explorer, tx['ID'])
-                    message += "Your address is\n"
+                    message += "Your address is\%sn" % (emoji.emojize(':arrow_heading_down:', use_aliases=True))
+
 
             except:
                 logger.error(traceback.format_exc())
