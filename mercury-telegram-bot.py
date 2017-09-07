@@ -419,7 +419,6 @@ def all_columns(model_or_table=None, wrap=None):
 
 # TODO: Terms and Conditions:
 def readtc(bot, update):
-
     chat_id = get_chat_id(update)
     userID = get_userID(update)
     data = update.callback_query.data
@@ -429,7 +428,7 @@ def readtc(bot, update):
         tc_select = select([mercury_tc])
         rs = con.execute(tc_select).fetchall()
         tc_text = rs[0].tc
-        tc_page = tc_text.split("<br>")[page_id]
+        tc_page = str.split(tc_text, "<br>")[page_id]
         tc_headers = re.findall(r"(\*)(.+)(\*)", tc_page)
         logger.debug(tc_page)
         logger.debug(tc_headers)
@@ -437,7 +436,7 @@ def readtc(bot, update):
         tc_button = [[InlineKeyboardButton(
             text="%s terms and conditions" % (
                 emoji.emojize(':mag_right:', use_aliases=True)),
-            callback_data='/readtc0')]]
+            callback_data='/readtc1')]]
         bot.send_message(chat_id=chat_id, text=tc_page, parse_mode='Markdown',
                          reply_markup=InlineKeyboardMarkup(
                              inline_keyboard=keyboard))
