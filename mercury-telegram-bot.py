@@ -799,6 +799,7 @@ def find_action(action_id):
         rs = con.execute(q)
         response = rs.fetchall()
         if len(response) > 0:
+            found = True
             found_action = response[0]
     return found, found_action
 
