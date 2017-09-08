@@ -644,9 +644,7 @@ def unapproved_actions(bot, update):
         rs = con.execute(q)
         response = rs.fetchall()
         message = ""
-
         for a in response:
-            i += 1
             username = a.username
             user_id = a.userID
             action = a.action
