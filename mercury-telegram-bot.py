@@ -174,6 +174,7 @@ def getUTCtime():
     unixtime = calendar.timegm(d.utctimetuple())
     return unixtime * 1000
 
+
 def admin_functions(bot, update):
     query = update.callback_query
     # bot.answerCallbackQuery(callback_query_id=query.id, text="~~~Updated~~~")
@@ -385,6 +386,7 @@ def all_columns(model_or_table=None, wrap=None):
     return [wrap(col) for col in table.c.keys()]
 '''
 
+
 # TODO: Terms and Conditions:
 def readtc(bot, update):
     chat_id = get_chat_id(update)
@@ -407,7 +409,7 @@ def readtc(bot, update):
             if i != page_id:
                 keyboard += [[InlineKeyboardButton(
                     text="%s" % (h[1]),
-                callback_data='/readtc' + str(i))]]
+                    callback_data='/readtc' + str(i))]]
             else:
                 myheader = h[1]
 
@@ -629,6 +631,7 @@ def show_users(bot, update):
 # TODO: show unapproved actions
 def unapproved_actions(bot, update):
     chat_id = get_chat_id(update)
+    query = update.callback_query
     isadmin = check_admin_privilege(update)
     if not isadmin:
         return
@@ -641,6 +644,7 @@ def unapproved_actions(bot, update):
         rs = con.execute(q)
         response = rs.fetchall()
         message = ""
+
         i = 0
         for a in response:
             i += 1
@@ -652,12 +656,16 @@ def unapproved_actions(bot, update):
             message = "[%s](tg://user?id=%s) *%s* _%s_ (%s)\n" % (
                 username, user_id, action, action_args, timestamp.strftime("%d %b %H:%M:%S"))
 
-            keyboard = [[InlineKeyboardButton(
+            keyboard += [[InlineKeyboardButton(
                 text="%s %s" % (emoji.emojize(emoji_count[i], use_aliases=True), message),
                 callback_data=("a%s" % i))]]
-            reply_markup = InlineKeyboardMarkup(inline_keyboard=keyboard)
-            bot.send_message(chat_id=chat_id, text="", parse_mode='Markdown',
-                             reply_markup=reply_markup)
+
+        reply_markup = InlineKeyboardMarkup(inline_keyboard=keyboard)
+        # bot.send_message(chat_id=chat_id, text="", parse_mode='Markdown',
+        #                     reply_markup=reply_markup)
+        if len(keyboard) > 0:
+            bot.editMessageReplyMarkup(chat_id=chat_id, message_id=query.message.message_id,
+                                       reply_markup=InlineKeyboardMarkup(inline_keyboard=keyboard))
 
         if len(response) == 0:
             message = "All actions were approved\n"
