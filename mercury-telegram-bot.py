@@ -652,20 +652,18 @@ def unapproved_actions(bot, update):
             user_id = a.userID
             action = a.action
             timestamp = a.timestamp
-            action_args = a.args if action != 'INVEST' else "%.6f BTC" % int(a.args)
-            message = "[%s](tg://user?id=%s) *%s* _%s_ (%s)\n" % (
-                username, user_id, action, action_args, timestamp.strftime("%d %b %H:%M:%S"))
+            action_args = a.args if action != 'INVEST' else "%.6f BTC" % (int(a.args) / 1e8)
+            message = "%d: [%s](tg://user?id=%s) *%s* _%s_ (%s)\n" % (
+                i, username, user_id, action, action_args, timestamp.strftime("%d %b %H:%M:%S"))
 
             keyboard = [[InlineKeyboardButton(
-                text="approve %s" % (emoji.emojize(emoji_count[i], use_aliases=True)),
-                callback_data=("a%s" % i))]]
+                text="%s" % (emoji.emojize(':heavy_check_mark:', use_aliases=True)),
+                callback_data=("a%s" % i)), InlineKeyboardButton(
+                text="%s" % (emoji.emojize(':x:', use_aliases=True)),
+                callback_data=("d%s" % i))]]
             reply_markup = InlineKeyboardMarkup(inline_keyboard=keyboard)
             bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown',
                              reply_markup=reply_markup)
-
-        if len(keyboard) > 0:
-            bot.editMessageReplyMarkup(chat_id=chat_id, message_id=query.message.message_id,
-                                       reply_markup=InlineKeyboardMarkup(inline_keyboard=keyboard))
 
         if len(response) == 0:
             message = "All actions were approved\n"
