@@ -19,7 +19,7 @@ from sqlalchemy import (create_engine, Table, Column, Integer, BigInteger, Forei
                         String, Boolean, MetaData, desc, func)
 from sqlalchemy.sql import select
 from telegram import ReplyKeyboardRemove, InlineKeyboardButton, \
-    InlineKeyboardMarkup, ReplyKeyboardMarkup, KeyboardButton
+    InlineKeyboardMarkup
 from telegram.error import (TelegramError)
 from telegram.ext import CommandHandler, RegexHandler, CallbackQueryHandler
 from telegram.ext import Updater
@@ -212,8 +212,7 @@ def start(bot, update):
             logger.debug(message)
 
             # ReplyKeyboardRemove()
-            bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown', disable_web_page_preview=True,
-                             reply_markup=ReplyKeyboardMarkup(keyboard=[[KeyboardButton(text="/start")]]))
+            bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown', disable_web_page_preview=True)
             bot.send_message(chat_id=chat_id, text="[%s](https://testnet.manu.backend.hamburg/faucet)" % (address),
                              parse_mode='Markdown', disable_web_page_preview=True,
                              reply_markup=InlineKeyboardMarkup(inline_keyboard=keyboard))
@@ -694,7 +693,7 @@ def action_disapprove(bot, update):
 
         log_record(message, update)
         change_action(action_id=action_id, approved=False)
-        msg_to_user = '\nYour latest request wass not approved\n*Please wait to be contacted*\n'
+        msg_to_user = '\n\nYour latest request was not approved\n*Please wait to be contacted*\n'
         bot.send_message(chat_id=user_id, text=msg_to_user, parse_mode='Markdown',
                          reply_markup=InlineKeyboardMarkup(
                              inline_keyboard=back_button))
