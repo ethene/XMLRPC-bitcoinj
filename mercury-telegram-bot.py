@@ -656,13 +656,13 @@ def unapproved_actions(bot, update):
             message = "[%s](tg://user?id=%s) *%s* _%s_ (%s)\n" % (
                 username, user_id, action, action_args, timestamp.strftime("%d %b %H:%M:%S"))
 
-            keyboard += [[InlineKeyboardButton(
-                text="%s %s" % (emoji.emojize(emoji_count[i], use_aliases=True), message),
+            keyboard = [[InlineKeyboardButton(
+                text="approve %s" % (emoji.emojize(emoji_count[i], use_aliases=True)),
                 callback_data=("a%s" % i))]]
+            reply_markup = InlineKeyboardMarkup(inline_keyboard=keyboard)
+            bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown',
+                             reply_markup=reply_markup)
 
-        reply_markup = InlineKeyboardMarkup(inline_keyboard=keyboard)
-        # bot.send_message(chat_id=chat_id, text="", parse_mode='Markdown',
-        #                     reply_markup=reply_markup)
         if len(keyboard) > 0:
             bot.editMessageReplyMarkup(chat_id=chat_id, message_id=query.message.message_id,
                                        reply_markup=InlineKeyboardMarkup(inline_keyboard=keyboard))
