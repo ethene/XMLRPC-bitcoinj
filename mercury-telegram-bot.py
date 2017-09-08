@@ -648,12 +648,12 @@ def unapproved_actions(bot, update):
             user_id = a.userID
             action = a.action
             timestamp = a.timestamp
-            action_args = a.args if action != 'INVEST' else "%.6f BTC"
+            action_args = a.args if action != 'INVEST' else "%.6f BTC" % a.args
             message += "*%d*: [%s](tg://user?id=%s) *%s* _%s_ (%s)\n" % (
                 i, username, user_id, action, action_args, timestamp.strftime("%d %b %H:%M:%S"))
 
             keyboard += [[InlineKeyboardButton(
-                text="%s" % (emoji.emojize(emoji_count[i], use_aliases=True)),
+                text="%s approve" % (emoji.emojize(emoji_count[i], use_aliases=True)),
                 callback_data=("a%s" % i))]]
 
     if message == "":
@@ -667,6 +667,7 @@ def unapproved_actions(bot, update):
     else:
         reply_markup = ReplyKeyboardRemove()
     logger.debug(message)
+    logger.debug(keyboard)
     bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown',
                      reply_markup=reply_markup)
 
