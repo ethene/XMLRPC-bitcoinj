@@ -338,14 +338,8 @@ def StartMessage(bot, update):
                             text="%s check portfolio stats" % (
                                 emoji.emojize(':moneybag:', use_aliases=True)),
                             callback_data='/portfolio')]]
-                    if (len(unconfirmedTXs) == 0) and (balance > 0):
-                        message = "Your balance is: %.6f BTC\n" % balance
-                        message += "If you agree to add  funds your portfolio click below:\n"
-                        keyboard += [[InlineKeyboardButton(
-                            text="%s OK, I agree" % (
-                                emoji.emojize(':ok_hand:', use_aliases=True)),
-                            callback_data='/invest')]]
-                    elif balance == 0:
+
+                    if balance == 0:
                         message += "Your wallet is yet empty " \
                                    "%s\nPlease top-up your account\n" % emoji.emojize(':o:', use_aliases=True)
                         message += "by making a transfer to your main wallet address\n"
@@ -356,8 +350,16 @@ def StartMessage(bot, update):
 
                     else:
                         message += "Your balance is *%.6f* BTC\n" % (balance)
-                    message += "Your address is %s\n" % (emoji.emojize(':arrow_heading_down:', use_aliases=True))
 
+                    if (len(unconfirmedTXs) == 0) and (balance > 0):
+                        message += "If you agree to add  funds your portfolio click below:\n"
+                        keyboard += [[InlineKeyboardButton(
+                            text="%s OK, I agree" % (
+                                emoji.emojize(':ok_hand:', use_aliases=True)),
+                            callback_data='/invest')]]
+                        address = None
+                    else:
+                        message += "Your address is %s\n" % (emoji.emojize(':arrow_heading_down:', use_aliases=True))
 
             except:
                 logger.error(traceback.format_exc())
