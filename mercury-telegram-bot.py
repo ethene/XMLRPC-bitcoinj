@@ -123,7 +123,7 @@ if not db_engine.dialect.has_table(db_engine, actions_table):
     # Create a table with the appropriate Columns
     actions = Table(actions_table, metadata,
                     Column('userID', Integer, ForeignKey(useraccounts.c.ID)),
-                    Column('action', String(255)), Column('approved', Boolean(), default=False),
+                    Column('action', String(255)), Column('approved', Boolean()),
                     Column('args', String(255)),
                     Column('timestamp', DateTime, default=datetime.utcnow(), onupdate=func.utc_timestamp()),
                     Column('actionID', Integer, primary_key=True, autoincrement=True)
@@ -576,7 +576,7 @@ def invest(bot, update):
                 balance = XMLRPCServer.getInputValue(address) - withdrawn
                 logger.debug("balance %.8f" % (balance / 1e8))
                 if balance > 0:
-                    ins = actions.insert().values(userID=userID, action='INVEST', args=balance,
+                    ins = actions.insert().values(userID=userID, action='INVEST', args=balance, approved=None,
                                                   timestamp=datetime.utcnow())
                     con.execute(ins)
                     message = "You have agreed to proceed.\nWe will send you a note you when your request is approved.\nThank you for your patience.\n"
