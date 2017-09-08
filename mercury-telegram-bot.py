@@ -672,6 +672,37 @@ def unapproved_actions(bot, update):
                              reply_markup=reply_markup)
 
 
+# TODO: action_disapprove
+def action_disapprove(bot, update):
+    chat_id = get_chat_id(update)
+    isadmin = check_admin_privilege(update)
+    if not isadmin:
+        return
+    data = update.callback_query.data
+    action_id = str.split(data, "d")[1]
+    found, found_action = find_action(action_id)
+
+    if found:
+        username = found_action.username
+        user_id = found_action.userID
+        user_address = found_action.address
+        user_withdrawn = found_action.withdrawn
+        action = found_action.action
+        timestamp = found_action.timestamp
+        message = "Action *%s* disapproved:\n[%s](tg://user?id=%s) %s (%s)\n" % (
+            action_id, username, user_id, action, timestamp.strftime("%d %b %H:%M:%S"))
+        logger.debug("%s %s %s" % (action, user_address, user_withdrawn))
+
+        log_record(message, update)
+        disapprove_action(action, timestamp, user_id)
+
+    else:
+        message = "Action *%s* not found!\n" % (action_id)
+        bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown',
+                         reply_markup=InlineKeyboardMarkup(
+                             inline_keyboard=admin_keyboard))
+
+
 # TODO: action_approve
 def action_approve(bot, update):
     chat_id = get_chat_id(update)
@@ -681,33 +712,15 @@ def action_approve(bot, update):
     data = update.callback_query.data
     # chat_id = query.message.chat_id
     action_id = str.split(data, "a")[1]
-    found = False
-    with db_engine.connect() as con:
-        j = actions.join(useraccounts)
-        q = select([actions, useraccounts]).where(actions.c.approved == None).order_by(
-            desc(actions.c.timestamp)).select_from(j)
-        rs = con.execute(q)
-        response = rs.fetchall()
-        i = 0
-        action = None
-        user_address = None
-        user_withdrawn = None
-        user_id = None
-        timestamp = None
-        for a in response:
-            i += 1
-            if i == int(action_id):
-                username = a.username
-                user_id = a.userID
-                user_address = a.address
-                user_withdrawn = a.withdrawn
-                action = a.action
-                timestamp = a.timestamp
-
-                found = True
-                break
+    found, found_action = find_action(action_id)
 
     if found:
+        username = found_action.username
+        user_id = found_action.userID
+        user_address = found_action.address
+        user_withdrawn = found_action.withdrawn
+        action = found_action.action
+        timestamp = found_action.timestamp
         message = "Action *%s* approved:\n[%s](tg://user?id=%s) %s (%s)\n" % (
             action_id, username, user_id, action, timestamp.strftime("%d %b %H:%M:%S"))
         logger.debug("%s %s %s" % (action, user_address, user_withdrawn))
@@ -778,6 +791,29 @@ def action_approve(bot, update):
                          inline_keyboard=admin_keyboard))
 
 
+def find_action(action_id):
+    found = False
+    with db_engine.connect() as con:
+        j = actions.join(useraccounts)
+        q = select([actions, useraccounts]).where(actions.c.approved == None).order_by(
+            desc(actions.c.timestamp)).select_from(j)
+        rs = con.execute(q)
+        response = rs.fetchall()
+        i = 0
+        action = None
+        user_address = None
+        user_withdrawn = None
+        user_id = None
+        timestamp = None
+        for a in response:
+            i += 1
+            if i == int(action_id):
+                found_action = a
+                found = True
+                break
+    return found, found_action
+
+
 # TODO: fn - approve
 def approve_action(action, timestamp, user_id):
     with db_engine.connect() as con:
@@ -785,6 +821,13 @@ def approve_action(action, timestamp, user_id):
             actions.c.action == action).where(actions.c.timestamp == timestamp)
         con.execute(upd)
 
+
+# TODO: fn - disapprove
+def disapprove_action(action, timestamp, user_id):
+    with db_engine.connect() as con:
+        upd = actions.update().values(approved=False).where(actions.c.userID == user_id).where(
+            actions.c.action == action).where(actions.c.timestamp == timestamp)
+        con.execute(upd)
 
 # TODO: transfers_show
 def transfers_show(bot, update):
@@ -940,6 +983,7 @@ if __name__ == "__main__":
     contact_handler = CallbackQueryHandler(pattern='^/contact', callback=contact)
     invest_handler = CallbackQueryHandler(pattern='^/invest', callback=invest)
     action_approve_handler = CallbackQueryHandler(pattern='^a\d{1,3}$', callback=action_approve)
+    action_disapprove_handler = CallbackQueryHandler(pattern='^d\d{1,3}$', callback=action_disapprove)
     tc_handler = CallbackQueryHandler(pattern='^/readtc\d', callback=readtc)
 
     dispatcher.add_handler(start_handler)
@@ -954,6 +998,7 @@ if __name__ == "__main__":
     dispatcher.add_handler(invest_handler)
     dispatcher.add_handler(actions_handler)
     dispatcher.add_handler(action_approve_handler)
+    dispatcher.add_handler(action_disapprove_handler)
     dispatcher.add_handler(update_handler)
     dispatcher.add_handler(users_handler)
     dispatcher.add_handler(admin_functions_handler)
