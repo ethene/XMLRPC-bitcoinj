@@ -48,11 +48,11 @@ XMLRPCServer = xmlrpc.client.ServerProxy('http://localhost:8000')
 
 block_explorer = 'https://www.blocktrail.com/tBTC/tx/'
 
-emoji_count = [emoji.emojize(":zero:", use_aliases=True), emoji.emojize(":one:", use_aliases=True),
-               emoji.emojize(":two:", use_aliases=True), emoji.emojize(":three:", use_aliases=True),
-               emoji.emojize(":four:", use_aliases=True), emoji.emojize(":five:", use_aliases=True),
-               emoji.emojize(":six:", use_aliases=True), emoji.emojize(":seven:", use_aliases=True),
-               emoji.emojize(":eight:", use_aliases=True), emoji.emojize(":nine:", use_aliases=True)]
+emoji_count = [':zero:', ':one:',
+               ':two:', ':three:',
+               ':four:', ':five:',
+               ':six:', ':seven:',
+               ':eight:', ':nine:']
 
 actions_table = 'telegram_actions'
 log_table = 'telegram_log'
@@ -541,7 +541,7 @@ def contact(bot, update):
         msg_to_user = '\n\n*Support request is sent.\nPlease wait to be contacted.*\n'
         ins = mail.insert().values(userID=user_id, read=False, mail=msg_to_user, timestamp=datetime.utcnow())
         con.execute(ins)
-        user_select = select([useraccounts]).where(useraccounts.c.ID == userID)
+        user_select = select([useraccounts]).where(useraccounts.c.ID == user_id)
         rs = con.execute(user_select).fetchall()
         username = rs[0].username
     # keyboard = back_button
@@ -648,12 +648,12 @@ def unapproved_actions(bot, update):
             user_id = a.userID
             action = a.action
             timestamp = a.timestamp
-            action_args = a.args
-            message += "*a%d*: [%s](tg://user?id=%s) *%s* _%s_ (%s)\n" % (
+            action_args = a.args if action != 'INVEST' else "%.6f BTC"
+            message += "*%d*: [%s](tg://user?id=%s) *%s* _%s_ (%s)\n" % (
                 i, username, user_id, action, action_args, timestamp.strftime("%d %b %H:%M:%S"))
 
             keyboard += [[InlineKeyboardButton(
-                text=("%s" % (emoji_count[i])),
+                text="%s" % (emoji.emojize(emoji_count[i], use_aliases=True)),
                 callback_data=("a%s" % i))]]
 
     if message == "":
