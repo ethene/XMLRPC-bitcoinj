@@ -19,7 +19,7 @@ from sqlalchemy import (create_engine, Table, Column, Integer, BigInteger, Forei
                         String, Boolean, MetaData, desc, func)
 from sqlalchemy.sql import select
 from telegram import ReplyKeyboardRemove, InlineKeyboardButton, \
-    InlineKeyboardMarkup
+    InlineKeyboardMarkup, ReplyKeyboardMarkup, KeyboardButton
 from telegram.error import (TelegramError)
 from telegram.ext import CommandHandler, RegexHandler, CallbackQueryHandler
 from telegram.ext import Updater
@@ -211,8 +211,9 @@ def start(bot, update):
             logger.debug(keyboard)
             logger.debug(message)
 
+            # ReplyKeyboardRemove()
             bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown', disable_web_page_preview=True,
-                             reply_markup=ReplyKeyboardRemove())
+                             reply_markup=ReplyKeyboardMarkup(keyboard=[[KeyboardButton(text="/start")]]))
             bot.send_message(chat_id=chat_id, text="[%s](https://testnet.manu.backend.hamburg/faucet)" % (address),
                              parse_mode='Markdown', disable_web_page_preview=True,
                              reply_markup=InlineKeyboardMarkup(inline_keyboard=keyboard))
@@ -692,11 +693,20 @@ def action_disapprove(bot, update):
         logger.debug("%s %s %s" % (action, user_address, user_withdrawn))
 
         log_record(message, update)
-        disapprove_action(action_id)
+        change_action(action_id=action_id, approved=False)
+        msg_to_user = '\nYour latest request wass not approved\n*Please wait to be contacted*\n'
+        bot.send_message(chat_id=user_id, text=msg_to_user, parse_mode='Markdown',
+                         reply_markup=InlineKeyboardMarkup(
+                             inline_keyboard=back_button))
+        with db_engine.connect() as con:
+            ins = mail.insert().values(userID=user_id, read=False, mail=msg_to_user,
+                                       timestamp=datetime.utcnow())
+            con.execute(ins)
 
     else:
         message = "Action *%s* not found!\n" % (action_id)
-        bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown',
+
+    bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown',
                          reply_markup=InlineKeyboardMarkup(
                              inline_keyboard=admin_keyboard))
 
@@ -762,7 +772,7 @@ def action_approve(bot, update):
                             ins = mail.insert().values(userID=user_id, read=False, mail=msg_to_user,
                                                        timestamp=datetime.utcnow())
                             con.execute(ins)
-                        approve_action(action, timestamp, user_id)
+                        change_action(action_id=action_id, approved=True)
                         log_event = 'user: %s tx: %s val %s' % (user_id, tx_id, tx_value)
                         log_record(log_event, update)
 
@@ -777,10 +787,10 @@ def action_approve(bot, update):
                 ins = mail.insert().values(userID=user_id, read=False, mail=msg_to_user, timestamp=datetime.utcnow())
                 con.execute(ins)
             log_record(message, update)
-            approve_action(action, timestamp, user_id)
+            change_action(action_id=action_id, approved=True)
         else:
             log_record(message, update)
-            approve_action(action, timestamp, user_id)
+            change_action(action_id=action_id, approved=True)
     else:
         message = "Action *%s* not found!\n" % (action_id)
 
@@ -804,18 +814,10 @@ def find_action(action_id):
     return found, found_action
 
 
-# TODO: fn - approve
-def approve_action(action, timestamp, user_id):
+# TODO: fn - change_action
+def change_action(action_id, approved):
     with db_engine.connect() as con:
-        upd = actions.update().values(approved=True).where(actions.c.userID == user_id).where(
-            actions.c.action == action).where(actions.c.timestamp == timestamp)
-        con.execute(upd)
-
-
-# TODO: fn - disapprove
-def disapprove_action(action_id):
-    with db_engine.connect() as con:
-        upd = actions.update().values(approved=False).where(actions.c.actionID == action_id)
+        upd = actions.update().values(approved=approved).where(actions.c.actionID == action_id)
         con.execute(upd)
 
 # TODO: transfers_show
