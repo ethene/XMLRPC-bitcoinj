@@ -244,10 +244,10 @@ def start(bot, update):
             logger.debug(keyboard)
             logger.debug(message)
 
-            bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown',
+            bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown', disable_web_page_preview=True,
                              reply_markup=ReplyKeyboardRemove())
             bot.send_message(chat_id=chat_id, text="[%s](https://testnet.manu.backend.hamburg/faucet)" % (address),
-                             parse_mode='Markdown',
+                             parse_mode='Markdown', disable_web_page_preview=True,
                              reply_markup=InlineKeyboardMarkup(inline_keyboard=keyboard))
         else:
             if isadmin:
@@ -259,7 +259,7 @@ def start(bot, update):
             logger.debug(keyboard)
             logger.debug(message)
 
-            bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown',
+            bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown', disable_web_page_preview=True,
                              reply_markup=InlineKeyboardMarkup(inline_keyboard=keyboard))
 
 
