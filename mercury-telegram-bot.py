@@ -340,7 +340,7 @@ def StartMessage(bot, update):
                             callback_data='/portfolio')]]
                     if (len(unconfirmedTXs) == 0) and (balance > 0):
                         message = "Your balance is: %.6f BTC\n" % balance
-                        message += "If you agree to add  funds your portfolio click below:\n" % balance
+                        message += "If you agree to add  funds your portfolio click below:\n"
                         keyboard += [[InlineKeyboardButton(
                             text="%s OK, I agree" % (
                                 emoji.emojize(':ok_hand:', use_aliases=True)),
