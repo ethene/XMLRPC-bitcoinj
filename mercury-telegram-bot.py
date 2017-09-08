@@ -648,28 +648,22 @@ def unapproved_actions(bot, update):
             user_id = a.userID
             action = a.action
             timestamp = a.timestamp
-            action_args = a.args if action != 'INVEST' else "%.6f BTC" % a.args
-            message += "*%d*: [%s](tg://user?id=%s) *%s* _%s_ (%s)\n" % (
-                i, username, user_id, action, action_args, timestamp.strftime("%d %b %H:%M:%S"))
+            action_args = a.args if action != 'INVEST' else "%.6f BTC" % int(a.args)
+            message = "[%s](tg://user?id=%s) *%s* _%s_ (%s)\n" % (
+                username, user_id, action, action_args, timestamp.strftime("%d %b %H:%M:%S"))
 
-            keyboard += [[InlineKeyboardButton(
-                text="%s approve" % (emoji.emojize(emoji_count[i], use_aliases=True)),
+            keyboard = [[InlineKeyboardButton(
+                text="%s %s" % (emoji.emojize(emoji_count[i], use_aliases=True), message),
                 callback_data=("a%s" % i))]]
+            reply_markup = InlineKeyboardMarkup(inline_keyboard=keyboard)
+            bot.send_message(chat_id=chat_id, text="", parse_mode='Markdown',
+                             reply_markup=reply_markup)
 
-    if message == "":
-        message = "All actions were approved\n"
-        # reply_markup = InlineKeyboardMarkup(inline_keyboard=admin_keyboard)
-    # else:
-    # message += "Type *a[n]* to approve\n"
-    # reply_markup = ReplyKeyboardRemove()
-    if keyboard:
-        reply_markup = InlineKeyboardMarkup(inline_keyboard=keyboard)
-    else:
-        reply_markup = ReplyKeyboardRemove()
-    logger.debug(message)
-    logger.debug(keyboard)
-    bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown',
-                     reply_markup=reply_markup)
+        if len(response) == 0:
+            message = "All actions were approved\n"
+            reply_markup = ReplyKeyboardRemove()
+            bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown',
+                             reply_markup=reply_markup)
 
 
 # TODO: action_approve
