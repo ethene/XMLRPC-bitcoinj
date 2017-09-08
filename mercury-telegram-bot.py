@@ -645,13 +645,13 @@ def unapproved_actions(bot, update):
         response = rs.fetchall()
         message = ""
 
-        i = 0
         for a in response:
             i += 1
             username = a.username
             user_id = a.userID
             action = a.action
             timestamp = a.timestamp
+            i = a.ID
             action_args = a.args if action != 'INVEST' else "%.6f BTC" % (int(a.args) / 1e8)
             message = "%d: [%s](tg://user?id=%s) *%s* _%s_ (%s)\n" % (
                 i, username, user_id, action, action_args, timestamp.strftime("%d %b %H:%M:%S"))
@@ -694,7 +694,7 @@ def action_disapprove(bot, update):
         logger.debug("%s %s %s" % (action, user_address, user_withdrawn))
 
         log_record(message, update)
-        disapprove_action(action, timestamp, user_id)
+        disapprove_action(action_id)
 
     else:
         message = "Action *%s* not found!\n" % (action_id)
@@ -793,24 +793,15 @@ def action_approve(bot, update):
 
 def find_action(action_id):
     found = False
+    found_action = None
     with db_engine.connect() as con:
         j = actions.join(useraccounts)
-        q = select([actions, useraccounts]).where(actions.c.approved == None).order_by(
+        q = select([actions, useraccounts]).where(actions.c.ID == action_id).order_by(
             desc(actions.c.timestamp)).select_from(j)
         rs = con.execute(q)
         response = rs.fetchall()
-        i = 0
-        action = None
-        user_address = None
-        user_withdrawn = None
-        user_id = None
-        timestamp = None
-        for a in response:
-            i += 1
-            if i == int(action_id):
-                found_action = a
-                found = True
-                break
+        if len(response) > 0:
+            found_action = response[0]
     return found, found_action
 
 
@@ -823,10 +814,9 @@ def approve_action(action, timestamp, user_id):
 
 
 # TODO: fn - disapprove
-def disapprove_action(action, timestamp, user_id):
+def disapprove_action(action_id):
     with db_engine.connect() as con:
-        upd = actions.update().values(approved=False).where(actions.c.userID == user_id).where(
-            actions.c.action == action).where(actions.c.timestamp == timestamp)
+        upd = actions.update().values(approved=False).where(actions.c.ID == action_id)
         con.execute(upd)
 
 # TODO: transfers_show
