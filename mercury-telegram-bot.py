@@ -126,7 +126,7 @@ if not db_engine.dialect.has_table(db_engine, actions_table):
                     Column('action', String(255)), Column('approved', Boolean(), default=False),
                     Column('args', String(255)),
                     Column('timestamp', DateTime, default=datetime.utcnow(), onupdate=func.utc_timestamp()),
-                    Column('ID', Integer, primary_key=True, autoincrement=True)
+                    Column('actionID', Integer, primary_key=True, autoincrement=True)
                     )
     # Implement the creation
     metadata.create_all()
@@ -649,7 +649,7 @@ def unapproved_actions(bot, update):
             user_id = a.userID
             action = a.action
             timestamp = a.timestamp
-            i = a.ID
+            i = a.actionID
             action_args = a.args if action != 'INVEST' else "%.6f BTC" % (int(a.args) / 1e8)
             message = "%d: [%s](tg://user?id=%s) *%s* _%s_ (%s)\n" % (
                 i, username, user_id, action, action_args, timestamp.strftime("%d %b %H:%M:%S"))
@@ -794,7 +794,7 @@ def find_action(action_id):
     found_action = None
     with db_engine.connect() as con:
         j = actions.join(useraccounts)
-        q = select([actions, useraccounts]).where(actions.c.ID == action_id).order_by(
+        q = select([actions, useraccounts]).where(actions.c.actionID == action_id).order_by(
             desc(actions.c.timestamp)).select_from(j)
         rs = con.execute(q)
         response = rs.fetchall()
@@ -814,7 +814,7 @@ def approve_action(action, timestamp, user_id):
 # TODO: fn - disapprove
 def disapprove_action(action_id):
     with db_engine.connect() as con:
-        upd = actions.update().values(approved=False).where(actions.c.ID == action_id)
+        upd = actions.update().values(approved=False).where(actions.c.actionID == action_id)
         con.execute(upd)
 
 # TODO: transfers_show
