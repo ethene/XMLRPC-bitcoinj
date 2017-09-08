@@ -72,12 +72,6 @@ def loud_exceptions(*args):
         return _trace
 
 
-# 0 for instant send, 1 for a more realistic example
-# if the wallet has no btc in it, then set to 1.
-# if it has a confirmed balance in it, then you can set it to 0.
-confirm_wait = 1
-
-
 # Restrict to a particular path.
 class RequestHandler(SimpleXMLRPCRequestHandler):
     rpc_paths = ('/RPC2',)
@@ -110,7 +104,7 @@ class RPCFunctions:
             t_outputs = t.getOutputs()
             for to in t_outputs:
                 to_addr = to.getAddressFromP2PKHScript(params).toString()
-                if (to_addr == address) and (depth > confirm_wait):
+                if (to_addr == address) and (depth >= confirmationsRequired):
                     value = int(to.getValue().toString())
                     invalue += value
 
@@ -153,48 +147,11 @@ class RPCFunctions:
             change_value = sr.tx.getValueSentToMe(self.kit.wallet()).getValue()
         return {'TX': sr_tx, 'value': sent_value - change_value}
 
-    '''
-    def getLatestTransactions(self):
-        try:
-            addresses = wallet.getIssuedReceiveAddresses()
-            addresses_s = []
-            address_value = {}
-            for a in addresses:
-                address_s = a.toString()
-                addresses_s.append(address_s)
-                #logger.debug("address used: %s" % address_s)
-            transactions = wallet.getTransactions(True)
-            for t in transactions:
-                confidence = t.getConfidence()
-                depth = confidence.getDepthInBlocks()
-                t_outputs = t.getOutputs()
-                for to in t_outputs:
-                    to_addr = to.getAddressFromP2PKHScript(params).toString()
-                    # logger.debug("tx addr: %s" % to_addr)
-                    if (to_addr in addresses_s) and (depth > confirm_wait):
-                        value = int(to.getValue().toString()) / 1e8
-                        #logger.debug("address %s add_value %s depth %s" % (to_addr, value, depth))
-                        address_value[to_addr] = value if to_addr not in address_value.keys() else address_value[
-                                                                                                       to_addr] + value
-            for a in address_value:
-                logger.debug("addr: %s val %.8f" % (a, address_value[a]))
-                with self.db_engine.connect() as con:
-                    useraccounts = Table(useraccounts_table, self.metadata, autoload=True)
-                    upd = useraccounts.update().values(invalue=address_value[a]).where(useraccounts.c.address == a)
-                    con.execute(upd)
-            return True
-        except Exception as e:
-            logger.error(traceback.format_exc())
-            logger.error(e)
-            return False
-    '''
 
 class SenderListener(AbstractWalletEventListener):
     def __init__(self, pg):
         super(SenderListener, self).__init__()
         self.peerGroup = pg
-
-        # self.address = address
 
     @loud_exceptions
     def onCoinsReceived(self, w, tx, pb, nb):
@@ -216,7 +173,7 @@ class SenderListener(AbstractWalletEventListener):
                     addr = to.getAddressFromP2PKHScript(params).toString()
                     logger.debug("confirmed receiver address: %s" % addr)
 
-        Futures.addCallback(tx.getConfidence().getDepthFuture(confirm_wait), myFutureCallback(tx))
+        Futures.addCallback(tx.getConfidence().getDepthFuture(confirmationsRequired), myFutureCallback(tx))
 
 
 # TODO: main loop

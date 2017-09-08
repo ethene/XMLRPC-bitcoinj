@@ -174,40 +174,6 @@ def getUTCtime():
     unixtime = calendar.timegm(d.utctimetuple())
     return unixtime * 1000
 
-
-'''
-
-# TODO: help
-def bot_help(bot, update):
-    message = "This is your personal interface to the *Mercury* crypto hedge fund\n"
-    message += "You can use your personal wallet\nto put _BTC_ funds under portfolio management\n"
-    message += "And withdraw them back with profit\nwhen position is ready to be closed\n"
-    message += "You can check fund performance /statistics\n"
-    message += "To participate, you need to top up your account\n"
-    message += "by sending funds to your personal wallet _BTC_ address\n"
-    message += "Then you can /invest to open your personal portfolio\n"
-    message += "or /contact administration at any time\n"
-    message += "When you have /portfolio you can check its performance as well\n"
-    message += "Requesting to /close your portfolio will return your funds when the position is ready\n"
-    # message += "And then you can ask to /withdwraw the funds when they are back\n"
-    bot.send_message(chat_id=update.message.chat_id, text=message, parse_mode='Markdown')
-
-
-
-# TODO: view_address
-def view_address(bot, update):
-    query = update.callback_query
-    userfrom = update.effective_user
-    userID = userfrom.id
-
-    with db_engine.connect() as con:
-        user_select = select([useraccounts]).where(useraccounts.c.ID == userID)
-        rs = con.execute(user_select).fetchall()
-        address = rs[0].address
-    bot.answerCallbackQuery(callback_query_id=query.id, text=address, show_alert=True)
-'''
-
-
 def admin_functions(bot, update):
     query = update.callback_query
     # bot.answerCallbackQuery(callback_query_id=query.id, text="~~~Updated~~~")
