@@ -467,6 +467,7 @@ def folio_stats(bot, update):
     userID = log_record(log_event, update)
     df = pd.read_sql_query(sql='SELECT * FROM ' + positions_table + ' WHERE `USERID` = ' + str(userID),
                            con=db_engine, index_col='timestamp')
+    df = df[(df.position != 0)]
     df_groupped = df.groupby(df.index)['position'].mean()
     send_stats(bot, df_groupped, chat_id)
 
