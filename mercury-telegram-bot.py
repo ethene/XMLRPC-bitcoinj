@@ -475,6 +475,16 @@ def stats(bot, update):
             bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown',
                              reply_markup=ReplyKeyboardRemove())
             send_stats(bot, df_groupped, chat_id)
+            t_diff = monthdelta(df_groupped.index[0], df_groupped.index[-1])
+            month_diff = t_diff[0]
+            d_diff = t_diff[1]
+            message = "Was opened *%d* months *%d* days ago\n" % (month_diff, d_diff)
+            bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown',
+                             reply_markup=ReplyKeyboardRemove())
+            balance_profit = (df_groupped[-1] - df_groupped[0]) / 1e8
+            message = "Absolute return: *%.6f* _BTC_\n" % (balance_profit)
+            bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown',
+                             reply_markup=ReplyKeyboardRemove())
 
     df = pd.read_sql_query(sql='SELECT * FROM ' + balance_table, con=db_engine, index_col='index')
     df_groupped = df.groupby(df.timestamp.dt.date)['totalbalance'].mean()
@@ -490,8 +500,9 @@ def stats(bot, update):
     month_diff = t_diff[0]
     d_diff = t_diff[1]
     message = "Which is a *%.2f%%* yearly return\n" % yearly_pc
-    message += "Was actually achieved for the last*%d* months *%d* days\n\n" % (month_diff, d_diff)
-    message += "Every *1* BTC invested then \nwould now become\n*%.5f* BTC" % ((balance_profit / df_groupped[0]) + 1)
+    message += "Was actually achieved for the last *%d* months *%d* days\n\n" % (month_diff, d_diff)
+    message += "If you have invested *1* _BTC_ on %s \nIt would now worth\n*%.5f* _BTC_ today" % (
+    df_groupped.index[0].strftime("%d %b"), (balance_profit / df_groupped[0]) + 1)
     keyboard = back_button
     bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown',
                      reply_markup=InlineKeyboardMarkup(
