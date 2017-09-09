@@ -316,11 +316,11 @@ def StartMessage(bot, update):
             try:
                 logger.debug("address %s" % (address))
                 balance = XMLRPCServer.getInputValue(address) - withdrawn
-                logger.debug("balance %.8f" % (balance / 1e8))
+                logger.debug("balance %.8f" % (balance / XBt_TO_XBT))
                 unconfirmedTXs = XMLRPCServer.getUnconfirmedTransactions(address)
                 logger.debug("unconfirmed: %s" % unconfirmedTXs)
 
-                balance = int(balance) / 1e8
+                balance = int(balance) / XBt_TO_XBT
 
                 new_mail = select([mail]).where(mail.c.userID == userID).where(mail.c.read == False).order_by(
                     desc(mail.c.timestamp))
@@ -340,7 +340,7 @@ def StartMessage(bot, update):
                     message += "Waiting to add funds to your portfolio\n"
 
                 else:
-                    position = int(position) / 1e8
+                    position = int(position) / XBt_TO_XBT
                     message += "Your portfolio now worth\n*%.6f* BTC\n" % (position)
 
                     '''
@@ -356,7 +356,7 @@ def StartMessage(bot, update):
                         message += "by making a transfer to your main wallet address\n"
 
                     for tx in unconfirmedTXs:
-                        message += "Pending new transaction for: %s BTC\n" % (int(tx['value']) / 1e8)
+                        message += "Pending new transaction for: %s BTC\n" % (int(tx['value']) / XBt_TO_XBT)
                         message += "tx ID: [%s](%s%s)\n" % (tx['ID'], block_explorer, tx['ID'])
 
                     else:
@@ -494,9 +494,9 @@ def stats(bot, update):
             month_diff = t_diff[0]
             d_diff = t_diff[1]
             message = "Was opened *%d* months *%d* days ago\n" % (month_diff, d_diff)
-            balance_profit = (df_groupped[-1] - df_groupped[0]) / 1e8
-            message += "You've invested: *%.6f* _BTC_\n" % (df_groupped[0])
-            message += "Now it worth: *%.6f* _BTC_\n" % (df_groupped[-1])
+            balance_profit = (df_groupped[-1] - df_groupped[0]) / XBt_TO_XBT
+            message += "You've invested: *%.6f* _BTC_\n" % (df_groupped[0] / XBt_TO_XBT)
+            message += "Now it worth: *%.6f* _BTC_\n" % (df_groupped[-1] / XBt_TO_XBT)
             message += "Absolute return: *%.6f* _BTC_\n" % (balance_profit)
             message += "It equals to *$%.2f*\n" % (balance_profit * BTCprice)
             bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown',
@@ -634,7 +634,7 @@ def invest(bot, update):
         else:
             try:
                 balance = XMLRPCServer.getInputValue(address) - withdrawn
-                logger.debug("balance %.8f" % (balance / 1e8))
+                logger.debug("balance %.8f" % (balance / XBt_TO_XBT))
                 if balance > 0:
                     ins = actions.insert().values(userID=userID, action='INVEST', args=balance, approved=None,
                                                   timestamp=datetime.utcnow())
@@ -679,7 +679,7 @@ def show_users(bot, update):
             username = u.username
             user_id = u.userID
             position = u.position
-            message += "*%d*: [%s](tg://user?id=%s) *%.6f*\n" % (i, username, user_id, (position / 1e8))
+            message += "*%d*: [%s](tg://user?id=%s) *%.6f*\n" % (i, username, user_id, (position / XBt_TO_XBT))
 
         if message:
             logger.debug(message)
@@ -710,7 +710,7 @@ def unapproved_actions(bot, update):
             action = a.action
             timestamp = a.timestamp
             i = a.actionID
-            action_args = a.args if action != 'INVEST' else "%.6f BTC" % (int(a.args) / 1e8)
+            action_args = a.args if action != 'INVEST' else "%.6f BTC" % (int(a.args) / XBt_TO_XBT)
             message = "%d: [%s](tg://user?id=%s) *%s* _%s_ (%s)\n" % (
                 i, username, user_id, action, action_args, timestamp.strftime("%d %b %H:%M:%S"))
 
@@ -797,8 +797,8 @@ def action_approve(bot, update):
             try:
                 logger.debug("getting balance")
                 balance = XMLRPCServer.getInputValue(user_address) - user_withdrawn
-                logger.debug("balance %.8f" % (balance / 1e8))
-                message += 'user balance: %.8f\n' % (balance / 1e8)
+                logger.debug("balance %.8f" % (balance / XBt_TO_XBT))
+                message += 'user balance: %.8f\n' % (balance / XBt_TO_XBT)
                 logger.debug("sending to polo")
                 send_result = XMLRPCServer.sendCoins(user_address, poloniex_address, balance)
                 logger.debug("sr: %s" % send_result)
@@ -824,7 +824,7 @@ def action_approve(bot, update):
                                 useraccounts.c.ID == user_id)
                             con.execute(upd)
                             msg_to_user = '\n\nAdded to portfolio: *%.6f* BTC\n*%8f* fee paid\n' % (
-                                tx_value / 1e8, (balance - tx_value) / 1e8)
+                                tx_value / XBt_TO_XBT, (balance - tx_value) / XBt_TO_XBT)
                             bot.send_message(chat_id=user_id, text=msg_to_user, parse_mode='Markdown',
                                              reply_markup=InlineKeyboardMarkup(
                                                  inline_keyboard=back_button))
