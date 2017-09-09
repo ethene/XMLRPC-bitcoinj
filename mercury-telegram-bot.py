@@ -472,12 +472,13 @@ def stats(bot, update):
     send_stats(bot, df_groupped, chat_id)
     balance_profit = df_groupped[-1] - df_groupped[0]
     timedelta = df_groupped.index[-1] - df_groupped.index[0]
-    yearly_pc = ((balance_profit / timedelta.days) * 365) / df_groupped[0]
+    yearly_pc = ((balance_profit / timedelta.days) * 365) / df_groupped[0] * 100
     t_diff = monthdelta(df_groupped.index[0], df_groupped.index[-1])
     month_diff = t_diff[0]
     d_diff = t_diff[1]
-    message += "Which is a *%.2f%%* return\n" % yearly_pc
-    message += "Was achieved for the last %d months %d days\n" % (month_diff, d_diff)
+    message = "Which is a *%.2f%%* yearly return\n" % yearly_pc
+    message += "Was actually achieved for the last \n*%d* months *%d* days\n" % (month_diff, d_diff)
+    message += "Every *1* BTC invested then \nwould now become *%.6f* BTC" % ((balance_profit / df_groupped[0]) + 1)
     keyboard = back_button
     bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown',
                      reply_markup=InlineKeyboardMarkup(
