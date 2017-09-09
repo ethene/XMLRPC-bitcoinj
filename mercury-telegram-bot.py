@@ -466,7 +466,7 @@ def getBTCPrice():
     BITSTAMP_URL = 'https://www.bitstamp.net/api/ticker/'
     r = requests.get(url=BITSTAMP_URL)
     j = r.json()
-    return j['high']
+    return float(j['high'])
 
 # TODO: statistics
 def stats(bot, update):
