@@ -333,7 +333,7 @@ def StartMessage(bot, update):
 
                 else:
                     position = int(position) / 1e8
-                    message += "Your portfolio now worth *%.4f* BTC\n" % (position)
+                    message += "Your portfolio now worth\n*%.6f* BTC\n" % (position)
 
                     if position > 0:
                         keyboard += [[InlineKeyboardButton(
@@ -478,7 +478,7 @@ def stats(bot, update):
     d_diff = t_diff[1]
     message = "Which is a *%.2f%%* yearly return\n" % yearly_pc
     message += "Was actually achieved for the last \n*%d* months *%d* days\n" % (month_diff, d_diff)
-    message += "Every *1* BTC invested then \nwould now become *%.6f* BTC" % ((balance_profit / df_groupped[0]) + 1)
+    message += "Every *1* BTC invested then \nwould now become\n*%.5f* BTC" % ((balance_profit / df_groupped[0]) + 1)
     keyboard = back_button
     bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown',
                      reply_markup=InlineKeyboardMarkup(
