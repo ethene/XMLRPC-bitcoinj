@@ -479,10 +479,8 @@ def stats(bot, update):
             month_diff = t_diff[0]
             d_diff = t_diff[1]
             message = "Was opened *%d* months *%d* days ago\n" % (month_diff, d_diff)
-            bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown',
-                             reply_markup=ReplyKeyboardRemove())
             balance_profit = (df_groupped[-1] - df_groupped[0]) / 1e8
-            message = "Absolute return: *%.6f* _BTC_\n" % (balance_profit)
+            message += "Absolute return: *%.6f* _BTC_\n" % (balance_profit)
             bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown',
                              reply_markup=ReplyKeyboardRemove())
 
