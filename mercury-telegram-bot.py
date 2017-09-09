@@ -354,13 +354,13 @@ def StartMessage(bot, update):
                         message += "Your wallet is yet empty " \
                                    "%s\nPlease top-up your account\n" % emoji.emojize(':o:', use_aliases=True)
                         message += "by making a transfer to your main wallet address\n"
+                    else:
+                        message += "Your balance is *%.6f* BTC\n" % (balance)
 
                     for tx in unconfirmedTXs:
                         message += "Pending new transaction for: %s BTC\n" % (int(tx['value']) / XBt_TO_XBT)
                         message += "tx ID: [%s](%s%s)\n" % (tx['ID'], block_explorer, tx['ID'])
 
-                    else:
-                        message += "Your balance is *%.6f* BTC\n" % (balance)
 
                     if (len(unconfirmedTXs) == 0) and (balance > 0):
                         message += "If you agree to add  funds your portfolio click below:\n"
