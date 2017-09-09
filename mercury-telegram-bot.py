@@ -34,7 +34,8 @@ sys.path.insert(0, '../BitMEX-trader/db/')
 from settings import MYSQL_CONNECTION, TELEGRAM_BOT_TOKEN, BASE_URL
 from SizedTimedRotatingFileHandler import SizedTimedRotatingFileHandler
 from bitmex import BitMEX
-from extra_settings import B_KEY, B_SECRET, POLO_ADDRESS
+from poloniex import Poloniex
+from extra_settings import B_KEY, B_SECRET, POLO_ADDRESS, P_API_KEY, P_API_SECRET
 
 
 def error_callback(bot, update, error):
@@ -88,6 +89,7 @@ logger.addHandler(log_handler)
 coloredlogs.install(level=level)
 
 bitmex = BitMEX(apiKey=B_KEY, apiSecret=B_SECRET, base_url=BASE_URL, logger=logger)
+poloniex = Poloniex(apiKey=P_API_KEY, apiSecret=P_API_SECRET)
 
 # last command to perform with OTP auth
 last_command = None
@@ -481,6 +483,8 @@ def stats(bot, update):
             message = "Was opened *%d* months *%d* days ago\n" % (month_diff, d_diff)
             balance_profit = (df_groupped[-1] - df_groupped[0]) / 1e8
             message += "Absolute return: *%.6f* _BTC_\n" % (balance_profit)
+            price = poloniex.getBTCPrice()
+            logger.debug(price)
             bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown',
                              reply_markup=ReplyKeyboardRemove())
 
