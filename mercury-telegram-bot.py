@@ -8,7 +8,8 @@ import re
 import shutil
 import traceback
 import xmlrpc.client
-from datetime import datetime
+from calendar import monthrange
+from datetime import datetime, timedelta
 
 import coloredlogs
 import emoji
@@ -457,14 +458,30 @@ def get_userID(update):
     return userID
 
 
-# TODO: stats
+# TODO: statistics
 def stats(bot, update):
     chat_id = get_chat_id(update)
     log_event = 'hedge fund stats checked'
     log_record(log_event, update)
     df = pd.read_sql_query(sql='SELECT * FROM ' + balance_table, con=db_engine, index_col='index')
     df_groupped = df.groupby(df.timestamp.dt.date)['totalbalance'].mean()
+    message = "*Fund combined portfolio performance statistics:*"
+    bot.send_message(chat_id=update.message.chat_id, text=message, parse_mode='Markdown',
+                     reply_markup=ReplyKeyboardRemove())
+
     send_stats(bot, df_groupped, chat_id)
+    balance_profit = df_groupped[-1] - df_groupped[0]
+    timedelta = df_groupped.index[-1] - df_groupped.index[0]
+    yearly_pc = ((balance_profit / timedelta.days) * 365) / df_groupped[0]
+    t_diff = monthdelta(df_groupped.index[0], df_groupped.index[-1])
+    month_diff = t_diff[0]
+    d_diff = t_diff[1]
+    message += "Which is a *%.2f%%* return\n" % yearly_pc
+    message += "Was achieved for the last %d months %d days\n" % (month_diff, d_diff)
+    keyboard = back_button
+    bot.send_message(chat_id=update.message.chat_id, text=message, parse_mode='Markdown',
+                     reply_markup=InlineKeyboardMarkup(
+                         inline_keyboard=keyboard))
 
 
 def send_stats(bot, df_groupped, chat_id):
@@ -919,6 +936,19 @@ def check_admin_privilege(update):
 
     return isadmin
 
+
+def monthdelta(d1, d2):
+    delta = 0
+    diff = d2 - d1
+    while True:
+        mdays = monthrange(d1.year, d1.month)[1]
+        d1 += timedelta(days=mdays)
+        if d1 <= d2:
+            diff -= timedelta(days=mdays)
+            delta += 1
+        else:
+            break
+    return delta, diff.days
 
 # TODO: plot glaph
 def plot_graph(df, name, label):
