@@ -3,12 +3,10 @@
 
 # TODO: imports
 import calendar
-import json
 import logging
 import re
 import shutil
 import traceback
-import urllib
 import xmlrpc.client
 from calendar import monthrange
 from datetime import datetime, timedelta
@@ -18,6 +16,7 @@ import emoji
 import matplotlib as mpl
 import pandas as pd
 import psutil
+import requests
 from sqlalchemy import (create_engine, Table, Column, Integer, BigInteger, ForeignKey, DateTime,
                         String, Boolean, MetaData, desc, func)
 from sqlalchemy.sql import select
@@ -36,7 +35,7 @@ sys.path.insert(0, '../BitMEX-trader/db/')
 from settings import MYSQL_CONNECTION, TELEGRAM_BOT_TOKEN, BASE_URL, P_API_KEY, P_API_SECRET
 from SizedTimedRotatingFileHandler import SizedTimedRotatingFileHandler
 from bitmex import BitMEX
-from poloniex_api import Poloniex
+# from poloniex_api import Poloniex
 from extra_settings import B_KEY, B_SECRET, POLO_ADDRESS
 
 
@@ -463,19 +462,11 @@ def get_userID(update):
     userID = userfrom.id
     return userID
 
-
-def getHTTPresponse(url, requests_timeout):
-    req = urllib.request(url, headers=hdr)
-    page = urllib.request(req, timeout=requests_timeout)
-    text = page.read()
-    return text
-
-
 def getBTCPrice():
     BITSTAMP_URL = 'https://www.bitstamp.net/api/ticker/'
-    text = getHTTPresponse(BITSTAMP_URL, 60)
-    textjson = json.loads(text)
-    return textjson
+    r = requests.get(url=BITSTAMP_URL)
+    j = r.json
+    return j['high']
 
 # TODO: statistics
 def stats(bot, update):
