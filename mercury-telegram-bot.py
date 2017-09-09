@@ -465,7 +465,7 @@ def get_userID(update):
 def getBTCPrice():
     BITSTAMP_URL = 'https://www.bitstamp.net/api/ticker/'
     r = requests.get(url=BITSTAMP_URL)
-    j = r.json
+    j = r.json()
     return j['high']
 
 # TODO: statistics
