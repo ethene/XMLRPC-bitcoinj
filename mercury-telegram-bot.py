@@ -961,7 +961,7 @@ def health_check(bot, update):
         select_unh_pnl = select([unhedge_pnl]).order_by(desc(unhedge_pnl.c.timestamp))
         rs = con.execute(select_unh_pnl).fetchall()
         max_unh_timestamp = rs[0].timestamp
-        max_unh_timestamp = calendar.timegm(max_pos_timestamp.utctimetuple()) * 1000
+        max_unh_timestamp = calendar.timegm(max_unh_timestamp.utctimetuple()) * 1000
 
         message += "_time is_ *%s* _UTC_\n" % (datetime.utcnow().strftime("%H:%M:%S"))
         message += "_last unhedge %d s ago_\n" % ((getUTCtime() - max_unh_timestamp) / 1000)
