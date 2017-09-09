@@ -70,6 +70,7 @@ positions_table = 'mercury_positions'
 balance_table = 'mercury_balance'
 balance_diff_table = 'avg_balance_difference'
 tc_table = 'mercury_TC'
+unhedge_pnl_table = 'unhedge_pnl'
 pic_folder = './pictures'
 pic_1_filename = 'balance.png'
 pic_2_filename = 'cumulative.png'
@@ -169,6 +170,7 @@ if not db_engine.dialect.has_table(db_engine, mail_table):
 else:
     mail = Table(mail_table, metadata, autoload=True)
 
+unhedge_pnl = Table(unhedge_pnl_table, metadata, autoload=True)
 mercury_tc = Table(tc_table, metadata, autoload=True)
 updater = Updater(token=TELEGRAM_BOT_TOKEN)
 dispatcher = updater.dispatcher
@@ -955,7 +957,14 @@ def health_check(bot, update):
         rs = con.execute(select_positions).fetchall()
         max_pos_timestamp = rs[0].timestamp
         max_pos_timestamp = calendar.timegm(max_pos_timestamp.utctimetuple()) * 1000
+
+        select_unh_pnl = select([unhedge_pnl]).order_by(desc(unhedge_pnl.c.timestamp))
+        rs = con.execute(select_unh_pnl).fetchall()
+        max_unh_timestamp = rs[0].timestamp
+        max_unh_timestamp = calendar.timegm(max_pos_timestamp.utctimetuple()) * 1000
+
         message += "_time is_ *%s* _UTC_\n" % (datetime.utcnow().strftime("%H:%M:%S"))
+        message += "_last unhedge %d s ago_\n" % ((getUTCtime() - max_unh_timestamp) / 1000)
         message += "_position updated %d s ago_\n" % ((getUTCtime() - max_pos_timestamp) / 1000)
     message += "_updated %d s ago_\n" % ((getUTCtime() - health_record[0]['index']) / 1000)
 
