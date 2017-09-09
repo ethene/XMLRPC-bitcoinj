@@ -517,7 +517,7 @@ def stats(bot, update):
     message += "Was actually achieved for the last *%d* months *%d* days\n\n" % (month_diff, d_diff)
     message += "If you have invested *1* _BTC_ on %s \nIt would now worth\n*%.5f* _BTC_ today" % (
     df_groupped.index[0].strftime("%d %b"), (balance_profit / df_groupped[0]) + 1)
-    message += "Absolute profit would be *$%.5f* BTC\n" % (balance_profit / df_groupped[0])
+    message += "Absolute profit would be *%.5f* BTC\n" % (balance_profit / df_groupped[0])
     message += "It equals to *$%.2f*\n" % ((balance_profit / df_groupped[0]) * BTCprice)
     keyboard = back_button
     bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown',
