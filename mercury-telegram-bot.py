@@ -466,7 +466,7 @@ def stats(bot, update):
     df = pd.read_sql_query(sql='SELECT * FROM ' + balance_table, con=db_engine, index_col='index')
     df_groupped = df.groupby(df.timestamp.dt.date)['totalbalance'].mean()
     message = "*Fund combined portfolio performance statistics:*"
-    bot.send_message(chat_id=update.message.chat_id, text=message, parse_mode='Markdown',
+    bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown',
                      reply_markup=ReplyKeyboardRemove())
 
     send_stats(bot, df_groupped, chat_id)
@@ -479,7 +479,7 @@ def stats(bot, update):
     message += "Which is a *%.2f%%* return\n" % yearly_pc
     message += "Was achieved for the last %d months %d days\n" % (month_diff, d_diff)
     keyboard = back_button
-    bot.send_message(chat_id=update.message.chat_id, text=message, parse_mode='Markdown',
+    bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown',
                      reply_markup=InlineKeyboardMarkup(
                          inline_keyboard=keyboard))
 
