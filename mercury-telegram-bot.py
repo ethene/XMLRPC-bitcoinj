@@ -196,7 +196,7 @@ def start(bot, update):
         callback_data='/readtc1')]]
     keyboard = tc_button + keyboard
     keyboard += [[InlineKeyboardButton(
-        text="%s view fund performance" % (emoji.emojize(':chart_with_upwards_trend:', use_aliases=True)),
+        text="%s view statistics" % (emoji.emojize(':chart_with_upwards_trend:', use_aliases=True)),
         callback_data='/statistics')]]
 
     if message and len(keyboard) > 0:
@@ -369,10 +369,6 @@ def StartMessage(bot, update):
                 log_event = 'balance unavailable'
                 log_record(log_event, update)
                 message += "*Balance is unavailable*"
-                keyboard += [[InlineKeyboardButton(
-                    text="%s view statistics" % (
-                        emoji.emojize(':chart_with_upwards_trend:', use_aliases=True)),
-                    callback_data='/statistics')]]
                 keyboard += [[InlineKeyboardButton(
                     text="%s contact support" % (
                         emoji.emojize(':warning:', use_aliases=True)),
