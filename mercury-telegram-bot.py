@@ -194,6 +194,9 @@ def start(bot, update):
             emoji.emojize(':mag_right:', use_aliases=True)),
         callback_data='/readtc1')]]
     keyboard = tc_button + keyboard
+    keyboard += [[InlineKeyboardButton(
+        text="%s view fund performance" % (emoji.emojize(':chart_with_upwards_trend:', use_aliases=True)),
+        callback_data='/statistics')]]
 
     if message and len(keyboard) > 0:
         if address:
@@ -269,9 +272,6 @@ def StartMessage(bot, update):
                 message += "Your new account has just created\n"
                 message += "Your wallet is yet empty\nPlease top-up your account\n"
                 message += "by making a transfer to your main wallet to your address as below:\n"
-                keyboard += [[InlineKeyboardButton(
-                    text="%s view fund performance" % (emoji.emojize(':chart_with_upwards_trend:', use_aliases=True)),
-                    callback_data='/statistics')]]
                 msg = "*New user created:* [%s](tg://user?id=%s)\n" % (username, userID)
                 bot.send_message(chat_id=TELEGRAM_CHANNEL_NAME, text=msg, parse_mode='Markdown')
             except:
