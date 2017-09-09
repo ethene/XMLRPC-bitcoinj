@@ -335,12 +335,13 @@ def StartMessage(bot, update):
                     position = int(position) / 1e8
                     message += "Your portfolio now worth\n*%.6f* BTC\n" % (position)
 
+                    '''
                     if position > 0:
                         keyboard += [[InlineKeyboardButton(
                             text="%s check portfolio stats" % (
                                 emoji.emojize(':moneybag:', use_aliases=True)),
                             callback_data='/portfolio')]]
-
+                    '''
                     if balance == 0:
                         message += "Your wallet is yet empty " \
                                    "%s\nPlease top-up your account\n" % emoji.emojize(':o:', use_aliases=True)
@@ -369,7 +370,7 @@ def StartMessage(bot, update):
                 log_record(log_event, update)
                 message += "*Balance is unavailable*"
                 keyboard += [[InlineKeyboardButton(
-                    text="%s view fund performance" % (
+                    text="%s view statistics" % (
                         emoji.emojize(':chart_with_upwards_trend:', use_aliases=True)),
                     callback_data='/statistics')]]
                 keyboard += [[InlineKeyboardButton(
@@ -462,10 +463,26 @@ def get_userID(update):
 def stats(bot, update):
     chat_id = get_chat_id(update)
     log_event = 'hedge fund stats checked'
-    log_record(log_event, update)
+    userID = log_record(log_event, update)
+    with db_engine.connect() as con:
+        select_positions = select([positions]).where(positions.c.userID == userID).order_by(
+            desc(positions.c.timestamp))
+        rs = con.execute(select_positions)
+        response2 = rs.fetchall()
+        position = response2[0].position
+        if position > 0:
+            df = pd.read_sql_query(sql='SELECT * FROM ' + positions_table + ' WHERE `USERID` = ' + str(userID),
+                                   con=db_engine, index_col='timestamp')
+            df = df[(df.position != 0)]
+            df_groupped = df.groupby(df.index)['position'].mean()
+            message = "*Your portfolio performance:*"
+            bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown',
+                             reply_markup=ReplyKeyboardRemove())
+            send_stats(bot, df_groupped, chat_id)
+
     df = pd.read_sql_query(sql='SELECT * FROM ' + balance_table, con=db_engine, index_col='index')
     df_groupped = df.groupby(df.timestamp.dt.date)['totalbalance'].mean()
-    message = "*Fund combined portfolio performance statistics:*"
+    message = "*Mercury combined portfolio performance:*"
     bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown',
                      reply_markup=ReplyKeyboardRemove())
 
@@ -477,7 +494,7 @@ def stats(bot, update):
     month_diff = t_diff[0]
     d_diff = t_diff[1]
     message = "Which is a *%.2f%%* yearly return\n" % yearly_pc
-    message += "Was actually achieved for the last \n*%d* months *%d* days\n" % (month_diff, d_diff)
+    message += "Was actually achieved for the last*%d* months *%d* days\n\n" % (month_diff, d_diff)
     message += "Every *1* BTC invested then \nwould now become\n*%.5f* BTC" % ((balance_profit / df_groupped[0]) + 1)
     keyboard = back_button
     bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown',
