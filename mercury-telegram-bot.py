@@ -341,7 +341,7 @@ def StartMessage(bot, update):
 
                 else:
                     position = int(position) / XBt_TO_XBT
-                    message += "Your portfolio now worth\n*%.6f* BTC\n" % (position)
+                    message += "Your portfolio now worth\n*%.6f* _BTC_\n" % (position)
 
                     '''
                     if position > 0:
@@ -355,10 +355,10 @@ def StartMessage(bot, update):
                                    "%s\nPlease top-up your account\n" % emoji.emojize(':o:', use_aliases=True)
                         message += "by making a transfer to your main wallet address\n"
                     else:
-                        message += "Your balance is *%.6f* BTC\n" % (balance)
+                        message += "Your balance is *%.6f* _BTC_\n" % (balance)
 
                     for tx in unconfirmedTXs:
-                        message += "Pending new transaction for: %s BTC\n" % (int(tx['value']) / XBt_TO_XBT)
+                        message += "Pending new transaction for: %s _BTC_\n" % (int(tx['value']) / XBt_TO_XBT)
                         message += "tx ID: [%s](%s%s)\n" % (tx['ID'], block_explorer, tx['ID'])
 
 
@@ -495,10 +495,10 @@ def stats(bot, update):
             d_diff = t_diff[1]
             message = "Was opened *%d* months *%d* days ago\n" % (month_diff, d_diff)
             balance_profit = (df_groupped[-1] - df_groupped[0]) / XBt_TO_XBT
-            message += "You've invested: *%.6f* _BTC_\n" % (df_groupped[0] / XBt_TO_XBT)
-            message += "Now it worth: *%.6f* _BTC_\n" % (df_groupped[-1] / XBt_TO_XBT)
-            message += "Absolute return: *%.6f* _BTC_\n" % (balance_profit)
-            message += "It equals to *$%.2f*\n" % (balance_profit * BTCprice)
+            message += "You've invested:\n*%.6f* _BTC_\n" % (df_groupped[0] / XBt_TO_XBT)
+            message += "Now it worth:\n*%.6f* _BTC_\n" % (df_groupped[-1] / XBt_TO_XBT)
+            message += "Absolute return:\n*%.6f* _BTC_\n" % (balance_profit)
+            message += "It equals to\n*$%.2f*\n" % (balance_profit * BTCprice)
             bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown',
                              reply_markup=ReplyKeyboardRemove())
 
@@ -515,11 +515,11 @@ def stats(bot, update):
     t_diff = monthdelta(df_groupped.index[0], df_groupped.index[-1])
     month_diff = t_diff[0]
     d_diff = t_diff[1]
-    message = "Which is a *%.2f%%* yearly return\n" % yearly_pc
-    message += "Was actually achieved for the last *%d* months *%d* days\n\n" % (month_diff, d_diff)
-    message += "If you have invested\n*1* _BTC_ on %s \nIt would now worth\n*%.5f* _BTC_ today\n" % (
+    message = "Which is a *%.2f%%* yearly return\n\n" % yearly_pc
+    message += "Was actually achieved during the last *%d* months *%d* days\n\n" % (month_diff, d_diff)
+    message += "If you have invested\n*1* _BTC_ on *%s* \nIt would now worth\n*%.5f* _BTC_ today\n" % (
     df_groupped.index[0].strftime("%d %b"), (balance_profit / df_groupped[0]) + 1)
-    message += "Absolute profit would be\n*%.5f* BTC\n" % (balance_profit / df_groupped[0])
+    message += "Absolute profit would be\n*%.5f* _BTC_\n" % (balance_profit / df_groupped[0])
     message += "It equals to\n*$%.2f*\n" % ((balance_profit / df_groupped[0]) * BTCprice)
     keyboard = back_button
     bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown',
@@ -710,7 +710,7 @@ def unapproved_actions(bot, update):
             action = a.action
             timestamp = a.timestamp
             i = a.actionID
-            action_args = a.args if action != 'INVEST' else "%.6f BTC" % (int(a.args) / XBt_TO_XBT)
+            action_args = a.args if action != 'INVEST' else "%.6f _BTC_" % (int(a.args) / XBt_TO_XBT)
             message = "%d: [%s](tg://user?id=%s) *%s* _%s_ (%s)\n" % (
                 i, username, user_id, action, action_args, timestamp.strftime("%d %b %H:%M:%S"))
 
@@ -823,7 +823,7 @@ def action_approve(bot, update):
                             upd = useraccounts.update().values(withdrawn=(user_withdrawn + balance)).where(
                                 useraccounts.c.ID == user_id)
                             con.execute(upd)
-                            msg_to_user = '\n\nAdded to portfolio: *%.6f* BTC\n*%8f* fee paid\n' % (
+                            msg_to_user = '\n\nAdded to portfolio: *%.6f* _BTC_\n*%8f* fee paid\n' % (
                                 tx_value / XBt_TO_XBT, (balance - tx_value) / XBt_TO_XBT)
                             bot.send_message(chat_id=user_id, text=msg_to_user, parse_mode='Markdown',
                                              reply_markup=InlineKeyboardMarkup(
