@@ -6,7 +6,6 @@ from time import sleep
 
 import poloniex
 
-
 class synchronized(object):
     """ Class enapsulating a lock and a function
     allowing it to be used as a synchronizing

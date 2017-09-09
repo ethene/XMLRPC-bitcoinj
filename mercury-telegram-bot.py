@@ -34,7 +34,10 @@ sys.path.insert(0, '../BitMEX-trader/db/')
 from settings import MYSQL_CONNECTION, TELEGRAM_BOT_TOKEN, BASE_URL, P_API_KEY, P_API_SECRET
 from SizedTimedRotatingFileHandler import SizedTimedRotatingFileHandler
 from bitmex import BitMEX
-from poloniex import Poloniex
+from poloniex
+
+-api
+import Poloniex
 from extra_settings import B_KEY, B_SECRET, POLO_ADDRESS
 
 
