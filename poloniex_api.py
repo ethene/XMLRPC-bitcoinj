@@ -79,7 +79,7 @@ class Poloniex(object):
     #
 
     def getBTCPrice(self):
-        return self.polo.returnOrderBook(symbol='USDT_BTC', depth=5)['bid'][0]
+        return self.polo.returnOrderBook(currencyPair='USDT_BTC', depth=5)['bid'][0]
 
     @synchronized()
     @retry([poloniex.PoloniexError], 10)
