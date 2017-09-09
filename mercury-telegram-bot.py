@@ -3,10 +3,12 @@
 
 # TODO: imports
 import calendar
+import json
 import logging
 import re
 import shutil
 import traceback
+import urllib
 import xmlrpc.client
 from calendar import monthrange
 from datetime import datetime, timedelta
@@ -44,6 +46,11 @@ def error_callback(bot, update, error):
     except TelegramError as e:
         logger.error(e)
         logger.error(traceback.format_exc())
+
+
+hdr = {
+    'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11',
+    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8', 'Pragma': 'no-cache'}
 
 
 XMLRPCServer = xmlrpc.client.ServerProxy('http://localhost:8000')
@@ -457,11 +464,26 @@ def get_userID(update):
     return userID
 
 
+def getHTTPresponse(url, requests_timeout):
+    req = urllib.request(url, headers=hdr)
+    page = urllib.request(req, timeout=requests_timeout)
+    text = page.read()
+    return text
+
+
+def getBTCPrice():
+    BITSTAMP_URL = 'https://www.bitstamp.net/api/ticker/'
+    text = getHTTPresponse(BITSTAMP_URL, 60)
+    textjson = json.loads(text)
+    return textjson
+
 # TODO: statistics
 def stats(bot, update):
     chat_id = get_chat_id(update)
     log_event = 'hedge fund stats checked'
     userID = log_record(log_event, update)
+    BTCprice = getBTCPrice()
+    logger.debug(getBTCPrice())
     with db_engine.connect() as con:
         select_positions = select([positions]).where(positions.c.userID == userID).order_by(
             desc(positions.c.timestamp))
@@ -483,8 +505,7 @@ def stats(bot, update):
             message = "Was opened *%d* months *%d* days ago\n" % (month_diff, d_diff)
             balance_profit = (df_groupped[-1] - df_groupped[0]) / 1e8
             message += "Absolute return: *%.6f* _BTC_\n" % (balance_profit)
-            price = poloniex.getBTCPrice()
-            logger.debug(price)
+            message += "It equals to *$%.2f*\n" % (balance_profit * BTCprice)
             bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown',
                              reply_markup=ReplyKeyboardRemove())
 
@@ -505,6 +526,8 @@ def stats(bot, update):
     message += "Was actually achieved for the last *%d* months *%d* days\n\n" % (month_diff, d_diff)
     message += "If you have invested *1* _BTC_ on %s \nIt would now worth\n*%.5f* _BTC_ today" % (
     df_groupped.index[0].strftime("%d %b"), (balance_profit / df_groupped[0]) + 1)
+    message += "Absolute profit would be *$%.5f* BTC\n" % (balance_profit / df_groupped[0])
+    message += "It equals to *$%.2f*\n" % ((balance_profit / df_groupped[0]) * BTCprice)
     keyboard = back_button
     bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown',
                      reply_markup=InlineKeyboardMarkup(
