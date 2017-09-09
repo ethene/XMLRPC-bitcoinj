@@ -328,7 +328,7 @@ def StartMessage(bot, update):
                 invest_rs = con.execute(invest_actions).fetchall()
 
                 if len(invest_rs) > 0:
-                    message += "Waiting for your portfolio to be created\n"
+                    message += "Waiting to add funds to your portfolio\n"
 
                 else:
                     position = int(position) / 1e8
@@ -763,7 +763,7 @@ def action_approve(bot, update):
                             upd = useraccounts.update().values(withdrawn=(user_withdrawn + balance)).where(
                                 useraccounts.c.ID == user_id)
                             con.execute(upd)
-                            msg_to_user = '\nPortfolio is created: *%.6f* BTC\n*%8f* fee paid' % (
+                            msg_to_user = '\n\nAdded to portfolio: *%.6f* BTC\n*%8f* fee paid\n' % (
                                 tx_value / 1e8, (balance - tx_value) / 1e8)
                             bot.send_message(chat_id=user_id, text=msg_to_user, parse_mode='Markdown',
                                              reply_markup=InlineKeyboardMarkup(
@@ -829,7 +829,7 @@ def transfers_show(bot, update):
         return
     df = pd.read_sql_table(balance_diff_table, con=db_engine, index_col='index')
     transfer_record = df.to_dict(orient='records')
-    transfer_diff = round(transfer_record[0]['avg_balance_difference'] * 0.5, 6)
+    transfer_diff = round(transfer_record[0]['avg_balance_difference'], 6)
     if transfer_diff > 0:
         direction = '->'
         last_command = 'BW'
