@@ -32,7 +32,7 @@ import matplotlib.dates as mdates
 import sys
 
 sys.path.insert(0, '../BitMEX-trader/db/')
-from settings import MYSQL_CONNECTION, TELEGRAM_BOT_TOKEN, BASE_URL, P_API_KEY, P_API_SECRET
+from settings import MYSQL_CONNECTION, TELEGRAM_BOT_TOKEN, BASE_URL
 from SizedTimedRotatingFileHandler import SizedTimedRotatingFileHandler
 from bitmex import BitMEX
 # from poloniex_api import Poloniex
@@ -95,7 +95,7 @@ logger.addHandler(log_handler)
 coloredlogs.install(level=level)
 
 bitmex = BitMEX(apiKey=B_KEY, apiSecret=B_SECRET, base_url=BASE_URL, logger=logger)
-poloniex = Poloniex(apiKey=P_API_KEY, apiSecret=P_API_SECRET)
+# poloniex = Poloniex(apiKey=P_API_KEY, apiSecret=P_API_SECRET)
 
 # last command to perform with OTP auth
 last_command = None
