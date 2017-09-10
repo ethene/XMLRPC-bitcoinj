@@ -52,7 +52,6 @@ hdr = {
     'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11',
     'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8', 'Pragma': 'no-cache'}
 
-
 XMLRPCServer = xmlrpc.client.ServerProxy('http://localhost:8000')
 
 block_explorer = 'https://www.blocktrail.com/tBTC/tx/'
@@ -282,6 +281,7 @@ def StartMessage(bot, update):
                 message = "Hello, *%s*!\nThis is your personal interface to the *Mercury* crypto hedge fund\n" % (
                     username)
                 message += "Your new account has just created\n"
+                message += "Please look into our statistics and read Terms and Conditions before proceeding\n"
                 message += "Your wallet is yet empty\nPlease top-up your account\n"
                 message += "by making a transfer to your main wallet to your address as below:\n"
                 msg = "*New user created:* [%s](tg://user?id=%s)\n" % (username, userID)
@@ -363,7 +363,6 @@ def StartMessage(bot, update):
                     for tx in unconfirmedTXs:
                         message += "Pending new transaction for: %s _BTC_\n" % (int(tx['value']) / XBt_TO_XBT)
                         message += "tx ID: [%s](%s%s)\n" % (tx['ID'], block_explorer, tx['ID'])
-
 
                     if (len(unconfirmedTXs) == 0) and (balance > 0):
                         message += "If you agree to add  funds your portfolio click below:\n"
@@ -465,11 +464,13 @@ def get_userID(update):
     userID = userfrom.id
     return userID
 
+
 def getBTCPrice():
     BITSTAMP_URL = 'https://www.bitstamp.net/api/ticker/'
     r = requests.get(url=BITSTAMP_URL)
     j = r.json()
     return float(j['high'])
+
 
 # TODO: statistics
 def stats(bot, update):
@@ -502,7 +503,7 @@ def stats(bot, update):
             if balance_profit > 0:
                 message += "Now it worth:\n*%.6f* _BTC_\n" % (df_groupped[-1] / XBt_TO_XBT)
                 message += "Absolute return:\n*%.6f* _BTC_\n" % (balance_profit)
-                message += "It equals to\n*$%.2f*\n" % (balance_profit * BTCprice)
+                message += "It equals to\n*$%.2f*\n%.2f _USD/BTC_\n" % (balance_profit * BTCprice, BTCprice)
             bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown',
                              reply_markup=ReplyKeyboardRemove())
 
@@ -522,9 +523,9 @@ def stats(bot, update):
     message = "Which is a *%.2f%%* yearly return\n\n" % yearly_pc
     message += "Was actually achieved during the last *%d* months *%d* days\n\n" % (month_diff, d_diff)
     message += "If you have invested\n*1* _BTC_ on *%s* \nIt would now worth\n*%.5f* _BTC_ today\n" % (
-    df_groupped.index[0].strftime("%d %b"), (balance_profit / df_groupped[0]) + 1)
+        df_groupped.index[0].strftime("%d %b"), (balance_profit / df_groupped[0]) + 1)
     message += "Absolute profit would be\n*%.5f* _BTC_\n" % (balance_profit / df_groupped[0])
-    message += "It equals to\n*$%.2f*\n" % ((balance_profit / df_groupped[0]) * BTCprice)
+    message += "It equals to\n*$%.2f*\n%.2f _USD/BTC_\n" % ((balance_profit / df_groupped[0]) * BTCprice, BTCprice)
     keyboard = back_button
     bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown',
                      reply_markup=InlineKeyboardMarkup(
@@ -770,8 +771,8 @@ def action_disapprove(bot, update):
         message = "Action *%s* not found!\n" % (action_id)
 
     bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown',
-                         reply_markup=InlineKeyboardMarkup(
-                             inline_keyboard=admin_keyboard))
+                     reply_markup=InlineKeyboardMarkup(
+                         inline_keyboard=admin_keyboard))
 
 
 # TODO: action_approve
@@ -882,6 +883,7 @@ def change_action(action_id, approved):
     with db_engine.connect() as con:
         upd = actions.update().values(approved=approved).where(actions.c.actionID == action_id)
         con.execute(upd)
+
 
 # TODO: transfers_show
 def transfers_show(bot, update):
@@ -1007,6 +1009,7 @@ def monthdelta(d1, d2):
         else:
             break
     return delta, diff.days
+
 
 # TODO: plot glaph
 def plot_graph(df, name, label):
