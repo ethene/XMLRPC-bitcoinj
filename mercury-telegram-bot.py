@@ -346,7 +346,7 @@ def StartMessage(bot, update):
                     message += _("YOUR_PORTFOLIO_WORTH") % position
 
                     if balance == 0:
-                        message += "You_r wallet is yet empty " \
+                        message += "Your wallet is yet empty " \
                                    "%s\nPlease top-up your account\n" % emoji.emojize(':o:', use_aliases=True)
                         message += "by making a transfer to your main wallet address\n"
                     else:
