@@ -62,9 +62,11 @@ if __name__ == "__main__":
             confirmed = XMLRPCServer.isTXconfirmed(tx_id)
             logger.debug(t)
             logger.debug(confirmed)
-            keyboard = telebot.types.InlineKeyboardMarkup()
-            keyboard.add(btn)
-
-
-            # bot.send_message(chat_id=user_id, text="TX # _%s_ unconfirmed" % tx_id, parse_mode='Markdown',
-            #                 reply_markup=keyboard)
+            if confirmed:
+                upd = bitcoinj_transactions.update().values(confirmed=True).where(
+                    bitcoinj_transactions.c.TXID == tx_id)
+                con.execute(upd)
+                keyboard = telebot.types.InlineKeyboardMarkup()
+                keyboard.add(btn)
+                bot.send_message(chat_id=user_id, text="TX# _%s_ is now confirmed" % tx_id, parse_mode='Markdown',
+                                 reply_markup=keyboard)
