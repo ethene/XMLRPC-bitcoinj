@@ -39,6 +39,7 @@ log_handler = SizedTimedRotatingFileHandler(log_filename, maxBytes=0, backupCoun
 logger.addHandler(log_handler)
 coloredlogs.install(level=level)
 
+XBt_TO_XBT = 100000000
 transactions_table = 'bitcoinj_transactions'
 useraccounts_table = 'telegram_useraccounts'
 bitcoinj_transactions = Table(transactions_table, metadata, autoload=True)
@@ -59,6 +60,7 @@ if __name__ == "__main__":
         for t in txs:
             user_id = t.userID
             tx_id = t.TXID
+            value = t.value
             confirmed = XMLRPCServer.isTXconfirmed(tx_id)
             logger.debug(t)
             logger.debug(confirmed)
@@ -68,6 +70,7 @@ if __name__ == "__main__":
                 con.execute(upd)
                 keyboard = telebot.types.InlineKeyboardMarkup()
                 keyboard.add(btn)
-                bot.send_message(chat_id=user_id, text="Transaction for\n*%.8f* _BTC_\nis now confirmed\n" % tx_id,
+                bot.send_message(chat_id=user_id,
+                                 text="Transaction for\n*%.8f* _BTC_\nis now confirmed\n" % (value / XBt_TO_XBT),
                                  parse_mode='Markdown',
                                  reply_markup=keyboard)
