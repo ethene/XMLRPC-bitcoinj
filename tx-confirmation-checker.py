@@ -59,5 +59,6 @@ if __name__ == "__main__":
             tx_id = t.TXID
             keyboard = telebot.types.InlineKeyboardMarkup()
             keyboard.add(btn)
-            bot.send_message(chat_id=user_id, text="TX # _%s_ unconfirmed" % tx_id, parse_mode='Markdown',
-                             reply_markup=keyboard)
+            logger.debug(t)
+            # bot.send_message(chat_id=user_id, text="TX # _%s_ unconfirmed" % tx_id, parse_mode='Markdown',
+            #                 reply_markup=keyboard)
