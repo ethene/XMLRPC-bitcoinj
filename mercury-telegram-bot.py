@@ -43,12 +43,14 @@ from extra_settings import B_KEY, B_SECRET, POLO_ADDRESS
 en = gettext.translation('mercury-telegram', localedir='locale', languages=['en'])
 en.install()
 
+
 def error_callback(bot, update, error):
     try:
         raise error
     except TelegramError as e:
         logger.error(e)
         logger.error(traceback.format_exc())
+
 
 XMLRPCServer = xmlrpc.client.ServerProxy('http://localhost:8000')
 
@@ -276,8 +278,7 @@ def StartMessage(bot, update):
                 ins = log.insert().values(userID=userID, log='new user created % s' % username,
                                           timestamp=datetime.utcnow())
                 con.execute(ins)
-                message = "Hello, *%s*!\nThis is your personal interface to the *Mercury* crypto hedge fund\n" % (
-                    username)
+                message = _("HELLO_NEW_USER") % username
                 message += "Your new account has just created\n"
                 message += "Please look into our statistics and read Terms and Conditions before proceeding\n"
                 message += "Your wallet is yet empty\nPlease top-up your account\n"
@@ -342,17 +343,10 @@ def StartMessage(bot, update):
 
                 else:
                     position = int(position) / XBt_TO_XBT
-                    message += "Your portfolio now worth\n*%.6f* _BTC_\n" % (position)
+                    message += _("YOUR_PORTFOLIO_WORTH") % position
 
-                    '''
-                    if position > 0:
-                        keyboard += [[InlineKeyboardButton(
-                            text="%s check portfolio stats" % (
-                                emoji.emojize(':moneybag:', use_aliases=True)),
-                            callback_data='/portfolio')]]
-                    '''
                     if balance == 0:
-                        message += "Your wallet is yet empty " \
+                        message += "You_r wallet is yet empty " \
                                    "%s\nPlease top-up your account\n" % emoji.emojize(':o:', use_aliases=True)
                         message += "by making a transfer to your main wallet address\n"
                     else:
