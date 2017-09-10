@@ -353,7 +353,7 @@ def StartMessage(bot, update):
                 invest_rs = con.execute(invest_actions).fetchall()
 
                 if len(invest_rs) > 0:
-                    message += "Waiting to add funds to your portfolio\n"
+                    message += _("WAITING_TO_APPROVE_INVEST")
                     address = None
 
                 else:
@@ -372,7 +372,11 @@ def StartMessage(bot, update):
                     for tx in unconfirmedTXs:
                         message += _("PENDING_TRANSACTION") % (int(tx['value']) / XBt_TO_XBT)
                         message += _("TX_ID") % (tx['ID'], block_explorer, tx['ID'])
-                        ins = bitcoinj_transactions.insert().values(userID=userID, TXID=tx['ID'],
+                        select_txs = select([bitcoinj_transactions]).where(
+                            bitcoinj_transactions.c.TXID == tx['ID']).where(bitcoinj_transactions.c.confirmed == False)
+                        txs = con.execute(select_txs).fetchall()
+                        if len(txs) == 0:
+                            ins = bitcoinj_transactions.insert().values(userID=userID, TXID=tx['ID'],
                                                                     confirmed=False, timestamp=datetime.utcnow())
                         con.execute(ins)
 
@@ -390,7 +394,7 @@ def StartMessage(bot, update):
                 logger.error(traceback.format_exc())
                 log_event = 'balance unavailable'
                 log_record(log_event, update)
-                message += "*Balance is unavailable*"
+                message += _("BALANCE_UNAV")
                 keyboard += [[InlineKeyboardButton(
                     text="%s contact support" % (
                         emoji.emojize(':warning:', use_aliases=True)),

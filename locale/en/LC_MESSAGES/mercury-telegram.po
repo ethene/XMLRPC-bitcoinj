@@ -5,8 +5,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: mercury-telegram-bot\n"
-"POT-Creation-Date: 2017-09-10 18:28+1000\n"
-"PO-Revision-Date: 2017-09-10 18:28+1000\n"
+"POT-Creation-Date: 2017-09-10 23:17+1000\n"
+"PO-Revision-Date: 2017-09-10 23:17+1000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: en\n"
@@ -19,13 +19,13 @@ msgstr ""
 "X-Poedit-Basepath: ../../..\n"
 "X-Poedit-SearchPath-0: mercury-telegram-bot.py\n"
 
-#: mercury-telegram-bot.py:283
+#: mercury-telegram-bot.py:298
 msgid "HELLO_NEW_USER"
 msgstr ""
 "Hello, *%s*!\n"
 "This is your personal interface to the *Mercury* crypto hedge fund\n"
 
-#: mercury-telegram-bot.py:284
+#: mercury-telegram-bot.py:299
 msgid "NEW_USER_INFO"
 msgstr ""
 "Your new account has just created\n"
@@ -35,105 +35,116 @@ msgstr ""
 "Please top-up your account\n"
 "by making a transfer to your main wallet to your address as below:\n"
 
-#: mercury-telegram-bot.py:303
+#: mercury-telegram-bot.py:318
 msgid "WELCOME_BACK_ADMIN"
 msgstr ""
 "Hello, admin *%s*!\n"
 "Welcome back to use the bot %s\n"
 
-#: mercury-telegram-bot.py:306
+#: mercury-telegram-bot.py:321
 msgid "WELCOME_BACK_USER"
 msgstr ""
 "Hello, *%s*!\n"
 "Welcome back to Mercury crypto hedge fund %s\n"
 
-#: mercury-telegram-bot.py:345
+#: mercury-telegram-bot.py:356
+msgid "WAITING_TO_APPROVE_INVEST"
+msgstr ""
+"Waiting to approve your investment request\n"
+"You will be notified\n"
+"\n"
+
+#: mercury-telegram-bot.py:361
 msgid "YOUR_PORTFOLIO_WORTH"
 msgstr ""
 "Your portfolio now worth\n"
 "*%.6f* _BTC_\n"
 
-#: mercury-telegram-bot.py:352
+#: mercury-telegram-bot.py:368
 msgid "WALLET_EMPTY"
 msgstr ""
 "Your wallet is yet empty %s\n"
 "Please top-up your account\n"
 "by making a transfer to your main wallet address\n"
 
-#: mercury-telegram-bot.py:354
+#: mercury-telegram-bot.py:370
 msgid "YOUR_BALANCE_IS"
 msgstr "Your balance is *%.6f* _BTC_\n"
 
-#: mercury-telegram-bot.py:357
+#: mercury-telegram-bot.py:373
 msgid "PENDING_TRANSACTION"
 msgstr "Pending new transaction for: %s _BTC_\n"
 
-#: mercury-telegram-bot.py:358
+#: mercury-telegram-bot.py:374
 msgid "TX_ID"
 msgstr "tx ID: [%s](%s%s)\n"
 
-#: mercury-telegram-bot.py:361
+#: mercury-telegram-bot.py:383
 msgid "IF_YOU_AGREE_TO_INVEST"
 msgstr "If you agree to add funds your portfolio click below:\n"
 
-#: mercury-telegram-bot.py:363
+#: mercury-telegram-bot.py:385
 msgid "OK_AGREE"
 msgstr "%s OK, I agree"
 
-#: mercury-telegram-bot.py:368
+#: mercury-telegram-bot.py:390
 msgid "YOUR_ADDRESS_IS"
 msgstr "Your address is %s\n"
 
-#: mercury-telegram-bot.py:479
+#: mercury-telegram-bot.py:396
+msgid "BALANCE_UNAV"
+msgstr "*Balance is unavailable*\n"
+
+#: mercury-telegram-bot.py:501
 msgid "YOUR_FOLIO_PERFORMANCE"
 msgstr "*Your portfolio performance:*"
 
-#: mercury-telegram-bot.py:486
+#: mercury-telegram-bot.py:508
 msgid "WAS_OPENED_AGO"
 msgstr "Was opened *%d* months *%d* days ago\n"
 
-#: mercury-telegram-bot.py:488
+#: mercury-telegram-bot.py:510
 msgid "YOUVE_INVESED"
 msgstr ""
 "You've invested:\n"
 "*%.6f* _BTC_\n"
 
-#: mercury-telegram-bot.py:490
+#: mercury-telegram-bot.py:512
 msgid "NOW_WORTH"
 msgstr ""
 "Now it worth:\n"
 "*%.6f* _BTC_\n"
 
-#: mercury-telegram-bot.py:491
+#: mercury-telegram-bot.py:513
 msgid "ABS_RETURN"
 msgstr ""
 "Absolute return:\n"
 "*%.6f* _BTC_\n"
 
-#: mercury-telegram-bot.py:492
+#: mercury-telegram-bot.py:514 mercury-telegram-bot.py:536
 msgid "EQUALS_TO"
 msgstr ""
 "It equals to\n"
 "*$%.2f*\n"
 "_(%.2f USD/BTC)_\n"
 
-#: mercury-telegram-bot.py:498
+#: mercury-telegram-bot.py:520
 msgid "COMBINED_STATS"
 msgstr "*Mercury combined portfolio performance:*"
 
-#: mercury-telegram-bot.py:509
+#: mercury-telegram-bot.py:531
 msgid "CS_WHICH_IS"
 msgstr ""
 "Which is a *%.2f%%* yearly return\n"
 "\n"
 
-#: mercury-telegram-bot.py:510
+#: mercury-telegram-bot.py:532
 msgid "CS_WAS_ACHIEVED"
 msgstr ""
 "Was actually achieved during the last *%d* months *%d* days\n"
 "\n"
 
-#: mercury-telegram-bot.py:511
+#: mercury-telegram-bot.py:533
 msgid "CS_IF_INVESTED"
 msgstr ""
 "If you have invested\n"
@@ -141,7 +152,7 @@ msgstr ""
 "It would now worth\n"
 "*%.5f* _BTC_ today\n"
 
-#: mercury-telegram-bot.py:513
+#: mercury-telegram-bot.py:535
 msgid "CS_ABS_PROFIT"
 msgstr ""
 "Absolute profit would be\n"
