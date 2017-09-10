@@ -22,8 +22,6 @@ import requests
 from sqlalchemy import (create_engine, Table, Column, Integer, BigInteger, ForeignKey, DateTime,
                         String, Boolean, MetaData, desc, func)
 from sqlalchemy.sql import select
-from telegram import ReplyKeyboardRemove, InlineKeyboardButton, \
-    InlineKeyboardMarkup
 from telegram.error import (TelegramError)
 from telegram.ext import CommandHandler, RegexHandler, CallbackQueryHandler
 from telegram.ext import Updater
@@ -683,8 +681,7 @@ def show_users(bot, update):
         max_pos_timestamp = rs[0].timestamp
         j = positions.join(useraccounts)
         q = select([positions, useraccounts]).where(positions.c.timestamp == max_pos_timestamp).where(
-            positions.c.position > 0).order_by(
-            desc(positions.c.position)).select_from(j)
+            positions.c.position > 0).order_by(desc(positions.c.position)).select_from(j)
         rs = con.execute(q).fetchall()
         i = 0
         for u in rs:

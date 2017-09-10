@@ -52,7 +52,8 @@ if __name__ == "__main__":
     bot = telebot.TeleBot(TELEGRAM_BOT_TOKEN)
     with db_engine.connect() as con:
         j = bitcoinj_transactions.join(useraccounts)
-        q = select([bitcoinj_transactions, useraccounts]).where(bitcoinj_transactions.c.confirmed == False)
+        q = select([bitcoinj_transactions, useraccounts]).where(bitcoinj_transactions.c.confirmed == False).select_from(
+            j)
         txs = con.execute(q).fetchall()
         for t in txs:
             user_id = t.userID
