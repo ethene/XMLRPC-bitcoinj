@@ -22,6 +22,7 @@ import requests
 from sqlalchemy import (create_engine, Table, Column, Integer, BigInteger, ForeignKey, DateTime,
                         String, Boolean, MetaData, desc, func)
 from sqlalchemy.sql import select
+from telegram import ReplyKeyboardRemove, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.error import (TelegramError)
 from telegram.ext import CommandHandler, RegexHandler, CallbackQueryHandler
 from telegram.ext import Updater
@@ -179,6 +180,7 @@ if not db_engine.dialect.has_table(db_engine, transactions_table):
                                   Column('TXID', String(255)), Column('confirmed', Boolean(), default=False),
                                   Column('timestamp', DateTime, default=datetime.utcnow(),
                                          onupdate=func.utc_timestamp()),
+                                  Column('value', BigInteger(), default=0),
                                   Column('ID', Integer, primary_key=True, autoincrement=True))
     # Implement the creation
     metadata.create_all()
@@ -375,8 +377,9 @@ def StartMessage(bot, update):
                         txs = con.execute(select_txs).fetchall()
                         if len(txs) == 0:
                             ins = bitcoinj_transactions.insert().values(userID=userID, TXID=tx['ID'],
-                                                                    confirmed=False, timestamp=datetime.utcnow())
-                        con.execute(ins)
+                                                                        value=int(tx['value']),
+                                                                        confirmed=False, timestamp=datetime.utcnow())
+                            con.execute(ins)
 
                     if (len(unconfirmedTXs) == 0) and (balance > 0):
                         message += _("IF_YOU_AGREE_TO_INVEST")
