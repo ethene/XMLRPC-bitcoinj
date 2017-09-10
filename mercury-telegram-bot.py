@@ -102,6 +102,8 @@ bitmex = BitMEX(apiKey=B_KEY, apiSecret=B_SECRET, base_url=BASE_URL, logger=logg
 last_command = None
 last_args = None
 
+TESTING_MODE = True
+
 if not db_engine.dialect.has_table(db_engine, useraccounts_table):
     logger.warn("user accounts table does not exist")
     # Create a table with the appropriate Columns
@@ -279,10 +281,7 @@ def StartMessage(bot, update):
                                           timestamp=datetime.utcnow())
                 con.execute(ins)
                 message = _("HELLO_NEW_USER") % username
-                message += "Your new account has just created\n"
-                message += "Please look into our statistics and read Terms and Conditions before proceeding\n"
-                message += "Your wallet is yet empty\nPlease top-up your account\n"
-                message += "by making a transfer to your main wallet to your address as below:\n"
+                message += _("NEW_USER_INFO")
                 msg = "*New user created:* [%s](tg://user?id=%s)\n" % (username, userID)
                 bot.send_message(chat_id=TELEGRAM_CHANNEL_NAME, text=msg, parse_mode='Markdown')
             except:
@@ -346,8 +345,9 @@ def StartMessage(bot, update):
                     message += _("YOUR_PORTFOLIO_WORTH") % position
 
                     if balance == 0:
-                        message += "Bot is in testing mode.\n" \
-                                   "Test _BTC_ can be obtained from\n" \
+                        if TESTING_MODE:
+                            message += "Bot is in testing mode.\n" \
+                                       "Test _BTC_ can be obtained from\n" \
                                    "[Faucet](https://testnet.manu.backend.hamburg/faucet)\n"
                         message += _("WALLET_EMPTY") % emoji.emojize(':o:', use_aliases=True)
                     else:
@@ -476,26 +476,26 @@ def stats(bot, update):
                                    con=db_engine, index_col='timestamp')
             df = df[(df.position != 0)]
             df_groupped = df.groupby(df.index)['position'].mean()
-            message = "*Your portfolio performance:*"
+            message = _("YOUR_FOLIO_PERFORMANCE")
             bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown',
                              reply_markup=ReplyKeyboardRemove())
             send_stats(bot, df_groupped, chat_id)
             t_diff = monthdelta(df_groupped.index[0], df_groupped.index[-1])
             month_diff = t_diff[0]
             d_diff = t_diff[1]
-            message = "Was opened *%d* months *%d* days ago\n" % (month_diff, d_diff)
+            message = _("WAS_OPENED_AGO") % (month_diff, d_diff)
             balance_profit = (df_groupped[-1] - df_groupped[0]) / XBt_TO_XBT
-            message += "You've invested:\n*%.6f* _BTC_\n" % (df_groupped[0] / XBt_TO_XBT)
+            message += _("YOUVE_INVESED") % (df_groupped[0] / XBt_TO_XBT)
             if balance_profit > 0:
-                message += "Now it worth:\n*%.6f* _BTC_\n" % (df_groupped[-1] / XBt_TO_XBT)
-                message += "Absolute return:\n*%.6f* _BTC_\n" % (balance_profit)
-                message += "It equals to\n*$%.2f*\n_(%.2f USD/BTC)_\n" % (balance_profit * BTCprice, BTCprice)
+                message += _("NOW_WORTH") % (df_groupped[-1] / XBt_TO_XBT)
+                message += _("ABS_RETURN") % (balance_profit)
+                message += _("EQUALS_TO") % (balance_profit * BTCprice, BTCprice)
             bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown',
                              reply_markup=ReplyKeyboardRemove())
 
     df = pd.read_sql_query(sql='SELECT * FROM ' + balance_table, con=db_engine, index_col='index')
     df_groupped = df.groupby(df.timestamp.dt.date)['totalbalance'].mean()
-    message = "*Mercury combined portfolio performance:*"
+    message = _("COMBINED_STATS")
     bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown',
                      reply_markup=ReplyKeyboardRemove())
 
@@ -506,12 +506,12 @@ def stats(bot, update):
     t_diff = monthdelta(df_groupped.index[0], df_groupped.index[-1])
     month_diff = t_diff[0]
     d_diff = t_diff[1]
-    message = "Which is a *%.2f%%* yearly return\n\n" % yearly_pc
-    message += "Was actually achieved during the last *%d* months *%d* days\n\n" % (month_diff, d_diff)
-    message += "If you have invested\n*1* _BTC_ on *%s* \nIt would now worth\n*%.5f* _BTC_ today\n" % (
+    message = _("CS_WHICH_IS") % yearly_pc
+    message += _("CS_WAS_ACHIEVED") % (month_diff, d_diff)
+    message += _("CS_IF_INVESTED") % (
         df_groupped.index[0].strftime("%d %b"), (balance_profit / df_groupped[0]) + 1)
-    message += "Absolute profit would be\n*%.5f* _BTC_\n" % (balance_profit / df_groupped[0])
-    message += "It equals to\n*$%.2f*\n_(%.2f USD/BTC)_\n" % ((balance_profit / df_groupped[0]) * BTCprice, BTCprice)
+    message += _("CS_ABS_PROFIT") % (balance_profit / df_groupped[0])
+    message += _("EQUALS_TO") % ((balance_profit / df_groupped[0]) * BTCprice, BTCprice)
     keyboard = back_button
     bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown',
                      reply_markup=InlineKeyboardMarkup(

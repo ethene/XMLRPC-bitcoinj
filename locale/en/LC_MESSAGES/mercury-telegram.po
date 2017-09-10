@@ -5,8 +5,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: mercury-telegram-bot\n"
-"POT-Creation-Date: 2017-09-10 18:13+1000\n"
-"PO-Revision-Date: 2017-09-10 18:14+1000\n"
+"POT-Creation-Date: 2017-09-10 18:28+1000\n"
+"PO-Revision-Date: 2017-09-10 18:28+1000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: en\n"
@@ -19,25 +19,35 @@ msgstr ""
 "X-Poedit-Basepath: ../../..\n"
 "X-Poedit-SearchPath-0: mercury-telegram-bot.py\n"
 
-#: mercury-telegram-bot.py:281
+#: mercury-telegram-bot.py:283
 msgid "HELLO_NEW_USER"
 msgstr ""
 "Hello, *%s*!\n"
 "This is your personal interface to the *Mercury* crypto hedge fund\n"
 
-#: mercury-telegram-bot.py:304
+#: mercury-telegram-bot.py:284
+msgid "NEW_USER_INFO"
+msgstr ""
+"Your new account has just created\n"
+"Please look into our statistics and read Terms and Conditions before "
+"proceeding\n"
+"Your wallet is yet empty\n"
+"Please top-up your account\n"
+"by making a transfer to your main wallet to your address as below:\n"
+
+#: mercury-telegram-bot.py:303
 msgid "WELCOME_BACK_ADMIN"
 msgstr ""
 "Hello, admin *%s*!\n"
 "Welcome back to use the bot %s\n"
 
-#: mercury-telegram-bot.py:307
+#: mercury-telegram-bot.py:306
 msgid "WELCOME_BACK_USER"
 msgstr ""
 "Hello, *%s*!\n"
 "Welcome back to Mercury crypto hedge fund %s\n"
 
-#: mercury-telegram-bot.py:346
+#: mercury-telegram-bot.py:345
 msgid "YOUR_PORTFOLIO_WORTH"
 msgstr ""
 "Your portfolio now worth\n"
@@ -73,3 +83,66 @@ msgstr "%s OK, I agree"
 #: mercury-telegram-bot.py:368
 msgid "YOUR_ADDRESS_IS"
 msgstr "Your address is %s\n"
+
+#: mercury-telegram-bot.py:479
+msgid "YOUR_FOLIO_PERFORMANCE"
+msgstr "*Your portfolio performance:*"
+
+#: mercury-telegram-bot.py:486
+msgid "WAS_OPENED_AGO"
+msgstr "Was opened *%d* months *%d* days ago\n"
+
+#: mercury-telegram-bot.py:488
+msgid "YOUVE_INVESED"
+msgstr ""
+"You've invested:\n"
+"*%.6f* _BTC_\n"
+
+#: mercury-telegram-bot.py:490
+msgid "NOW_WORTH"
+msgstr ""
+"Now it worth:\n"
+"*%.6f* _BTC_\n"
+
+#: mercury-telegram-bot.py:491
+msgid "ABS_RETURN"
+msgstr ""
+"Absolute return:\n"
+"*%.6f* _BTC_\n"
+
+#: mercury-telegram-bot.py:492
+msgid "EQUALS_TO"
+msgstr ""
+"It equals to\n"
+"*$%.2f*\n"
+"_(%.2f USD/BTC)_\n"
+
+#: mercury-telegram-bot.py:498
+msgid "COMBINED_STATS"
+msgstr "*Mercury combined portfolio performance:*"
+
+#: mercury-telegram-bot.py:509
+msgid "CS_WHICH_IS"
+msgstr ""
+"Which is a *%.2f%%* yearly return\n"
+"\n"
+
+#: mercury-telegram-bot.py:510
+msgid "CS_WAS_ACHIEVED"
+msgstr ""
+"Was actually achieved during the last *%d* months *%d* days\n"
+"\n"
+
+#: mercury-telegram-bot.py:511
+msgid "CS_IF_INVESTED"
+msgstr ""
+"If you have invested\n"
+"*1* _BTC_ on *%s* \n"
+"It would now worth\n"
+"*%.5f* _BTC_ today\n"
+
+#: mercury-telegram-bot.py:513
+msgid "CS_ABS_PROFIT"
+msgstr ""
+"Absolute profit would be\n"
+"*%.5f* _BTC_\n"
