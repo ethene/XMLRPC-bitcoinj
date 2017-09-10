@@ -111,6 +111,18 @@ class RPCFunctions:
         logger.debug("address %s input value %.8f" % (address, invalue))
         return invalue
 
+    def isTXconfirmed(self, tx_id):
+        transactions = self.kit.wallet().getTransactions(True)
+        result = False
+        for t in transactions:
+            if tx_id == t.getHashAsString():
+                confidence = t.getConfidence()
+                depth = confidence.getDepthInBlocks()
+                if depth >= confirmationsRequired:
+                    result = True
+                    break
+        return result
+
     def getUnconfirmedTransactions(self, address):
         txs = []
         transactions = self.kit.wallet().getTransactions(True)

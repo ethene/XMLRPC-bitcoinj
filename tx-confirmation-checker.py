@@ -43,10 +43,11 @@ transactions_table = 'bitcoinj_transactions'
 useraccounts_table = 'telegram_useraccounts'
 bitcoinj_transactions = Table(transactions_table, metadata, autoload=True)
 useraccounts = Table(useraccounts_table, metadata, autoload=True)
-confirmationsRequired = 1
 
 btn = telebot.types.InlineKeyboardButton(text="%s" % emoji.emojize(":arrow_up_small: go home", use_aliases=True),
                                          callback_data="/start")
+
+XMLRPCServer = xmlrpc.client.ServerProxy('http://localhost:8000')
 
 if __name__ == "__main__":
     bot = telebot.TeleBot(TELEGRAM_BOT_TOKEN)
@@ -58,8 +59,12 @@ if __name__ == "__main__":
         for t in txs:
             user_id = t.userID
             tx_id = t.TXID
+            confirmed = XMLRPCServer.isTXconfirmed(tx_id)
+            logger.debug(t)
+            logger.debug(confirmed)
             keyboard = telebot.types.InlineKeyboardMarkup()
             keyboard.add(btn)
-            logger.debug(t)
+
+
             # bot.send_message(chat_id=user_id, text="TX # _%s_ unconfirmed" % tx_id, parse_mode='Markdown',
             #                 reply_markup=keyboard)
