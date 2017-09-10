@@ -68,5 +68,6 @@ if __name__ == "__main__":
                 con.execute(upd)
                 keyboard = telebot.types.InlineKeyboardMarkup()
                 keyboard.add(btn)
-                bot.send_message(chat_id=user_id, text="TX#\n_%s_\n*is now confirmed*" % tx_id, parse_mode='Markdown',
+                bot.send_message(chat_id=user_id, text="Transaction for\n*%.8f* _BTC_\nis now confirmed\n" % tx_id,
+                                 parse_mode='Markdown',
                                  reply_markup=keyboard)
