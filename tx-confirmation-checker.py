@@ -25,7 +25,7 @@ en = gettext.translation('mercury-telegram', localedir='locale', languages=['en'
 en.install()
 
 level = logging.DEBUG
-script_name = 'telegram.bot'
+script_name = 'tx-confirmation-checker'
 
 db_engine = create_engine(MYSQL_CONNECTION, echo=False)
 metadata = MetaData(db_engine)
@@ -78,4 +78,5 @@ if __name__ == "__main__":
                                      text="Transaction for\n*%.8f* _BTC_\nis now confirmed\n" % (value / XBt_TO_XBT),
                                      parse_mode='Markdown',
                                      reply_markup=keyboard)
+        logger.debug("Sleeping for %s s" % CYCLE_WAIT)
         sleep(CYCLE_WAIT)
