@@ -351,21 +351,21 @@ def StartMessage(bot, update):
                                    "[Faucet](https://testnet.manu.backend.hamburg/faucet)\n"
                         message += _("WALLET_EMPTY") % emoji.emojize(':o:', use_aliases=True)
                     else:
-                        message += "Your balance is *%.6f* _BTC_\n" % (balance)
+                        message += _("YOUR_BALANCE_IS") % (balance)
 
                     for tx in unconfirmedTXs:
-                        message += "Pending new transaction for: %s _BTC_\n" % (int(tx['value']) / XBt_TO_XBT)
-                        message += "tx ID: [%s](%s%s)\n" % (tx['ID'], block_explorer, tx['ID'])
+                        message += _("PENDING_TRANSACTION") % (int(tx['value']) / XBt_TO_XBT)
+                        message += _("TX_ID") % (tx['ID'], block_explorer, tx['ID'])
 
                     if (len(unconfirmedTXs) == 0) and (balance > 0):
-                        message += "If you agree to add  funds your portfolio click below:\n"
+                        message += _("IF_YOU_AGREE_TO_INVEST")
                         keyboard += [[InlineKeyboardButton(
-                            text="%s OK, I agree" % (
+                            text=_("OK_AGREE") % (
                                 emoji.emojize(':ok_hand:', use_aliases=True)),
                             callback_data='/invest')]]
                         address = None
                     else:
-                        message += "Your address is %s\n" % (emoji.emojize(':arrow_heading_down:', use_aliases=True))
+                        message += _("YOUR_ADDRESS_IS") % (emoji.emojize(':arrow_heading_down:', use_aliases=True))
 
             except:
                 logger.error(traceback.format_exc())
