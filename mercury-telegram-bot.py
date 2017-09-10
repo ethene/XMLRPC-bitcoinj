@@ -227,7 +227,7 @@ def start(bot, update):
 
             # ReplyKeyboardRemove()
             bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown', disable_web_page_preview=True)
-            bot.send_message(chat_id=chat_id, text="[%s](https://testnet.manu.backend.hamburg/faucet)" % (address),
+            bot.send_message(chat_id=chat_id, text="`%s`" % (address),
                              parse_mode='Markdown', disable_web_page_preview=True,
                              reply_markup=InlineKeyboardMarkup(inline_keyboard=keyboard))
         else:
@@ -346,6 +346,9 @@ def StartMessage(bot, update):
                     message += _("YOUR_PORTFOLIO_WORTH") % position
 
                     if balance == 0:
+                        message += "Bot is yet in testing mode.\n" \
+                                   "Test _BTC_ can be obtained from this\n" \
+                                   "[Faucet](https://testnet.manu.backend.hamburg/faucet)\n"
                         message += _("WALLET_EMPTY") % emoji.emojize(':o:', use_aliases=True)
                     else:
                         message += "Your balance is *%.6f* _BTC_\n" % (balance)
