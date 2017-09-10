@@ -14,8 +14,9 @@ import telebot
 from settings import MYSQL_CONNECTION, TELEGRAM_BOT_TOKEN
 from sqlalchemy import (create_engine, Table, MetaData)
 from sqlalchemy.sql import select
-from telegram import InlineKeyboardButton, \
-    InlineKeyboardMarkup
+
+# from telegram import InlineKeyboardButton, \
+#    InlineKeyboardMarkup
 
 from SizedTimedRotatingFileHandler import SizedTimedRotatingFileHandler
 
@@ -44,8 +45,8 @@ bitcoinj_transactions = Table(transactions_table, metadata, autoload=True)
 useraccounts = Table(useraccounts_table, metadata, autoload=True)
 confirmationsRequired = 1
 
-back_button = [[InlineKeyboardButton(text="%s" % emoji.emojize(":arrow_up_small: go home", use_aliases=True),
-                                     callback_data="/start")]]
+btn = telebot.types.InlineKeyboardButton(text="%s" % emoji.emojize(":arrow_up_small: go home", use_aliases=True),
+                                         callback_data="/start")
 
 if __name__ == "__main__":
     bot = telebot.TeleBot(TELEGRAM_BOT_TOKEN)
@@ -56,6 +57,7 @@ if __name__ == "__main__":
         for t in txs:
             user_id = t.userID
             tx_id = t.TXID
-
+            keyboard = telebot.types.InlineKeyboardMarkup()
+            keyboard.add(btn)
             bot.send_message(chat_id=user_id, text="TX # _%s_ unconfirmed" % tx_id, parse_mode='Markdown',
-                             reply_markup=InlineKeyboardMarkup(inline_keyboard=back_button))
+                             reply_markup=keyboard)
