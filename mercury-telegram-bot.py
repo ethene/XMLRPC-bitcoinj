@@ -3,6 +3,7 @@
 
 # TODO: imports
 import calendar
+import gettext
 import logging
 import math
 import re
@@ -11,6 +12,9 @@ import traceback
 import xmlrpc.client
 from calendar import monthrange
 from datetime import datetime, timedelta
+
+en = gettext.translation('mercury-telegram', localedir='locale', languages=['en'])
+en.install()
 
 import coloredlogs
 import emoji
@@ -300,7 +304,7 @@ def StartMessage(bot, update):
                 message = "Hello, admin *%s*!\nWelcome back to use the bot %s\n" % (
                     username, emoji.emojize(':purple_heart:', use_aliases=True))
             else:
-                message = "Hello, *%s*!\nWelcome back to Mercury crypto hedge fund %s\n" % (
+                message = _("Hello, *%s*!\nWelcome back to Mercury crypto hedge fund %s\n") % (
                     username, emoji.emojize(':currency_exchange:', use_aliases=True))
 
             select_positions = select([positions]).where(positions.c.userID == userID).order_by(
@@ -381,13 +385,6 @@ def StartMessage(bot, update):
                 msg = "Balance is unavailable [%s](tg://user?id=%s)\n" % (username, userID)
                 bot.send_message(chat_id=TELEGRAM_CHANNEL_NAME, text=msg, parse_mode='Markdown')
     return address, isadmin, keyboard, message
-
-
-'''
-def all_columns(model_or_table=None, wrap=None):
-    table = getattr(model_or_table, '__table__', model_or_table)
-    return [wrap(col) for col in table.c.keys()]
-'''
 
 
 # TODO: Terms and Conditions:
