@@ -161,7 +161,6 @@ else:
 
 if not db_engine.dialect.has_table(db_engine, mail_table):
     logger.warn("mail table does not exist")
-    # Create a table with the appropriate Columns
     mail = Table(mail_table, metadata,
                  Column('userID', Integer, ForeignKey(useraccounts.c.ID)),
                  Column('mail', String(1024)), Column('read', Boolean(), default=False),
@@ -174,15 +173,13 @@ else:
 
 if not db_engine.dialect.has_table(db_engine, transactions_table):
     logger.warn("transactions table does not exist")
-    # Create a table with the appropriate Columns
     bitcoinj_transactions = Table(transactions_table, metadata,
                                   Column('userID', Integer, ForeignKey(useraccounts.c.ID)),
                                   Column('TXID', String(255)), Column('confirmed', Boolean(), default=False),
                                   Column('timestamp', DateTime, default=datetime.utcnow(),
                                          onupdate=func.utc_timestamp()),
-                                  Column('value', BigInteger(), default=0),
+                                  Column('value', BigInteger(), default=0), Column('direction', String(3)),
                                   Column('ID', Integer, primary_key=True, autoincrement=True))
-    # Implement the creation
     metadata.create_all()
 else:
     bitcoinj_transactions = Table(transactions_table, metadata, autoload=True)
@@ -377,7 +374,7 @@ def StartMessage(bot, update):
                         txs = con.execute(select_txs).fetchall()
                         if len(txs) == 0:
                             ins = bitcoinj_transactions.insert().values(userID=userID, TXID=tx['ID'],
-                                                                        value=int(tx['value']),
+                                                                        value=int(tx['value']), direction='IN'
                                                                         confirmed=False, timestamp=datetime.utcnow())
                             con.execute(ins)
 
@@ -846,7 +843,7 @@ def action_approve(bot, update):
                                                        timestamp=datetime.utcnow())
                             con.execute(ins)
                             ins = bitcoinj_transactions.insert().values(userID=user_id, TXID=tx_id,
-                                                                        value=tx_value,
+                                                                        value=tx_value, direction='OUT',
                                                                         confirmed=True, timestamp=datetime.utcnow())
                             con.execute(ins)
 
