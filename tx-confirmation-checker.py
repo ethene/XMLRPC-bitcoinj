@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # TODO: imports
+import sys
 sys.path.insert(0, '../BitMEX-trader/db/')
 import gettext
 import logging
