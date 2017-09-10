@@ -71,6 +71,7 @@ balance_table = 'mercury_balance'
 balance_diff_table = 'avg_balance_difference'
 tc_table = 'mercury_TC'
 unhedge_pnl_table = 'unhedge_pnl'
+transactions_table = 'bitcoinj_transactions'
 pic_folder = './pictures'
 pic_1_filename = 'balance.png'
 pic_2_filename = 'cumulative.png'
@@ -171,6 +172,20 @@ if not db_engine.dialect.has_table(db_engine, mail_table):
     metadata.create_all()
 else:
     mail = Table(mail_table, metadata, autoload=True)
+
+if not db_engine.dialect.has_table(db_engine, transactions_table):
+    logger.warn("transactions table does not exist")
+    # Create a table with the appropriate Columns
+    bitcoinj_transactions = Table(transactions_table, metadata,
+                                  Column('userID', Integer, ForeignKey(useraccounts.c.ID)),
+                                  Column('TXID', String(255)), Column('confirmed', Boolean(), default=False),
+                                  Column('timestamp', DateTime, default=datetime.utcnow(),
+                                         onupdate=func.utc_timestamp()),
+                                  Column('ID', Integer, primary_key=True, autoincrement=True))
+    # Implement the creation
+    metadata.create_all()
+else:
+    bitcoinj_transactions = Table(transactions_table, metadata, autoload=True)
 
 unhedge_pnl = Table(unhedge_pnl_table, metadata, autoload=True)
 mercury_tc = Table(tc_table, metadata, autoload=True)
@@ -339,6 +354,7 @@ def StartMessage(bot, update):
 
                 if len(invest_rs) > 0:
                     message += "Waiting to add funds to your portfolio\n"
+                    address = None
 
                 else:
                     position = int(position) / XBt_TO_XBT
@@ -356,6 +372,9 @@ def StartMessage(bot, update):
                     for tx in unconfirmedTXs:
                         message += _("PENDING_TRANSACTION") % (int(tx['value']) / XBt_TO_XBT)
                         message += _("TX_ID") % (tx['ID'], block_explorer, tx['ID'])
+                        ins = bitcoinj_transactions.insert().values(userID=userID, TXID=tx['ID'],
+                                                                    confirmed=False, timestamp=datetime.utcnow())
+                        con.execute(ins)
 
                     if (len(unconfirmedTXs) == 0) and (balance > 0):
                         message += _("IF_YOU_AGREE_TO_INVEST")
