@@ -498,7 +498,7 @@ def stats(bot, update):
             if balance_profit > 0:
                 message += "Now it worth:\n*%.6f* _BTC_\n" % (df_groupped[-1] / XBt_TO_XBT)
                 message += "Absolute return:\n*%.6f* _BTC_\n" % (balance_profit)
-                message += "It equals to\n*$%.2f*\n%.2f _USD/BTC_\n" % (balance_profit * BTCprice, BTCprice)
+                message += "It equals to\n*$%.2f*\n%_(.2f USD/BTC)_\n" % (balance_profit * BTCprice, BTCprice)
             bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown',
                              reply_markup=ReplyKeyboardRemove())
 
@@ -520,7 +520,7 @@ def stats(bot, update):
     message += "If you have invested\n*1* _BTC_ on *%s* \nIt would now worth\n*%.5f* _BTC_ today\n" % (
         df_groupped.index[0].strftime("%d %b"), (balance_profit / df_groupped[0]) + 1)
     message += "Absolute profit would be\n*%.5f* _BTC_\n" % (balance_profit / df_groupped[0])
-    message += "It equals to\n*$%.2f*\n%.2f _USD/BTC_\n" % ((balance_profit / df_groupped[0]) * BTCprice, BTCprice)
+    message += "It equals to\n*$%.2f*\n_(%.2f USD/BTC)_\n" % ((balance_profit / df_groupped[0]) * BTCprice, BTCprice)
     keyboard = back_button
     bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown',
                      reply_markup=InlineKeyboardMarkup(
