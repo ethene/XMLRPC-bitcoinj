@@ -347,7 +347,6 @@ def StartMessage(bot, update):
 
                     if balance == 0:
                         message += _("WALLET_EMPTY") % emoji.emojize(':o:', use_aliases=True)
-                        message += "by making a transfer to your main wallet address\n"
                     else:
                         message += "Your balance is *%.6f* _BTC_\n" % (balance)
 
