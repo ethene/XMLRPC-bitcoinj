@@ -10,7 +10,7 @@ import xmlrpc.client
 import coloredlogs
 import emoji
 import telebot
-from settings import MYSQL_CONNECTION, TELEGRAM_BOT_TOKEN,
+from settings import MYSQL_CONNECTION, TELEGRAM_BOT_TOKEN
 from sqlalchemy import (create_engine, Table, MetaData)
 from sqlalchemy.sql import select
 from telegram import InlineKeyboardButton, \
