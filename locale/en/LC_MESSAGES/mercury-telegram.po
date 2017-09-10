@@ -1,0 +1,75 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR ORGANIZATION
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: mercury-telegram-bot\n"
+"POT-Creation-Date: 2017-09-10 18:13+1000\n"
+"PO-Revision-Date: 2017-09-10 18:14+1000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: pygettext.py 1.5\n"
+"X-Generator: Poedit 2.0.3\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Poedit-Basepath: ../../..\n"
+"X-Poedit-SearchPath-0: mercury-telegram-bot.py\n"
+
+#: mercury-telegram-bot.py:281
+msgid "HELLO_NEW_USER"
+msgstr ""
+"Hello, *%s*!\n"
+"This is your personal interface to the *Mercury* crypto hedge fund\n"
+
+#: mercury-telegram-bot.py:304
+msgid "WELCOME_BACK_ADMIN"
+msgstr ""
+"Hello, admin *%s*!\n"
+"Welcome back to use the bot %s\n"
+
+#: mercury-telegram-bot.py:307
+msgid "WELCOME_BACK_USER"
+msgstr ""
+"Hello, *%s*!\n"
+"Welcome back to Mercury crypto hedge fund %s\n"
+
+#: mercury-telegram-bot.py:346
+msgid "YOUR_PORTFOLIO_WORTH"
+msgstr ""
+"Your portfolio now worth\n"
+"*%.6f* _BTC_\n"
+
+#: mercury-telegram-bot.py:352
+msgid "WALLET_EMPTY"
+msgstr ""
+"Your wallet is yet empty %s\n"
+"Please top-up your account\n"
+"by making a transfer to your main wallet address\n"
+
+#: mercury-telegram-bot.py:354
+msgid "YOUR_BALANCE_IS"
+msgstr "Your balance is *%.6f* _BTC_\n"
+
+#: mercury-telegram-bot.py:357
+msgid "PENDING_TRANSACTION"
+msgstr "Pending new transaction for: %s _BTC_\n"
+
+#: mercury-telegram-bot.py:358
+msgid "TX_ID"
+msgstr "tx ID: [%s](%s%s)\n"
+
+#: mercury-telegram-bot.py:361
+msgid "IF_YOU_AGREE_TO_INVEST"
+msgstr "If you agree to add funds your portfolio click below:\n"
+
+#: mercury-telegram-bot.py:363
+msgid "OK_AGREE"
+msgstr "%s OK, I agree"
+
+#: mercury-telegram-bot.py:368
+msgid "YOUR_ADDRESS_IS"
+msgstr "Your address is %s\n"
