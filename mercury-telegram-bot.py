@@ -374,7 +374,7 @@ def StartMessage(bot, update):
                         txs = con.execute(select_txs).fetchall()
                         if len(txs) == 0:
                             ins = bitcoinj_transactions.insert().values(userID=userID, TXID=tx['ID'],
-                                                                        value=int(tx['value']), direction='IN'
+                                                                        value=int(tx['value']), direction='IN',
                                                                         confirmed=False, timestamp=datetime.utcnow())
                             con.execute(ins)
 
