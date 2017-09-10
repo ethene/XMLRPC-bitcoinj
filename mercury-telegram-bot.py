@@ -819,7 +819,7 @@ def action_approve(bot, update):
                 if send_result:
                     tx_id = send_result['TX']
                     tx_value = int(send_result['value'])
-                    message += "tX ID: [%s](%s%s)\n" % (tx_id, block_explorer, tx_id)
+                    message += "TX ID: [%s](%s%s)\n" % (tx_id, block_explorer, tx_id)
                     message += 'TX value: *%s*\n' % tx_value
                     if tx_value > 0:
                         with db_engine.connect() as con:
@@ -845,6 +845,11 @@ def action_approve(bot, update):
                             ins = mail.insert().values(userID=user_id, read=False, mail=msg_to_user,
                                                        timestamp=datetime.utcnow())
                             con.execute(ins)
+                            ins = bitcoinj_transactions.insert().values(userID=user_id, TXID=tx_id,
+                                                                        value=tx_value,
+                                                                        confirmed=True, timestamp=datetime.utcnow())
+                            con.execute(ins)
+
                         change_action(action_id=action_id, approved=True)
                         log_event = 'user: %s tx: %s val %s' % (user_id, tx_id, tx_value)
                         log_record(log_event, update)
@@ -867,9 +872,8 @@ def action_approve(bot, update):
     else:
         message = "Action *%s* not found!\n" % (action_id)
 
-    bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown',
-                     reply_markup=InlineKeyboardMarkup(
-                         inline_keyboard=admin_keyboard))
+    bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown', disable_web_page_preview=True,
+                     reply_markup=InlineKeyboardMarkup(inline_keyboard=admin_keyboard))
 
 
 def find_action(action_id):
