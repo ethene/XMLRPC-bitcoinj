@@ -13,9 +13,6 @@ import xmlrpc.client
 from calendar import monthrange
 from datetime import datetime, timedelta
 
-en = gettext.translation('mercury-telegram', localedir='locale', languages=['en'])
-en.install()
-
 import coloredlogs
 import emoji
 import matplotlib as mpl
@@ -43,6 +40,8 @@ from bitmex import BitMEX
 # from poloniex_api import Poloniex
 from extra_settings import B_KEY, B_SECRET, POLO_ADDRESS
 
+en = gettext.translation('mercury-telegram', localedir='locale', languages=['en'])
+en.install()
 
 def error_callback(bot, update, error):
     try:
@@ -301,10 +300,10 @@ def StartMessage(bot, update):
             con.execute(ins)
 
             if isadmin:
-                message = "Hello, admin *%s*!\nWelcome back to use the bot %s\n" % (
+                message = _("WELCOME_BACK_ADMIN") % (
                     username, emoji.emojize(':purple_heart:', use_aliases=True))
             else:
-                message = _("Hello, *%s*!\nWelcome back to Mercury crypto hedge fund %s\n") % (
+                message = _("WELCOME_BACK_USER") % (
                     username, emoji.emojize(':currency_exchange:', use_aliases=True))
 
             select_positions = select([positions]).where(positions.c.userID == userID).order_by(
