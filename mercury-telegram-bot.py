@@ -346,8 +346,8 @@ def StartMessage(bot, update):
                     message += _("YOUR_PORTFOLIO_WORTH") % position
 
                     if balance == 0:
-                        message += "Bot is yet in testing mode.\n" \
-                                   "Test _BTC_ can be obtained from this\n" \
+                        message += "Bot is in testing mode.\n" \
+                                   "Test _BTC_ can be obtained from\n" \
                                    "[Faucet](https://testnet.manu.backend.hamburg/faucet)\n"
                         message += _("WALLET_EMPTY") % emoji.emojize(':o:', use_aliases=True)
                     else:
