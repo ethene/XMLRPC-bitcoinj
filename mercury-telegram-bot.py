@@ -202,7 +202,7 @@ def getUTCtime():
 
 def admin_functions(bot, update):
     query = update.callback_query
-    # bot.answerCallbackQuery(callback_query_id=query.id, text="~~~Updated~~~")
+    bot.answerCallbackQuery(callback_query_id=query.id, text="~~~Admin Functions~~~")
     chat_id = query.message.chat_id
     bot.editMessageReplyMarkup(chat_id=chat_id, message_id=query.message.message_id,
                                reply_markup=InlineKeyboardMarkup(inline_keyboard=admin_keyboard))
@@ -215,45 +215,33 @@ def start(bot, update):
     address, isadmin, keyboard, message = StartMessage(bot, update)
 
     tc_button = [[InlineKeyboardButton(
-        text="%s terms and conditions" % (
+        text=_("TC_BUTTON") % (
             emoji.emojize(':mag_right:', use_aliases=True)),
         callback_data='/readtc1')]]
     keyboard = tc_button + keyboard
     keyboard += [[InlineKeyboardButton(
-        text="%s view statistics" % (emoji.emojize(':chart_with_upwards_trend:', use_aliases=True)),
+        text=_("STATS_BUTTON") % (emoji.emojize(':chart_with_upwards_trend:', use_aliases=True)),
         callback_data='/statistics')]]
+    keyboard += [[InlineKeyboardButton(
+        text=_("SUPPORT_BUTTON") % (
+            emoji.emojize(':warning:', use_aliases=True)),
+        callback_data='/contact')]]
+    if isadmin:
+        keyboard += [[InlineKeyboardButton(
+            text="%s admin functions" % (
+                emoji.emojize(':memo:', use_aliases=True)),
+            callback_data='/admin')]]
+    keyboard += back_button
+    logger.debug(keyboard)
+    logger.debug(message)
 
     if message and len(keyboard) > 0:
         if address:
-            keyboard += [[InlineKeyboardButton(
-                text="%s contact support" % (
-                    emoji.emojize(':warning:', use_aliases=True)),
-                callback_data='/contact')]]
-            keyboard += back_button
-            if isadmin:
-                keyboard += [[InlineKeyboardButton(
-                    text="%s admin functions" % (
-                        emoji.emojize(':memo:', use_aliases=True)),
-                    callback_data='/admin')]]
-
-            logger.debug(keyboard)
-            logger.debug(message)
-
-            # ReplyKeyboardRemove()
             bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown', disable_web_page_preview=True)
             bot.send_message(chat_id=chat_id, text="`%s`" % (address),
                              parse_mode='Markdown', disable_web_page_preview=True,
                              reply_markup=InlineKeyboardMarkup(inline_keyboard=keyboard))
         else:
-            if isadmin:
-                keyboard += [[InlineKeyboardButton(
-                    text="%s admin functions" % (
-                        emoji.emojize(':books:', use_aliases=True)),
-                    callback_data='/admin')]]
-
-            logger.debug(keyboard)
-            logger.debug(message)
-
             bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown', disable_web_page_preview=True,
                              reply_markup=InlineKeyboardMarkup(inline_keyboard=keyboard))
 
@@ -339,7 +327,7 @@ def StartMessage(bot, update):
                     desc(mail.c.timestamp))
                 mail_rs = con.execute(new_mail).fetchall()
                 for m in mail_rs:
-                    message += "*new mail* %s %s\n" % (emoji.emojize(':email:', use_aliases=True), m.mail)
+                    message += _("NEW_MAIL") % (emoji.emojize(':email:', use_aliases=True), m.mail)
 
                 upd = mail.update().values(read=True).where(
                     mail.c.userID == userID)
@@ -359,9 +347,7 @@ def StartMessage(bot, update):
 
                     if balance == 0:
                         if TESTING_MODE:
-                            message += "Bot is in testing mode.\n" \
-                                       "Test _BTC_ can be obtained from\n" \
-                                   "[Faucet](https://testnet.manu.backend.hamburg/faucet)\n"
+                            message += _("BOT_IN_TESTING")
                         message += _("WALLET_EMPTY") % emoji.emojize(':o:', use_aliases=True)
                     else:
                         message += _("YOUR_BALANCE_IS") % (balance)
@@ -394,7 +380,7 @@ def StartMessage(bot, update):
                 log_record(log_event, update)
                 message += _("BALANCE_UNAV")
                 keyboard += [[InlineKeyboardButton(
-                    text="%s contact support" % (
+                    text=_("SUPPORT_BUTTON") % (
                         emoji.emojize(':warning:', use_aliases=True)),
                     callback_data='/contact')]]
                 msg = "Balance is unavailable [%s](tg://user?id=%s)\n" % (username, userID)
@@ -433,18 +419,13 @@ def readtc(bot, update):
         keyboard += back_button
 
         query = update.callback_query
-
         bot.answerCallbackQuery(callback_query_id=query.id, text=myheader)
-        # bot.editMessageReplyMarkup(chat_id=chat_id, message_id=query.message.message_id,
-        #                           reply_markup=InlineKeyboardMarkup(inline_keyboard=keyboard))
-        # bot.editMessageText(chat_id=chat_id, message_id=query.message.message_id, text=tc_page, parse_mode='Markdown',
-        #                    reply_markup=InlineKeyboardMarkup(inline_keyboard=keyboard))
-
         bot.send_message(chat_id=chat_id, text=tc_page, parse_mode='Markdown',
                          reply_markup=InlineKeyboardMarkup(
                              inline_keyboard=keyboard))
 
 
+'''
 # TODO: folio stats
 def folio_stats(bot, update):
     chat_id = get_chat_id(update)
@@ -455,7 +436,7 @@ def folio_stats(bot, update):
     df = df[(df.position != 0)]
     df_groupped = df.groupby(df.index)['position'].mean()
     send_stats(bot, df_groupped, chat_id)
-
+'''
 
 def log_record(log_event, update):
     userID = get_userID(update)
@@ -608,11 +589,11 @@ def contact(bot, update):
     query = update.callback_query
     # chat_id = get_chat_id(update)
     user_id = get_userID(update)
-    message = "\nSupport request is sent.\nPlease wait to be contacted.\n"
+    message = _("SUPPORT_REQUEST_SENT")
     bot.answerCallbackQuery(callback_query_id=query.id, text=message, show_alert=True)
 
     with db_engine.connect() as con:
-        msg_to_user = '\n\n*Support request is sent.\nPlease wait to be contacted.*\n'
+        msg_to_user = '\n' + _("SUPPORT_REQUEST_SENT")
         ins = mail.insert().values(userID=user_id, read=False, mail=msg_to_user, timestamp=datetime.utcnow())
         con.execute(ins)
         user_select = select([useraccounts]).where(useraccounts.c.ID == user_id)
@@ -642,7 +623,7 @@ def invest(bot, update):
         invest_rs = con.execute(invest_actions).fetchall()
         message = None
         if len(invest_rs) > 0:
-            message = "You have sent the request already\nPlease wait until we approve it\n"
+            message = _("YOU_SENT_INVEST")
         else:
             try:
                 balance = XMLRPCServer.getInputValue(address) - withdrawn
@@ -651,11 +632,11 @@ def invest(bot, update):
                     ins = actions.insert().values(userID=userID, action='INVEST', args=balance, approved=None,
                                                   timestamp=datetime.utcnow())
                     con.execute(ins)
-                    message = "You have agreed to proceed.\nWe will send you a note you when your request is approved.\nThank you for your patience.\n"
+                    message = _("YOU_HAVE_AGREED")
                     msg = "New invest request from [%s](tg://user?id=%s)\n" % (username, userID)
                     bot.send_message(chat_id=TELEGRAM_CHANNEL_NAME, text=msg, parse_mode='Markdown')
                 else:
-                    message = "*You have insufficient balance.\nPlease top-up your wallet first and wait until your funds are confirmed.*"
+                    message = _("INSUFFICIENT_BALANCE")
 
             except:
                 logger.error(traceback.format_exc())
@@ -764,7 +745,7 @@ def action_disapprove(bot, update):
 
         log_record(message, update)
         change_action(action_id=action_id, approved=False)
-        msg_to_user = '\n\nYour latest request was not approved\n*Please wait to be contacted*\n'
+        msg_to_user = _("YOUR_ACTION_DISAPPROVED")
         bot.send_message(chat_id=user_id, text=msg_to_user, parse_mode='Markdown',
                          reply_markup=InlineKeyboardMarkup(
                              inline_keyboard=back_button))
@@ -834,7 +815,7 @@ def action_approve(bot, update):
                             upd = useraccounts.update().values(withdrawn=(user_withdrawn + balance)).where(
                                 useraccounts.c.ID == user_id)
                             con.execute(upd)
-                            msg_to_user = '\n\nAdded to portfolio: *%.6f* _BTC_\n*%8f* fee paid\n' % (
+                            msg_to_user = _("ADDED_TO_PORTFOLIO") % (
                                 tx_value / XBt_TO_XBT, (balance - tx_value) / XBt_TO_XBT)
                             bot.send_message(chat_id=user_id, text=msg_to_user, parse_mode='Markdown',
                                              reply_markup=InlineKeyboardMarkup(
@@ -986,6 +967,8 @@ def health_check(bot, update):
     message += "_updated %d s ago_\n" % ((getUTCtime() - health_record[0]['index']) / 1000)
 
     logger.debug(message)
+    query = update.callback_query
+    bot.answerCallbackQuery(callback_query_id=query.id, text="~~~Health Status~~~")
     bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown',
                      reply_markup=InlineKeyboardMarkup(inline_keyboard=admin_keyboard))
 
@@ -1003,9 +986,7 @@ def check_admin_privilege(update):
                 isadmin = u.isadmin == 1
                 if isadmin:
                     logger.debug("admin privilege confirmed, %s" % update.effective_user.id)
-
     return isadmin
-
 
 def monthdelta(d1, d2):
     delta = 0
@@ -1019,7 +1000,6 @@ def monthdelta(d1, d2):
         else:
             break
     return delta, diff.days
-
 
 # TODO: plot glaph
 def plot_graph(df, name, label):
@@ -1039,10 +1019,9 @@ def plot_graph(df, name, label):
     plt.plot(df)
     plt.savefig(pic_folder + '/' + name)
 
-
 if __name__ == "__main__":
     # TODO: keyboards
-    back_button = [[InlineKeyboardButton(text="%s" % emoji.emojize(":arrow_up_small: go home", use_aliases=True),
+    back_button = [[InlineKeyboardButton(text=_("HOME_BUTTON") % emoji.emojize(":arrow_up_small:", use_aliases=True),
                                          callback_data="/start")]]
 
     admin_keyboard = [[InlineKeyboardButton(
@@ -1063,7 +1042,7 @@ if __name__ == "__main__":
     OTP_handler = RegexHandler(pattern='^\d{6}$', callback=OTP_command)
     OTP_cancel_handler = RegexHandler(pattern='^0$', callback=CancelOTP)
 
-    folio_handler = CallbackQueryHandler(pattern='^/portfolio', callback=folio_stats)
+    # folio_handler = CallbackQueryHandler(pattern='^/portfolio', callback=folio_stats)
     stats_handler = CallbackQueryHandler(pattern='^/statistics', callback=stats)
     users_handler = CallbackQueryHandler(pattern='^/users', callback=show_users)
     update_handler = CallbackQueryHandler(pattern='^/start', callback=start)
@@ -1080,7 +1059,7 @@ if __name__ == "__main__":
     dispatcher.add_handler(start_handler)
     dispatcher.add_handler(tc_handler)
     dispatcher.add_handler(stats_handler)
-    dispatcher.add_handler(folio_handler)
+    #dispatcher.add_handler(folio_handler)
     dispatcher.add_handler(health_handler)
     dispatcher.add_handler(transfers_show_handler)
     dispatcher.add_handler(OTP_handler)
