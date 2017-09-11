@@ -349,7 +349,7 @@ def StartMessage(bot, update):
 
                     if balance == 0:
                         if TESTING_MODE:
-                            message += _("BOT_IN_TESTING")
+                            message += _("BOT_IN_TESTING") + "\n"
                         message += _("WALLET_EMPTY") % emoji.emojize(':o:', use_aliases=True) + "\n"
                     else:
                         message += _("YOUR_BALANCE_IS") % (balance) + "\n"
