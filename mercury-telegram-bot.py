@@ -588,9 +588,10 @@ def contact(bot, update):
         user_select = select([useraccounts]).where(useraccounts.c.ID == user_id)
         rs = con.execute(user_select).fetchall()
         username = rs[0].username
+        firstname = rs[0].firstname
     # keyboard = back_button
 
-    msg = "*Support request*\nfrom [%s](tg://user?id=%s)\n" % (username, user_id)
+    msg = "*Support request*\nfrom [%s](tg://user?id=%s)\n" % (username or firstname, user_id)
     bot.send_message(chat_id=TELEGRAM_CHANNEL_NAME, text=msg, parse_mode='Markdown')
     start(bot, update)
 
@@ -606,6 +607,7 @@ def invest(bot, update):
         rs = con.execute(stm).fetchall()
         address = rs[0].address
         username = rs[0].username
+        firstname = rs[0].firstname
         withdrawn = rs[0].withdrawn
         invest_actions = select([actions]).where(actions.c.userID == userID).where(
             actions.c.action == 'INVEST').where(actions.c.approved == None)
@@ -622,14 +624,14 @@ def invest(bot, update):
                                                   timestamp=datetime.utcnow())
                     con.execute(ins)
                     message = _("YOU_HAVE_AGREED") + "\n"
-                    msg = "New invest request from [%s](tg://user?id=%s)\n" % (username, userID)
+                    msg = "New invest request from [%s](tg://user?id=%s)\n" % (username or firstname, userID)
                     bot.send_message(chat_id=TELEGRAM_CHANNEL_NAME, text=msg, parse_mode='Markdown')
                 else:
                     message = _("INSUFFICIENT_BALANCE") + "\n"
 
             except:
                 logger.error(traceback.format_exc())
-                msg = "Invest request error from [%s](tg://user?id=%s)\n" % (username, userID)
+                msg = "Invest request error from [%s](tg://user?id=%s)\n" % (username or firstname, userID)
                 bot.send_message(chat_id=TELEGRAM_CHANNEL_NAME, text=msg, parse_mode='Markdown')
         if message:
             keyboard = back_button
@@ -658,9 +660,11 @@ def show_users(bot, update):
             logger.debug(u)
             i += 1
             username = u.username
+            firstname = u.firstname
             user_id = u.userID
             position = u.position
-            message += "*%d*: [%s](tg://user?id=%s) *%.6f*\n" % (i, username, user_id, (position / XBt_TO_XBT))
+            message += "*%d*: [%s](tg://user?id=%s) *%.6f*\n" % (
+            i, username or firstname, user_id, (position / XBt_TO_XBT))
 
         if message:
             logger.debug(message)
@@ -687,13 +691,14 @@ def unapproved_actions(bot, update):
         message = ""
         for a in response:
             username = a.username
+            firstname = a.firstname
             user_id = a.userID
             action = a.action
             timestamp = a.timestamp
             i = a.actionID
             action_args = a.args if action != 'INVEST' else "%.6f _BTC_" % (int(a.args) / XBt_TO_XBT)
             message = "%d: [%s](tg://user?id=%s) *%s* _%s_ (%s)\n" % (
-                i, username, user_id, action, action_args, timestamp.strftime("%d %b %H:%M:%S"))
+                i, username or firstname, user_id, action, action_args, timestamp.strftime("%d %b %H:%M:%S"))
 
             keyboard = [[InlineKeyboardButton(
                 text="%s" % (emoji.emojize(':heavy_check_mark:', use_aliases=True)),
@@ -723,13 +728,14 @@ def action_disapprove(bot, update):
 
     if found:
         username = found_action.username
+        firstname = found_action.firstname
         user_id = found_action.userID
         user_address = found_action.address
         user_withdrawn = found_action.withdrawn
         action = found_action.action
         timestamp = found_action.timestamp
         message = "Action *%s* disapproved:\n[%s](tg://user?id=%s) %s (%s)\n" % (
-            action_id, username, user_id, action, timestamp.strftime("%d %b %H:%M:%S"))
+            action_id, username or firstname, user_id, action, timestamp.strftime("%d %b %H:%M:%S"))
         logger.debug("%s %s %s" % (action, user_address, user_withdrawn))
 
         log_record(message, update)
@@ -764,13 +770,14 @@ def action_approve(bot, update):
 
     if found:
         username = found_action.username
+        firstname = found_action.firstname
         user_id = found_action.userID
         user_address = found_action.address
         user_withdrawn = found_action.withdrawn
         action = found_action.action
         timestamp = found_action.timestamp
         message = "Action *%s* approved:\n[%s](tg://user?id=%s) %s (%s)\n" % (
-            action_id, username, user_id, action, timestamp.strftime("%d %b %H:%M:%S"))
+            action_id, username or firstname, user_id, action, timestamp.strftime("%d %b %H:%M:%S"))
         logger.debug("%s %s %s" % (action, user_address, user_withdrawn))
         # TODO: INVEST APPROVE
         if (action == 'INVEST') and user_address:
