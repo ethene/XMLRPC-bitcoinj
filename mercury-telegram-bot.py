@@ -280,10 +280,10 @@ def StartMessage(bot, update):
                 ins = log.insert().values(userID=userID, log='new user created % s' % username,
                                           timestamp=datetime.utcnow())
                 con.execute(ins)
-                message = _("HELLO_NEW_USER") % username
+                message = _("HELLO_NEW_USER") + "\n" % username
                 if TESTING_MODE:
-                    message += _("BOT_IN_TESTING")
-                message += _("NEW_USER_INFO")
+                    message += _("BOT_IN_TESTING") + "\n"
+                message += _("NEW_USER_INFO") + ":\n"
                 msg = "*New user created:* [%s](tg://user?id=%s)\n" % (username, userID)
                 bot.send_message(chat_id=TELEGRAM_CHANNEL_NAME, text=msg, parse_mode='Markdown')
             except:
@@ -303,10 +303,10 @@ def StartMessage(bot, update):
 
             if isadmin:
                 message = _("WELCOME_BACK_ADMIN") % (
-                    username, emoji.emojize(':purple_heart:', use_aliases=True))
+                    username, emoji.emojize(':purple_heart:', use_aliases=True)) + "\n"
             else:
                 message = _("WELCOME_BACK_USER") % (
-                    username, emoji.emojize(':currency_exchange:', use_aliases=True))
+                    username, emoji.emojize(':currency_exchange:', use_aliases=True)) + "\n"
 
             select_positions = select([positions]).where(positions.c.userID == userID).order_by(
                 desc(positions.c.timestamp))
@@ -329,7 +329,7 @@ def StartMessage(bot, update):
                     desc(mail.c.timestamp))
                 mail_rs = con.execute(new_mail).fetchall()
                 for m in mail_rs:
-                    message += _("NEW_MAIL") % (emoji.emojize(':email:', use_aliases=True), m.mail)
+                    message += _("NEW_MAIL") % (emoji.emojize(':email:', use_aliases=True), m.mail) + "\n"
 
                 upd = mail.update().values(read=True).where(
                     mail.c.userID == userID)
@@ -340,12 +340,12 @@ def StartMessage(bot, update):
                 invest_rs = con.execute(invest_actions).fetchall()
 
                 if len(invest_rs) > 0:
-                    message += _("WAITING_TO_APPROVE_INVEST")
+                    message += _("WAITING_TO_APPROVE_INVEST") + "\n"
                     address = None
 
                 else:
                     position = int(position) / XBt_TO_XBT
-                    message += _("YOUR_PORTFOLIO_WORTH") % position
+                    message += _("YOUR_PORTFOLIO_WORTH") % position + "\n"
 
                     if balance == 0:
                         if TESTING_MODE:

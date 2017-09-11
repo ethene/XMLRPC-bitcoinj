@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mercury-telegram-bot\n"
 "POT-Creation-Date: 2017-09-11 22:22+1000\n"
-"PO-Revision-Date: 2017-09-11 22:50+1000\n"
+"PO-Revision-Date: 2017-09-11 22:55+1000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: en\n"
@@ -35,7 +35,7 @@ msgstr "%s contact support"
 msgid "HELLO_NEW_USER"
 msgstr ""
 "Hello, *%s*!\n"
-"This is your personal interface to the *Mercury* crypto hedge fund\n"
+"This is your personal interface to the *Mercury* crypto hedge fund"
 
 #: mercury-telegram-bot.py:296
 msgid "NEW_USER_INFO"
@@ -45,36 +45,35 @@ msgstr ""
 "and read Terms and Conditions before proceeding\n"
 "Your wallet is yet empty\n"
 "Please top-up your account\n"
-"by making a transfer to your main wallet to your address as below:\n"
+"by making a transfer to your main wallet to your address as below"
 
 #: mercury-telegram-bot.py:315
 msgid "WELCOME_BACK_ADMIN"
 msgstr ""
 "Hello, admin *%s*!\n"
-"Welcome back to use the bot %s\n"
+"Welcome back to use the bot %s"
 
 #: mercury-telegram-bot.py:318
 msgid "WELCOME_BACK_USER"
 msgstr ""
 "Hello, *%s*!\n"
-"Welcome back to Mercury crypto hedge fund %s\n"
+"Welcome back to Mercury crypto hedge fund %s"
 
 #: mercury-telegram-bot.py:342
 msgid "NEW_MAIL"
-msgstr "*new mail* %s %s\n"
+msgstr "*new mail* %s %s"
 
 #: mercury-telegram-bot.py:353
 msgid "WAITING_TO_APPROVE_INVEST"
 msgstr ""
 "Waiting to approve your investment request\n"
-"You will be notified\n"
-"\n"
+"You will be notified"
 
 #: mercury-telegram-bot.py:358
 msgid "YOUR_PORTFOLIO_WORTH"
 msgstr ""
 "Your portfolio now worth\n"
-"*%.6f* _BTC_\n"
+"*%.6f* _BTC_"
 
 #: mercury-telegram-bot.py:362
 msgid "BOT_IN_TESTING"
