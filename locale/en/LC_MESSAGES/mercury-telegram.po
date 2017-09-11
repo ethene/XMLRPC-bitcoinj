@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mercury-telegram-bot\n"
 "POT-Creation-Date: 2017-09-11 22:22+1000\n"
-"PO-Revision-Date: 2017-09-11 23:03+1000\n"
+"PO-Revision-Date: 2017-09-11 23:12+1000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: en\n"
@@ -91,7 +91,9 @@ msgstr ""
 
 #: mercury-telegram-bot.py:365
 msgid "YOUR_BALANCE_IS"
-msgstr "Your balance is *%.6f* _BTC_"
+msgstr ""
+"Your balance is\n"
+"*%.6f* _BTC_"
 
 #: mercury-telegram-bot.py:368
 msgid "PENDING_TRANSACTION"
