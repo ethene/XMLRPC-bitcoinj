@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mercury-telegram-bot\n"
 "POT-Creation-Date: 2017-09-11 22:22+1000\n"
-"PO-Revision-Date: 2017-09-11 23:12+1000\n"
+"PO-Revision-Date: 2017-09-11 23:16+1000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: en\n"
@@ -61,7 +61,7 @@ msgstr ""
 
 #: mercury-telegram-bot.py:342
 msgid "NEW_MAIL"
-msgstr "*new mail* %s %s"
+msgstr "*new mail* %s"
 
 #: mercury-telegram-bot.py:353
 msgid "WAITING_TO_APPROVE_INVEST"
