@@ -281,6 +281,8 @@ def StartMessage(bot, update):
                                           timestamp=datetime.utcnow())
                 con.execute(ins)
                 message = _("HELLO_NEW_USER") % username
+                if TESTING_MODE:
+                    message += _("BOT_IN_TESTING")
                 message += _("NEW_USER_INFO")
                 msg = "*New user created:* [%s](tg://user?id=%s)\n" % (username, userID)
                 bot.send_message(chat_id=TELEGRAM_CHANNEL_NAME, text=msg, parse_mode='Markdown')
