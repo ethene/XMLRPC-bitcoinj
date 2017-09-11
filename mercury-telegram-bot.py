@@ -350,13 +350,13 @@ def StartMessage(bot, update):
                     if balance == 0:
                         if TESTING_MODE:
                             message += _("BOT_IN_TESTING")
-                        message += _("WALLET_EMPTY") % emoji.emojize(':o:', use_aliases=True)
+                        message += _("WALLET_EMPTY") % emoji.emojize(':o:', use_aliases=True) + "\n"
                     else:
-                        message += _("YOUR_BALANCE_IS") % (balance)
+                        message += _("YOUR_BALANCE_IS") % (balance) + "\n"
 
                     for tx in unconfirmedTXs:
-                        message += _("PENDING_TRANSACTION") % (int(tx['value']) / XBt_TO_XBT)
-                        message += _("TX_ID") % (tx['ID'], block_explorer, tx['ID'])
+                        message += _("PENDING_TRANSACTION") % (int(tx['value']) / XBt_TO_XBT) + "\n"
+                        message += _("TX_ID") % (tx['ID'], block_explorer, tx['ID']) + "\n"
                         select_txs = select([bitcoinj_transactions]).where(
                             bitcoinj_transactions.c.TXID == tx['ID']).where(bitcoinj_transactions.c.confirmed == False)
                         txs = con.execute(select_txs).fetchall()
@@ -367,20 +367,21 @@ def StartMessage(bot, update):
                             con.execute(ins)
 
                     if (len(unconfirmedTXs) == 0) and (balance > 0):
-                        message += _("IF_YOU_AGREE_TO_INVEST")
+                        message += _("IF_YOU_AGREE_TO_INVEST") + "\n"
                         keyboard += [[InlineKeyboardButton(
                             text=_("OK_AGREE") % (
                                 emoji.emojize(':ok_hand:', use_aliases=True)),
                             callback_data='/invest')]]
                         address = None
                     else:
-                        message += _("YOUR_ADDRESS_IS") % (emoji.emojize(':arrow_heading_down:', use_aliases=True))
+                        message += _("YOUR_ADDRESS_IS") % (
+                        emoji.emojize(':arrow_heading_down:', use_aliases=True)) + "\n"
 
             except:
                 logger.error(traceback.format_exc())
                 log_event = 'balance unavailable'
                 log_record(log_event, update)
-                message += _("BALANCE_UNAV")
+                message += _("BALANCE_UNAV") + "\n"
                 keyboard += [[InlineKeyboardButton(
                     text=_("SUPPORT_BUTTON") % (
                         emoji.emojize(':warning:', use_aliases=True)),
@@ -425,20 +426,6 @@ def readtc(bot, update):
         bot.send_message(chat_id=chat_id, text=tc_page, parse_mode='Markdown',
                          reply_markup=InlineKeyboardMarkup(
                              inline_keyboard=keyboard))
-
-
-'''
-# TODO: folio stats
-def folio_stats(bot, update):
-    chat_id = get_chat_id(update)
-    log_event = 'folio stats checked'
-    userID = log_record(log_event, update)
-    df = pd.read_sql_query(sql='SELECT * FROM ' + positions_table + ' WHERE `USERID` = ' + str(userID),
-                           con=db_engine, index_col='timestamp')
-    df = df[(df.position != 0)]
-    df_groupped = df.groupby(df.index)['position'].mean()
-    send_stats(bot, df_groupped, chat_id)
-'''
 
 def log_record(log_event, update):
     userID = get_userID(update)
@@ -487,13 +474,13 @@ def stats(bot, update):
             t_diff = monthdelta(df_groupped.index[0], df_groupped.index[-1])
             month_diff = t_diff[0]
             d_diff = t_diff[1]
-            message = _("WAS_OPENED_AGO") % (month_diff, d_diff)
+            message = _("WAS_OPENED_AGO") % (month_diff, d_diff) + "\n"
             balance_profit = (df_groupped[-1] - df_groupped[0]) / XBt_TO_XBT
-            message += _("YOUVE_INVESED") % (df_groupped[0] / XBt_TO_XBT)
+            message += _("YOUVE_INVESED") % (df_groupped[0] / XBt_TO_XBT) + "\n"
             if balance_profit > 0:
-                message += _("NOW_WORTH") % (df_groupped[-1] / XBt_TO_XBT)
-                message += _("ABS_RETURN") % (balance_profit)
-                message += _("EQUALS_TO") % (balance_profit * BTCprice, BTCprice)
+                message += _("NOW_WORTH") % (df_groupped[-1] / XBt_TO_XBT) + "\n"
+                message += _("ABS_RETURN") % (balance_profit) + "\n"
+                message += _("EQUALS_TO") % (balance_profit * BTCprice, BTCprice) + "\n"
             bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown',
                              reply_markup=ReplyKeyboardRemove())
 
@@ -510,12 +497,12 @@ def stats(bot, update):
     t_diff = monthdelta(df_groupped.index[0], df_groupped.index[-1])
     month_diff = t_diff[0]
     d_diff = t_diff[1]
-    message = _("CS_WHICH_IS") % yearly_pc
-    message += _("CS_WAS_ACHIEVED") % (month_diff, d_diff)
+    message = _("CS_WHICH_IS") % yearly_pc + "\n\n"
+    message += _("CS_WAS_ACHIEVED") % (month_diff, d_diff) + "\n"
     message += _("CS_IF_INVESTED") % (
-        df_groupped.index[0].strftime("%d %b"), (balance_profit / df_groupped[0]) + 1)
-    message += _("CS_ABS_PROFIT") % (balance_profit / df_groupped[0])
-    message += _("EQUALS_TO") % ((balance_profit / df_groupped[0]) * BTCprice, BTCprice)
+        df_groupped.index[0].strftime("%d %b"), (balance_profit / df_groupped[0]) + 1) + "\n"
+    message += _("CS_ABS_PROFIT") % (balance_profit / df_groupped[0]) + "\n"
+    message += _("EQUALS_TO") % ((balance_profit / df_groupped[0]) * BTCprice, BTCprice) + "\n"
     keyboard = back_button
     bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown',
                      reply_markup=InlineKeyboardMarkup(
@@ -591,11 +578,11 @@ def contact(bot, update):
     query = update.callback_query
     # chat_id = get_chat_id(update)
     user_id = get_userID(update)
-    message = _("SUPPORT_REQUEST_SENT")
+    message = "\n" + _("SUPPORT_REQUEST_SENT") + "\n"
     bot.answerCallbackQuery(callback_query_id=query.id, text=message, show_alert=True)
 
     with db_engine.connect() as con:
-        msg_to_user = '\n' + _("SUPPORT_REQUEST_SENT")
+        msg_to_user = '\n' + _("SUPPORT_REQUEST_SENT") + "\n"
         ins = mail.insert().values(userID=user_id, read=False, mail=msg_to_user, timestamp=datetime.utcnow())
         con.execute(ins)
         user_select = select([useraccounts]).where(useraccounts.c.ID == user_id)
@@ -625,7 +612,7 @@ def invest(bot, update):
         invest_rs = con.execute(invest_actions).fetchall()
         message = None
         if len(invest_rs) > 0:
-            message = _("YOU_SENT_INVEST")
+            message = _("YOU_SENT_INVEST") + "\n"
         else:
             try:
                 balance = XMLRPCServer.getInputValue(address) - withdrawn
@@ -634,11 +621,11 @@ def invest(bot, update):
                     ins = actions.insert().values(userID=userID, action='INVEST', args=balance, approved=None,
                                                   timestamp=datetime.utcnow())
                     con.execute(ins)
-                    message = _("YOU_HAVE_AGREED")
+                    message = _("YOU_HAVE_AGREED") + "\n"
                     msg = "New invest request from [%s](tg://user?id=%s)\n" % (username, userID)
                     bot.send_message(chat_id=TELEGRAM_CHANNEL_NAME, text=msg, parse_mode='Markdown')
                 else:
-                    message = _("INSUFFICIENT_BALANCE")
+                    message = _("INSUFFICIENT_BALANCE") + "\n"
 
             except:
                 logger.error(traceback.format_exc())
@@ -747,7 +734,7 @@ def action_disapprove(bot, update):
 
         log_record(message, update)
         change_action(action_id=action_id, approved=False)
-        msg_to_user = _("YOUR_ACTION_DISAPPROVED")
+        msg_to_user = "\n" + _("YOUR_ACTION_DISAPPROVED") + "\n"
         bot.send_message(chat_id=user_id, text=msg_to_user, parse_mode='Markdown',
                          reply_markup=InlineKeyboardMarkup(
                              inline_keyboard=back_button))
@@ -817,8 +804,8 @@ def action_approve(bot, update):
                             upd = useraccounts.update().values(withdrawn=(user_withdrawn + balance)).where(
                                 useraccounts.c.ID == user_id)
                             con.execute(upd)
-                            msg_to_user = _("ADDED_TO_PORTFOLIO") % (
-                                tx_value / XBt_TO_XBT, (balance - tx_value) / XBt_TO_XBT)
+                            msg_to_user = "\n" + _("ADDED_TO_PORTFOLIO") % (
+                                tx_value / XBt_TO_XBT, (balance - tx_value) / XBt_TO_XBT) + "\n"
                             bot.send_message(chat_id=user_id, text=msg_to_user, parse_mode='Markdown',
                                              reply_markup=InlineKeyboardMarkup(
                                                  inline_keyboard=back_button))
