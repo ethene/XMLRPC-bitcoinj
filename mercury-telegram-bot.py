@@ -329,7 +329,7 @@ def StartMessage(bot, update):
                     desc(mail.c.timestamp))
                 mail_rs = con.execute(new_mail).fetchall()
                 for m in mail_rs:
-                    message += _("NEW_MAIL") % (emoji.emojize(':email:', use_aliases=True)) + "\n%s\n\n" % m.mail
+                    message += _("NEW_MAIL") % (emoji.emojize(':email:', use_aliases=True)) + "\n%s\n" % m.mail
 
                 upd = mail.update().values(read=True).where(
                     mail.c.userID == userID)
@@ -375,7 +375,7 @@ def StartMessage(bot, update):
                         address = None
                     else:
                         message += _("YOUR_ADDRESS_IS") % (
-                        emoji.emojize(':arrow_heading_down:', use_aliases=True)) + "\n"
+                            emoji.emojize(':arrow_heading_down:', use_aliases=True)) + "\n"
 
             except:
                 logger.error(traceback.format_exc())
@@ -426,6 +426,7 @@ def readtc(bot, update):
         bot.send_message(chat_id=chat_id, text=tc_page, parse_mode='Markdown',
                          reply_markup=InlineKeyboardMarkup(
                              inline_keyboard=keyboard))
+
 
 def log_record(log_event, update):
     userID = get_userID(update)
@@ -664,7 +665,7 @@ def show_users(bot, update):
             user_id = u.userID
             position = u.position
             message += "*%d*: [%s](tg://user?id=%s) *%.6f*\n" % (
-            i, username or firstname, user_id, (position / XBt_TO_XBT))
+                i, username or firstname, user_id, (position / XBt_TO_XBT))
 
         if message:
             logger.debug(message)
@@ -984,6 +985,7 @@ def check_admin_privilege(update):
                     logger.debug("admin privilege confirmed, %s" % update.effective_user.id)
     return isadmin
 
+
 def monthdelta(d1, d2):
     delta = 0
     diff = d2 - d1
@@ -996,6 +998,7 @@ def monthdelta(d1, d2):
         else:
             break
     return delta, diff.days
+
 
 # TODO: plot glaph
 def plot_graph(df, name, label):
@@ -1015,20 +1018,21 @@ def plot_graph(df, name, label):
     plt.plot(df)
     plt.savefig(pic_folder + '/' + name)
 
+
 if __name__ == "__main__":
     # TODO: keyboards
     back_button = [[InlineKeyboardButton(text=_("HOME_BUTTON") % emoji.emojize(":arrow_up_small:", use_aliases=True),
                                          callback_data="/start")]]
 
     admin_keyboard = [[InlineKeyboardButton(
-        text="%s manage transfers" % emoji.emojize(":arrows_clockwise:", use_aliases=True),
-        callback_data="/transfers")],
+        text="%s manage user actions" % emoji.emojize(":1234:", use_aliases=True),
+        callback_data="/actions")],
+                         [InlineKeyboardButton(
+                             text="%s manage transfers" % emoji.emojize(":arrows_clockwise:", use_aliases=True),
+                             callback_data="/transfers")],
                          [InlineKeyboardButton(
                              text="%s users with positions" % emoji.emojize(":busts_in_silhouette:", use_aliases=True),
                              callback_data="/users")],
-                         [InlineKeyboardButton(
-                             text="%s manage user actions" % emoji.emojize(":1234:", use_aliases=True),
-                             callback_data="/actions")],
                          [InlineKeyboardButton(
                              text="%s check bot health" % emoji.emojize(":battery:", use_aliases=True),
                              callback_data="/health")]] + back_button
@@ -1055,7 +1059,7 @@ if __name__ == "__main__":
     dispatcher.add_handler(start_handler)
     dispatcher.add_handler(tc_handler)
     dispatcher.add_handler(stats_handler)
-    #dispatcher.add_handler(folio_handler)
+    # dispatcher.add_handler(folio_handler)
     dispatcher.add_handler(health_handler)
     dispatcher.add_handler(transfers_show_handler)
     dispatcher.add_handler(OTP_handler)
