@@ -277,19 +277,19 @@ def StartMessage(bot, update):
                 max_pos_timestamp = rs[0].timestamp
                 ins = positions.insert().values(userID=userID, position=0, timestamp=max_pos_timestamp)
                 con.execute(ins)
-                ins = log.insert().values(userID=userID, log='new user created % s' % username,
+                ins = log.insert().values(userID=userID, log='new user created % s' % (username or firstname),
                                           timestamp=datetime.utcnow())
                 con.execute(ins)
-                message = _("HELLO_NEW_USER") + "\n" % username
+                message = _("HELLO_NEW_USER") + "\n" % (username or firstname)
                 if TESTING_MODE:
                     message += _("BOT_IN_TESTING") + "\n"
                 message += _("NEW_USER_INFO") + ":\n"
-                msg = "*New user created:* [%s](tg://user?id=%s)\n" % (username, userID)
+                msg = "*New user created:* [%s](tg://user?id=%s)\n" % ((username or firstname), userID)
                 bot.send_message(chat_id=TELEGRAM_CHANNEL_NAME, text=msg, parse_mode='Markdown')
             except:
                 logger.error(traceback.format_exc())
                 message = "Failed to create new user"
-                msg = "*Error:* failed to create user [%s](tg://user?id=%s)\n" % (username, userID)
+                msg = "*Error:* failed to create user [%s](tg://user?id=%s)\n" % ((username or firstname), userID)
                 bot.send_message(chat_id=TELEGRAM_CHANNEL_NAME, text=msg, parse_mode='Markdown')
         # TODO: existing user
         else:
@@ -303,10 +303,10 @@ def StartMessage(bot, update):
 
             if isadmin:
                 message = _("WELCOME_BACK_ADMIN") % (
-                    username, emoji.emojize(':purple_heart:', use_aliases=True)) + "\n"
+                    (username or firstname), emoji.emojize(':purple_heart:', use_aliases=True)) + "\n"
             else:
                 message = _("WELCOME_BACK_USER") % (
-                    username, emoji.emojize(':currency_exchange:', use_aliases=True)) + "\n"
+                    (username or firstname), emoji.emojize(':currency_exchange:', use_aliases=True)) + "\n"
 
             select_positions = select([positions]).where(positions.c.userID == userID).order_by(
                 desc(positions.c.timestamp))
@@ -386,7 +386,7 @@ def StartMessage(bot, update):
                     text=_("SUPPORT_BUTTON") % (
                         emoji.emojize(':warning:', use_aliases=True)),
                     callback_data='/contact')]]
-                msg = "Balance is unavailable [%s](tg://user?id=%s)\n" % (username, userID)
+                msg = "Balance is unavailable [%s](tg://user?id=%s)\n" % ((username or firstname), userID)
                 bot.send_message(chat_id=TELEGRAM_CHANNEL_NAME, text=msg, parse_mode='Markdown')
     return address, isadmin, keyboard, message
 
