@@ -37,7 +37,7 @@ from settings import MYSQL_CONNECTION, TELEGRAM_BOT_TOKEN, BASE_URL
 from SizedTimedRotatingFileHandler import SizedTimedRotatingFileHandler
 from bitmex import BitMEX
 # from poloniex_api import Poloniex
-from extra_settings import B_KEY, B_SECRET, POLO_ADDRESS
+# from extra_settings import B_KEY, B_SECRET, POLO_ADDRESS
 
 en = gettext.translation('mercury-telegram', localedir='locale', languages=['en'])
 en.install()
@@ -49,11 +49,6 @@ def error_callback(bot, update, error):
     except TelegramError as e:
         logger.error(e)
         logger.error(traceback.format_exc())
-
-
-
-
-block_explorer = 'https://www.blocktrail.com/tBTC/tx/'
 
 actions_table = 'telegram_actions'
 log_table = 'telegram_log'
@@ -69,9 +64,6 @@ pic_folder = './pictures'
 pic_1_filename = 'balance.png'
 pic_2_filename = 'cumulative.png'
 #
-poloniex_address = 'mwCwTceJvYV27KXBc3NJZys6CjsgsoeHmf'
-bitmex_address = 'mwCwTceJvYV27KXBc3NJZys6CjsgsoeHmf'
-TELEGRAM_CHANNEL_NAME = '-1001106984254'
 
 XBt_TO_XBT = 100000000
 
@@ -89,14 +81,9 @@ log_handler = SizedTimedRotatingFileHandler(log_filename, maxBytes=0, backupCoun
 logger.addHandler(log_handler)
 coloredlogs.install(level=level)
 
-bitmex = BitMEX(apiKey=B_KEY, apiSecret=B_SECRET, base_url=BASE_URL, logger=logger)
-# poloniex = Poloniex(apiKey=P_API_KEY, apiSecret=P_API_SECRET)
-
 # last command to perform with OTP auth
 last_command = None
 last_args = None
-
-TESTING_MODE = True
 
 settings_table = 'mercury_settings'
 mercury_settings = Table(settings_table, metadata, autoload=True)
@@ -107,9 +94,19 @@ with db_engine.connect() as con:
     for r in rs:
         settings_dict[r['S_KEY']] = r['S_VALUE']
 
-logger.debug(settings_dict)
+#logger.debug(settings_dict)
 
 XMLRPCServer = xmlrpc.client.ServerProxy(settings_dict['XMLRPCServer'])
+block_explorer = settings_dict['block_explorer']
+TESTING_MODE = (settings_dict['TESTING_MODE'] == 'True')
+poloniex_address = settings_dict['poloniex_address']
+bitmex_address = settings_dict['bitmex_address']
+TELEGRAM_CHANNEL_NAME = settings_dict['TELEGRAM_CHANNEL_NAME']
+POLO_ADDRESS = settings_dict['POLO_ADDRESS']
+BITMEX_KEY = settings_dict['BITMEX_KEY']
+BITMEX_SECRET = settings_dict['BITMEX_SECRET']
+
+bitmex = BitMEX(apiKey=BITMEX_KEY, apiSecret=BITMEX_SECRET, base_url=BASE_URL, logger=logger)
 
 if not db_engine.dialect.has_table(db_engine, useraccounts_table):
     logger.warn("user accounts table does not exist")
