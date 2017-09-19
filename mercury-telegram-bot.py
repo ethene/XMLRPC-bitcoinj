@@ -107,7 +107,7 @@ with db_engine.connect() as con:
     for r in rs:
         settings_dict[r['S_KEY']] = r['S_VALUE']
 
-logger.debug = settings_dict
+logger.debug(settings_dict)
 
 XMLRPCServer = xmlrpc.client.ServerProxy(settings_dict['XMLRPCServer'])
 
