@@ -97,10 +97,10 @@ with db_engine.connect() as con:
 #logger.debug(settings_dict)
 
 XMLRPCServer = xmlrpc.client.ServerProxy(settings_dict['XMLRPCServer'])
-block_explorer = settings_dict['block_explorer']
+BLOCK_EXPLORER = settings_dict['BLOCK_EXPLORER']
 TESTING_MODE = (settings_dict['TESTING_MODE'] == 'True')
-poloniex_address = settings_dict['poloniex_address']
-bitmex_address = settings_dict['bitmex_address']
+TEST_ADDRESS = settings_dict['TEST_ADDRESS']
+BITMEX_ADDRESS = settings_dict['BITMEX_ADDRESS']
 TELEGRAM_CHANNEL_NAME = settings_dict['TELEGRAM_CHANNEL_NAME']
 POLO_ADDRESS = settings_dict['POLO_ADDRESS']
 BITMEX_KEY = settings_dict['BITMEX_KEY']
@@ -361,7 +361,7 @@ def StartMessage(bot, update):
 
                     for tx in unconfirmedTXs:
                         message += _("PENDING_TRANSACTION") % (int(tx['value']) / XBt_TO_XBT) + "\n"
-                        message += _("TX_ID") % (tx['ID'], block_explorer, tx['ID']) + "\n"
+                        message += _("TX_ID") % (tx['ID'], BLOCK_EXPLORER, tx['ID']) + "\n"
                         select_txs = select([bitcoinj_transactions]).where(
                             bitcoinj_transactions.c.TXID == tx['ID']).where(bitcoinj_transactions.c.confirmed == False)
                         txs = con.execute(select_txs).fetchall()
@@ -794,12 +794,22 @@ def action_approve(bot, update):
                 logger.debug("balance %.8f" % (balance / XBt_TO_XBT))
                 message += 'user balance: %.8f\n' % (balance / XBt_TO_XBT)
                 logger.debug("sending to polo")
-                send_result = XMLRPCServer.sendCoins(user_address, poloniex_address, balance)
+
+                address = TEST_ADDRESS
+                if not TESTING_MODE:
+                    df = pd.read_sql_table(balance_diff_table, con=db_engine, index_col='index')
+                    transfer_record = df.to_dict(orient='records')
+                    transfer_diff = round(transfer_record[0]['avg_balance_difference'], 6)
+                    if transfer_diff > 0:
+                        address = POLO_ADDRESS
+                    else:
+                        address = BITMEX_ADDRESS
+                send_result = XMLRPCServer.sendCoins(user_address, address, balance)
                 logger.debug("sr: %s" % send_result)
                 if send_result:
                     tx_id = send_result['TX']
                     tx_value = int(send_result['value'])
-                    message += "TX ID: [%s](%s%s)\n" % (tx_id, block_explorer, tx_id)
+                    message += "TX ID: [%s](%s%s)\n" % (tx_id, BLOCK_EXPLORER, tx_id)
                     message += 'TX value: *%s*\n' % tx_value
                     if tx_value > 0:
                         with db_engine.connect() as con:
