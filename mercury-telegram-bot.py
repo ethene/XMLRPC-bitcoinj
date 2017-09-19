@@ -51,15 +51,9 @@ def error_callback(bot, update, error):
         logger.error(traceback.format_exc())
 
 
-XMLRPCServer = xmlrpc.client.ServerProxy('http://localhost:8000')
+
 
 block_explorer = 'https://www.blocktrail.com/tBTC/tx/'
-
-emoji_count = [':zero:', ':one:',
-               ':two:', ':three:',
-               ':four:', ':five:',
-               ':six:', ':seven:',
-               ':eight:', ':nine:']
 
 actions_table = 'telegram_actions'
 log_table = 'telegram_log'
@@ -103,6 +97,19 @@ last_command = None
 last_args = None
 
 TESTING_MODE = True
+
+settings_table = 'mercury_settings'
+mercury_settings = Table(settings_table, metadata, autoload=True)
+settings_dict = {}
+with db_engine.connect() as con:
+    tc_select = select([mercury_settings])
+    rs = con.execute(tc_select).fetchall()
+    for r in rs:
+        settings_dict[r['S_KEY']] = r['S_VALUE']
+
+logger.debug = settings_dict
+
+XMLRPCServer = xmlrpc.client.ServerProxy(settings_dict['XMLRPCServer'])
 
 if not db_engine.dialect.has_table(db_engine, useraccounts_table):
     logger.warn("user accounts table does not exist")
@@ -183,6 +190,7 @@ if not db_engine.dialect.has_table(db_engine, transactions_table):
     metadata.create_all()
 else:
     bitcoinj_transactions = Table(transactions_table, metadata, autoload=True)
+
 
 unhedge_pnl = Table(unhedge_pnl_table, metadata, autoload=True)
 mercury_tc = Table(tc_table, metadata, autoload=True)
@@ -923,12 +931,14 @@ def health_check(bot, update):
         return
     message = ''
     pid = None
+    isRunning = False
     for proc in psutil.process_iter():
         proc_dict = proc.as_dict()
         if 'mercurybot' in proc_dict['cmdline']:
             if 'pid' in proc_dict:
                 pid = proc_dict['pid']
     if pid:
+        isRunning = True
         message += "bot pid: *%s*\n" % pid
     else:
         message += "*bot is not running!*\n"
@@ -939,9 +949,10 @@ def health_check(bot, update):
     message += "free disk space: *%.2f* Gb\n" % freeG
     health_df = pd.read_sql_table('mercury_health', con=db_engine)
     health_record = health_df.to_dict(orient='records')
-    for r in health_record[0]:
-        if r not in ['index', 'timestamp']:
-            message += "_%s_ is alive: *%s*\n" % (r, health_record[0][r] == 1)
+    if isRunning:
+        for r in health_record[0]:
+            if r not in ['index', 'timestamp']:
+                message += "_%s_ is alive: *%s*\n" % (r, health_record[0][r] == 1)
 
     with db_engine.connect() as con:
         select_positions = select([positions]).order_by(desc(positions.c.timestamp))
@@ -951,6 +962,7 @@ def health_check(bot, update):
 
         select_unh_pnl = select([unhedge_pnl]).order_by(desc(unhedge_pnl.c.timestamp))
         rs = con.execute(select_unh_pnl).fetchall()
+        last_unhedge_pnl = rs[0].unhedge_pnl
         max_unh_timestamp = rs[0].timestamp
         max_unh_timestamp = calendar.timegm(max_unh_timestamp.utctimetuple()) * 1000
 
@@ -958,8 +970,8 @@ def health_check(bot, update):
         last_unh_s = (getUTCtime() - max_unh_timestamp) / 1000
         last_unh_m = math.floor(last_unh_s / 60.0)
         last_unh_h = math.floor(last_unh_m / 60.0)
-        message += "_last unhedge %d h %d m ago_\n" % (
-            last_unh_h, last_unh_m - (last_unh_h * 60))
+        message += "_last unhedge %d h %d m ago, pnl: %.6f_\n" % (
+            last_unh_h, last_unh_m - (last_unh_h * 60), float(last_unhedge_pnl))
         message += "_position updated %d s ago_\n" % ((getUTCtime() - max_pos_timestamp) / 1000)
     message += "_updated %d s ago_\n" % ((getUTCtime() - health_record[0]['index']) / 1000)
 
