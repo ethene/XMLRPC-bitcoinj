@@ -979,7 +979,7 @@ def health_check(bot, update):
         last_unh_h = math.floor(last_unh_m / 60.0)
         message += "_last unhedge %d h %d m ago\npnl: %.6f_\n" % (
             last_unh_h, last_unh_m - (last_unh_h * 60), float(last_unhedge_pnl))
-        message += "_position updated %d s ago_\n" % ((getUTCtime() - max_pos_timestamp) / 1000)
+        message += "_position updated %d m ago_\n" % ((getUTCtime() - max_pos_timestamp) / 60000)
     message += "_health updated %d s ago_\n" % ((getUTCtime() - health_record[0]['index']) / 1000)
 
     logger.debug(message)
