@@ -70,7 +70,7 @@ XBt_TO_XBT = 100000000
 level = logging.DEBUG
 script_name = 'telegram.bot'
 
-db_engine = create_engine(MYSQL_CONNECTION, echo=False)
+db_engine = create_engine(MYSQL_CONNECTION, echo=False, pool_recycle=3600)
 metadata = MetaData(db_engine)
 
 logging.basicConfig(format='%(asctime)s - %(levelname)s - %(module)s - %(message)s', level=level)
@@ -977,7 +977,7 @@ def health_check(bot, update):
         last_unh_s = (getUTCtime() - max_unh_timestamp) / 1000
         last_unh_m = math.floor(last_unh_s / 60.0)
         last_unh_h = math.floor(last_unh_m / 60.0)
-        message += "_last unhedge %d h %d m ago\npnl: %.6f_\n" % (
+        message += "_last unhedge %d h %d m ago\nlast pnl: %.6f_\n" % (
             last_unh_h, last_unh_m - (last_unh_h * 60), float(last_unhedge_pnl))
         message += "_position updated %d m ago_\n" % ((getUTCtime() - max_pos_timestamp) / 60000)
     message += "_health updated %d s ago_\n" % ((getUTCtime() - health_record[0]['index']) / 1000)
