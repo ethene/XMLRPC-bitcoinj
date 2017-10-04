@@ -8,8 +8,8 @@ s = xmlrpc.client.ServerProxy('http://localhost:8000')
 
 # print("TX: %s " % (s.getUnconfirmedTransactions('myt8kNqVm6p8s1F9fp3e4vYQuLCZ8cw3mT')))
 
-print(s.getInputValue('ms4g4oBvhSM31kFrPNfXse8E4uRG7Xz2x4'))
-print("Input value: %s" % s.getInputValue('ms4g4oBvhSM31kFrPNfXse8E4uRG7Xz2x4'))
+print(s.getInputValue('mitC6TC6r4Pfh3FVw6C4L7DKXJTvbj5UPT'))
+print("Input value: %s" % s.getInputValue('mitC6TC6r4Pfh3FVw6C4L7DKXJTvbj5UPT'))
 
 # sr = s.sendCoins('myt8kNqVm6p8s1F9fp3e4vYQuLCZ8cw3mT', 'mwCwTceJvYV27KXBc3NJZys6CjsgsoeHmf', 10000000)
 
