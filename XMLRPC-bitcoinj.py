@@ -215,14 +215,14 @@ if __name__ == "__main__":
         depth = confidence.getDepthInBlocks()
         t_outputs = t.getOutputs()
         for to in t_outputs:
-            to_addr = to.getAddressFromP2PKHScript(params).toString()
+            toa = to.getAddressFromP2PKHScript(params)
+            if toa:
+                to_addr = toa.toString()
             value = int(to.getValue().toString())
-            if to_addr in addr_balance:
+            if to_addr and (to_addr in addr_balance):
                 addr_balance[to_addr] += value
-            else:
+            elif to_addr:
                 addr_balance[to_addr] = value
-                # logger.debug("addr: %s" % to_addr)
-                # logger.debug("value: %s" % value)
 
     for a in addr_balance:
         logger.debug("addr: %s value %s" % (a, addr_balance[a]))
