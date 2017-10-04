@@ -287,7 +287,7 @@ def StartMessage(bot, update):
                 con.execute(ins)
                 logger.debug(_("HELLO_NEW_USER") + "\n")
                 logger.debug((username or firstname))
-                message = _("HELLO_NEW_USER") + "\n" % (username or firstname)
+                message = _("HELLO_NEW_USER") % (username or firstname) + "\n"
                 if TESTING_MODE:
                     message += _("BOT_IN_TESTING") + "\n"
                 message += _("NEW_USER_INFO") + ":\n"
