@@ -96,6 +96,7 @@ class RPCFunctions:
         return address_string
 
     def getInputValue(self, address):
+        logger.debug("getting txs for %s" % (address))
         transactions = self.kit.wallet().getTransactions(True)
         invalue = 0
         for t in transactions:
