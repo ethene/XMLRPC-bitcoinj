@@ -334,7 +334,8 @@ def StartMessage(bot, update):
                 balance = inp_value - withdrawn
                 logger.debug("balance %.8f" % (balance / XBt_TO_XBT))
                 unconfirmedTXs = XMLRPCServer.getUnconfirmedTransactions(address)
-                logger.debug("unconfirmed: %s" % unconfirmedTXs)
+                if unconfirmedTXs:
+                    logger.debug("unconfirmed: %s" % unconfirmedTXs)
 
                 balance = int(balance) / XBt_TO_XBT
 
