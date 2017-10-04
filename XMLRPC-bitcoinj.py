@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import sys
 
-sys.path.append("bitcoinj-core-0.14.4-bundled.jar")
+sys.path.append("bitcoinj-core-0.14.5-bundled.jar")
 sys.path.append("slf4j-log4j12-1.7.25.jar")
 sys.path.append("log4j-1.2.17.jar")
 
