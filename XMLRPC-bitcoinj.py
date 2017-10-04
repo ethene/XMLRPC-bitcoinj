@@ -34,8 +34,8 @@ script_name = 'XMLRPC-bitcoinj'
 walletFolder = '.'
 confirmationsRequired = 1
 
-params = org.bitcoinj.params.TestNet5Params.get()
-filePrefix = 'bitcoinj-service-testnet5'
+params = org.bitcoinj.params.TestNet3Params.get()
+filePrefix = 'bitcoinj-service-testnet'
 
 formatter = logging.Formatter(fmt='%(asctime)s - %(levelname)s - %(module)s - %(message)s')
 logger = logging.getLogger(script_name)
