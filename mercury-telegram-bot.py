@@ -337,7 +337,7 @@ def StartMessage(bot, update):
                 try:
                     unconfirmedTXs = XMLRPCServer.getUnconfirmedTransactions(address)
                 except:
-                    unconfirmedTXs = None
+                    unconfirmedTXs = []
                     logger.debug("unconfirmed: %s" % unconfirmedTXs)
 
                 balance = int(balance) / XBt_TO_XBT
