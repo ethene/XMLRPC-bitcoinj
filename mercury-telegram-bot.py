@@ -24,7 +24,6 @@ from sqlalchemy import (create_engine, Table, Column, Integer, BigInteger, Forei
 from sqlalchemy.sql import select
 from telegram import ReplyKeyboardRemove, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.error import (TelegramError)
-from telegram.ext import CommandHandler, RegexHandler, CallbackQueryHandler
 from telegram.ext import Updater
 
 mpl.use('Agg')
@@ -333,8 +332,10 @@ def StartMessage(bot, update):
 
                 balance = inp_value - withdrawn
                 logger.debug("balance %.8f" % (balance / XBt_TO_XBT))
-                unconfirmedTXs = XMLRPCServer.getUnconfirmedTransactions(address)
-                if unconfirmedTXs:
+                try:
+                    unconfirmedTXs = XMLRPCServer.getUnconfirmedTransactions(address)
+                except:
+                    unconfirmedTXs = None
                     logger.debug("unconfirmed: %s" % unconfirmedTXs)
 
                 balance = int(balance) / XBt_TO_XBT
