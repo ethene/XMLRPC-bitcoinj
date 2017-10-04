@@ -104,10 +104,12 @@ class RPCFunctions:
             depth = confidence.getDepthInBlocks()
             t_outputs = t.getOutputs()
             for to in t_outputs:
-                to_addr = to.getAddressFromP2PKHScript(params).toString()
-                if (to_addr == address) and (depth >= confirmationsRequired):
-                    value = int(to.getValue().toString())
-                    invalue += value
+                toa = to.getAddressFromP2PKHScript(params)
+                if toa:
+                    to_addr = toa.toString()
+                    if (to_addr == address) and (depth >= confirmationsRequired):
+                        value = int(to.getValue().toString())
+                        invalue += value
 
         logger.debug("address %s input value %.8f" % (address, invalue))
         return invalue
