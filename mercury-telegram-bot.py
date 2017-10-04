@@ -327,7 +327,6 @@ def StartMessage(bot, update):
                 logger.debug("address %s" % (address))
                 logger.debug("withdrawn %s" % (withdrawn))
                 inp_value = XMLRPCServer.getInputValue(address)
-                logger.debug("inp_value %s" % (inp_value))
                 if not inp_value:
                     inp_value = 0
                 balance = inp_value - withdrawn
