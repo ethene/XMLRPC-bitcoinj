@@ -351,8 +351,9 @@ def StartMessage(bot, update):
                     address = None
 
                 else:
-                    position = int(position) / XBt_TO_XBT
-                    message += _("YOUR_PORTFOLIO_WORTH") % position + "\n"
+                    if position:
+                        position = int(position) / XBt_TO_XBT
+                        message += _("YOUR_PORTFOLIO_WORTH") % position + "\n"
 
                     if balance == 0:
                         if TESTING_MODE:
