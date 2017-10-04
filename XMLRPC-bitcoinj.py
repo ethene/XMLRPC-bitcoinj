@@ -170,8 +170,10 @@ class SenderListener(AbstractWalletEventListener):
         v = tx.getValueSentToMe(w)
         logger.debug("tx received %s" % (tx))
         for to in tx.getOutputs():
-            addr = to.getAddressFromP2PKHScript(params).toString()
-            logger.debug("receiver address: %s" % addr)
+            toa = to.getAddressFromP2PKHScript(params)
+            if toa:
+                addr = toa.toString()
+                logger.debug("receiver address: %s" % addr)
 
         class myFutureCallback(FutureCallback):
             def __init__(self, tx):
