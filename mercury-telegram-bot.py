@@ -285,6 +285,8 @@ def StartMessage(bot, update):
                 ins = log.insert().values(userID=userID, log='new user created % s' % (username or firstname),
                                           timestamp=datetime.utcnow())
                 con.execute(ins)
+                logger.debug(_("HELLO_NEW_USER") + "\n")
+                logger.debug((username or firstname))
                 message = _("HELLO_NEW_USER") + "\n" % (username or firstname)
                 if TESTING_MODE:
                     message += _("BOT_IN_TESTING") + "\n"
