@@ -325,7 +325,12 @@ def StartMessage(bot, update):
 
             try:
                 logger.debug("address %s" % (address))
-                balance = XMLRPCServer.getInputValue(address) - withdrawn
+                logger.debug("withdrawn %s" % (withdrawn))
+                inp_value = XMLRPCServer.getInputValue(address)
+                logger.debug("inp_value %s" % (inp_value))
+                if not inp_value:
+                    inp_value = 0
+                balance = inp_value - withdrawn
                 logger.debug("balance %.8f" % (balance / XBt_TO_XBT))
                 unconfirmedTXs = XMLRPCServer.getUnconfirmedTransactions(address)
                 logger.debug("unconfirmed: %s" % unconfirmedTXs)
