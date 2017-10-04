@@ -35,6 +35,7 @@ sys.path.insert(0, '../BitMEX-trader/db/')
 from settings import MYSQL_CONNECTION, TELEGRAM_BOT_TOKEN, BASE_URL
 from SizedTimedRotatingFileHandler import SizedTimedRotatingFileHandler
 from bitmex import BitMEX
+
 # from poloniex_api import Poloniex
 # from extra_settings import B_KEY, B_SECRET, POLO_ADDRESS
 
@@ -48,6 +49,7 @@ def error_callback(bot, update, error):
     except TelegramError as e:
         logger.error(e)
         logger.error(traceback.format_exc())
+
 
 actions_table = 'telegram_actions'
 log_table = 'telegram_log'
@@ -93,7 +95,7 @@ with db_engine.connect() as con:
     for r in rs:
         settings_dict[r['S_KEY']] = r['S_VALUE']
 
-#logger.debug(settings_dict)
+# logger.debug(settings_dict)
 
 XMLRPCServer = xmlrpc.client.ServerProxy(settings_dict['XMLRPCServer'])
 BLOCK_EXPLORER = settings_dict['BLOCK_EXPLORER']
@@ -186,7 +188,6 @@ if not db_engine.dialect.has_table(db_engine, transactions_table):
     metadata.create_all()
 else:
     bitcoinj_transactions = Table(transactions_table, metadata, autoload=True)
-
 
 unhedge_pnl = Table(unhedge_pnl_table, metadata, autoload=True)
 mercury_tc = Table(tc_table, metadata, autoload=True)
