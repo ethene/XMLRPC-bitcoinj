@@ -170,6 +170,8 @@ class SenderListener(AbstractWalletEventListener):
         v = tx.getValueSentToMe(w)
         logger.debug("tx received %s" % (tx))
         for to in tx.getOutputs():
+            print(to)
+            logger.debug(to)
             toa = to.getAddressFromP2PKHScript(params)
             if toa:
                 addr = toa.toString()
