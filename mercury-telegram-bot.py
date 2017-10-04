@@ -24,6 +24,7 @@ from sqlalchemy import (create_engine, Table, Column, Integer, BigInteger, Forei
 from sqlalchemy.sql import select
 from telegram import ReplyKeyboardRemove, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.error import (TelegramError)
+from telegram.ext import CommandHandler, RegexHandler, CallbackQueryHandler
 from telegram.ext import Updater
 
 mpl.use('Agg')
