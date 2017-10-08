@@ -192,7 +192,7 @@ else:
 
 unhedge_pnl = Table(unhedge_pnl_table, metadata, autoload=True)
 mercury_tc = Table(tc_table, metadata, autoload=True)
-updater = Updater(token=TELEGRAM_BOT_TOKEN)
+updater = Updater(token=settings_dict.TELEGRAM_BOT_TOKEN)
 dispatcher = updater.dispatcher
 
 
