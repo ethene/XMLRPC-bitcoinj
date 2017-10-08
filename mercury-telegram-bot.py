@@ -27,22 +27,20 @@ from telegram.error import (TelegramError)
 from telegram.ext import CommandHandler, RegexHandler, CallbackQueryHandler
 from telegram.ext import Updater
 
+from utils.dotdict import dotdict
+
 mpl.use('Agg')
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import sys
 
 sys.path.insert(0, '../BitMEX-trader/db/')
-from settings import MYSQL_CONNECTION, TELEGRAM_BOT_TOKEN, BASE_URL
+from settings import MYSQL_CONNECTION
 from SizedTimedRotatingFileHandler import SizedTimedRotatingFileHandler
 from bitmex import BitMEX
 
-# from poloniex_api import Poloniex
-# from extra_settings import B_KEY, B_SECRET, POLO_ADDRESS
-
 en = gettext.translation('mercury-telegram', localedir='locale', languages=['en'])
 en.install()
-
 
 def error_callback(bot, update, error):
     try:
@@ -96,19 +94,21 @@ with db_engine.connect() as con:
     for r in rs:
         settings_dict[r['S_KEY']] = r['S_VALUE']
 
+settings_dict = dotdict(settings_dict)
 # logger.debug(settings_dict)
 
 XMLRPCServer = xmlrpc.client.ServerProxy(settings_dict['XMLRPCServer'])
-BLOCK_EXPLORER = settings_dict['BLOCK_EXPLORER']
-TESTING_MODE = (settings_dict['TESTING_MODE'] == 'True')
-TEST_ADDRESS = settings_dict['TEST_ADDRESS']
-BITMEX_ADDRESS = settings_dict['BITMEX_ADDRESS']
-TELEGRAM_CHANNEL_NAME = settings_dict['TELEGRAM_CHANNEL_NAME']
-POLO_ADDRESS = settings_dict['POLO_ADDRESS']
-BITMEX_KEY = settings_dict['BITMEX_KEY']
-BITMEX_SECRET = settings_dict['BITMEX_SECRET']
+# BLOCK_EXPLORER = settings_dict['BLOCK_EXPLORER']
+TESTING_MODE = (settings_dict.TESTING_MODE == 'True')
+# TEST_ADDRESS = settings_dict['TEST_ADDRESS']
+# BITMEX_ADDRESS = settings_dict['BITMEX_ADDRESS']
+TELEGRAM_CHANNEL_NAME = settings_dict.TELEGRAM_CHANNEL_NAME
+# POLO_ADDRESS = settings_dict['POLO_ADDRESS']
+# BITMEX_KEY = settings_dict['BITMEX_KEY']
+# BITMEX_SECRET = settings_dict['BITMEX_SECRET']
 
-bitmex = BitMEX(apiKey=BITMEX_KEY, apiSecret=BITMEX_SECRET, base_url=BASE_URL, logger=logger)
+bitmex = BitMEX(apiKey=settings_dict.BITMEX_KEY, apiSecret=settings_dict.BITMEX_SECRET,
+                base_url=settings_dict.BITMEX_URL, logger=logger)
 
 if not db_engine.dialect.has_table(db_engine, useraccounts_table):
     logger.warn("user accounts table does not exist")
@@ -374,7 +374,7 @@ def StartMessage(bot, update):
 
                     for tx in unconfirmedTXs:
                         message += _("PENDING_TRANSACTION") % (int(tx['value']) / XBt_TO_XBT) + "\n"
-                        message += _("TX_ID") % (tx['ID'], BLOCK_EXPLORER, tx['ID']) + "\n"
+                        message += _("TX_ID") % (tx['ID'], settings_dict.BLOCK_EXPLORER, tx['ID']) + "\n"
                         select_txs = select([bitcoinj_transactions]).where(
                             bitcoinj_transactions.c.TXID == tx['ID']).where(bitcoinj_transactions.c.confirmed == False)
                         txs = con.execute(select_txs).fetchall()
@@ -554,7 +554,7 @@ def OTP_command(bot, update):
 
     if last_command == 'BW' and last_args > 0.05:
         try:
-            result = bitmex.withdraw(amount=last_args * XBt_TO_XBT, address=POLO_ADDRESS, otptoken=OTP)
+            result = bitmex.withdraw(amount=last_args * XBt_TO_XBT, address=settings_dict.POLO_ADDRESS, otptoken=OTP)
             logger.debug(result)
         except Exception as e:
             result = e
@@ -808,21 +808,21 @@ def action_approve(bot, update):
                 message += 'user balance: %.8f\n' % (balance / XBt_TO_XBT)
                 logger.debug("sending to polo")
 
-                address = TEST_ADDRESS
+                address = settings_dict.TEST_ADDRESS
                 if not TESTING_MODE:
                     df = pd.read_sql_table(balance_diff_table, con=db_engine, index_col='index')
                     transfer_record = df.to_dict(orient='records')
                     transfer_diff = round(transfer_record[0]['avg_balance_difference'], 6)
                     if transfer_diff > 0:
-                        address = POLO_ADDRESS
+                        address = settings_dict.POLO_ADDRESS
                     else:
-                        address = BITMEX_ADDRESS
+                        address = settings_dict.BITMEX_ADDRESS
                 send_result = XMLRPCServer.sendCoins(user_address, address, balance)
                 logger.debug("sr: %s" % send_result)
                 if send_result:
                     tx_id = send_result['TX']
                     tx_value = int(send_result['value'])
-                    message += "TX ID: [%s](%s%s)\n" % (tx_id, BLOCK_EXPLORER, tx_id)
+                    message += "TX ID: [%s](%s%s)\n" % (tx_id, settings_dict.BLOCK_EXPLORER, tx_id)
                     message += 'TX value: *%s*\n' % tx_value
                     if tx_value > 0:
                         with db_engine.connect() as con:
