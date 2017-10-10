@@ -95,17 +95,10 @@ with db_engine.connect() as con:
         settings_dict[r['S_KEY']] = r['S_VALUE']
 
 settings_dict = dotdict(settings_dict)
-# logger.debug(settings_dict)
 
 XMLRPCServer = xmlrpc.client.ServerProxy(settings_dict['XMLRPCServer'])
-# BLOCK_EXPLORER = settings_dict['BLOCK_EXPLORER']
 TESTING_MODE = (settings_dict.TESTING_MODE == 'True')
-# TEST_ADDRESS = settings_dict['TEST_ADDRESS']
-# BITMEX_ADDRESS = settings_dict['BITMEX_ADDRESS']
 TELEGRAM_CHANNEL_NAME = settings_dict.TELEGRAM_CHANNEL_NAME
-# POLO_ADDRESS = settings_dict['POLO_ADDRESS']
-# BITMEX_KEY = settings_dict['BITMEX_KEY']
-# BITMEX_SECRET = settings_dict['BITMEX_SECRET']
 
 bitmex = BitMEX(apiKey=settings_dict.BITMEX_KEY, apiSecret=settings_dict.BITMEX_SECRET,
                 base_url=settings_dict.BITMEX_URL, logger=logger)
@@ -487,6 +480,8 @@ def stats(bot, update):
             df = df[(df.position != 0)]
             df_groupped = df.groupby(df.index)['position'].mean()
             message = _("YOUR_FOLIO_PERFORMANCE")
+            if TESTING_MODE:
+                message += "\n" + _("TESTING_STATS") + "\n"
             bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown',
                              reply_markup=ReplyKeyboardRemove())
             send_stats(bot, df_groupped, chat_id)
@@ -516,8 +511,10 @@ def stats(bot, update):
     t_diff = monthdelta(df_groupped.index[0], df_groupped.index[-1])
     month_diff = t_diff[0]
     d_diff = t_diff[1]
+    absolute_profit_pc = (balance_profit / df_groupped[0]) * 100
     message = _("CS_WHICH_IS") % yearly_pc + "\n\n"
     message += _("CS_WAS_ACHIEVED") % (month_diff, d_diff) + "\n"
+    message += _("CS_ABSOLUTE_PROFIT_PC") % absolute_profit_pc + "\n\n"
     message += _("CS_IF_INVESTED") % (
         df_groupped.index[0].strftime("%d %b"), (balance_profit / df_groupped[0]) + 1) + "\n"
     message += _("CS_ABS_PROFIT") % (balance_profit / df_groupped[0]) + "\n"
