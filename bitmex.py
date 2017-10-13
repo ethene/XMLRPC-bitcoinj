@@ -56,13 +56,21 @@ class BitMEX(object):
     @authentication_required
     def withdraw(self, amount, address, otptoken, fee=None):
         api = "user/requestWithdrawal"
-        postdict = {
-            'amount': amount,
-            'fee': fee,
-            'currency': 'XBt',
-            'address': address,
-            'otpToken': otptoken
-        }
+        if fee:
+            postdict = {
+                'amount': amount,
+                'fee': fee,
+                'currency': 'XBt',
+                'address': address,
+                'otpToken': otptoken
+            }
+        else:
+            postdict = {
+                'amount': amount,
+                'currency': 'XBt',
+                'address': address,
+                'otpToken': otptoken
+            }
         return self._curl_bitmex(api=api, postdict=postdict, verb="POST")
 
     @authentication_required
