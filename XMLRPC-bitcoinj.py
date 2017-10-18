@@ -32,6 +32,7 @@ level = logging.DEBUG
 
 script_name = 'XMLRPC-bitcoinj'
 walletFolder = '.'
+# walletFolder = '/efs/mnt/wallet'
 confirmationsRequired = 1
 
 params = org.bitcoinj.params.TestNet3Params.get()
