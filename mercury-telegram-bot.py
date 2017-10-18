@@ -7,7 +7,6 @@ import gettext
 import logging
 import math
 import re
-import shutil
 import traceback
 import xmlrpc.client
 from calendar import monthrange
@@ -17,7 +16,8 @@ import coloredlogs
 import emoji
 import matplotlib as mpl
 import pandas as pd
-import psutil
+
+# import psutil
 import requests
 from sqlalchemy import (create_engine, Table, Column, Integer, BigInteger, ForeignKey, DateTime,
                         String, Boolean, MetaData, desc, func)
@@ -947,7 +947,10 @@ def health_check(bot, update):
     if not isadmin:
         return
     message = ''
+    isRunning = True
+    '''
     pid = None
+
     isRunning = False
     for proc in psutil.process_iter():
         proc_dict = proc.as_dict()
@@ -964,6 +967,7 @@ def health_check(bot, update):
 
     freeG = shutil.disk_usage('/').free / 1e9
     message += "free disk space: *%.2f* Gb\n" % freeG
+    '''
     health_df = pd.read_sql_table('mercury_health', con=db_engine)
     health_record = health_df.to_dict(orient='records')
     if isRunning:

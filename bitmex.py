@@ -150,6 +150,7 @@ class BitMEX(object):
                     return
                 self.logger.error("Unable to contact the BitMEX API (404). " +
                                   "Request: %s \n %s" % (url, json.dumps(postdict)))
+                self.logger.error(response.json())
                 maybe_exit(e)
 
             # 429, ratelimit
