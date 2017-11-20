@@ -27,16 +27,31 @@ from SizedTimedRotatingFileHandler import SizedTimedRotatingFileHandler
 
 import logging
 import traceback
+import os
 
 level = logging.DEBUG
 
 script_name = 'XMLRPC-bitcoinj'
-walletFolder = '.'
-# walletFolder = '/efs/mnt/wallet'
-confirmationsRequired = 1
 
-params = org.bitcoinj.params.TestNet3Params.get()
-filePrefix = 'bitcoinj-service-testnet'
+efsfolder = os.getenv('EFSFOLDER', '.')
+
+walletFolder = efsfolder + '/wallet'
+logfolder = efsfolder + '/log/'
+
+try:
+    os.stat(walletFolder)
+except:
+    os.mkdir(walletFolder)
+
+try:
+    os.stat(logfolder)
+except:
+    os.mkdir(logfolder)
+
+try:
+    confirmationsRequired = int(os.getenv('CONFIRMATIONS'))
+except:
+    confirmationsRequired = 1
 
 formatter = logging.Formatter(fmt='%(asctime)s - %(levelname)s - %(module)s - %(message)s')
 logger = logging.getLogger(script_name)
@@ -44,12 +59,21 @@ log_handler = logging.StreamHandler()
 log_handler.setFormatter(formatter)
 logger.addHandler(log_handler)
 
-log_filename = './log/' + script_name + '.log'
+log_filename = logfolder + script_name + '.log'
 log_handler = SizedTimedRotatingFileHandler(log_filename, maxBytes=0, backupCount=5, when='D',
                                             interval=1)  # encoding='bz2',  # uncomment for bz2 compression)
 logger.addHandler(log_handler)
 logger.setLevel(level)
 
+network = os.getenv('NETWORK', 'TEST')
+if network == 'TEST':
+    params = org.bitcoinj.params.TestNet3Params.get()
+    filePrefix = 'bitcoinj-service-testnet'
+elif network == 'PROD':
+    params = org.bitcoinj.params.MainNetParams.get()
+    filePrefix = 'bitcoinj-service-mainnet'
+
+logger.info("Network: %s" % network)
 
 def loud_exceptions(*args):
     def _trace(func):
@@ -77,9 +101,8 @@ def loud_exceptions(*args):
 class RequestHandler(SimpleXMLRPCRequestHandler):
     rpc_paths = ('/RPC2',)
 
-
 # Create server
-server = SimpleXMLRPCServer(("localhost", 8000),
+server = SimpleXMLRPCServer(("0.0.0.0", 8000),
                             requestHandler=RequestHandler)
 server.register_introspection_functions()
 
@@ -174,7 +197,6 @@ class SenderListener(AbstractWalletEventListener):
         v = tx.getValueSentToMe(w)
         logger.debug("tx received %s" % (tx))
         for to in tx.getOutputs():
-            print(to)
             logger.debug(to)
             toa = to.getAddressFromP2PKHScript(params)
             if toa:
@@ -201,7 +223,7 @@ if __name__ == "__main__":
     f = File(walletFolder)
     kit = WalletAppKit(params, f, filePrefix)
     kit.setAutoSave(True)
-    logger.debug("initializing...")
+    logger.info("initializing...")
     kit.startAsync()
     kit.awaitRunning()
     pg = kit.peerGroup()
@@ -232,7 +254,7 @@ if __name__ == "__main__":
         logger.debug("addr: %s value %s" % (a, addr_balance[a]))
 
     wallet.addEventListener(sl)
-    logger.debug("finished initialisation - now in main event loop")
+    logger.info("finished initialisation - now in main event loop")
 
     server.register_instance(RPCFunctions(kit))
 

@@ -61,19 +61,7 @@ class APIKeyAuthWithExpires(AuthBase):
             data = data.decode()
         except AttributeError:
             pass
-        '''
-        print (type(verb))
-        print(type(path))
-        print(type(nonce))
-        print(type(data))
-        print(verb)
-        print(path)
-        print(nonce)
-        print(data)
 
-        message = bytes(verb, 'utf8') + bytes(path, 'utf8') + bytes(nonce) + bytes(data, 'utf8')
-        message = verb + path + str(nonce) + data
-        '''
         message = bytes(verb + path, 'utf8') + bytes(str(nonce), 'utf8') + bytes(data, 'utf8')
 
         signature = hmac.new(bytes(secret, 'utf8'), message, digestmod=hashlib.sha256).hexdigest()
