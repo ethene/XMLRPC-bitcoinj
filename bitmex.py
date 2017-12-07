@@ -79,7 +79,7 @@ class BitMEX(object):
         postdict = {}
         return self._curl_bitmex(api=api, postdict=postdict, verb="GET")
 
-    def _curl_bitmex(self, api, query=None, postdict=None, timeout=3, verb=None, rethrow_errors=False):
+    def _curl_bitmex(self, api, query=None, postdict=None, timeout=10, verb=None, rethrow_errors=True):
         """Send a request to BitMEX Servers."""
         # Handle URL
         url = self.base_url + api
@@ -143,69 +143,13 @@ class BitMEX(object):
                 return response.text
                 # return self._curl_bitmex(api, query, postdict, timeout, verb)
 
-            # 404, can be thrown if order canceled does not exist.
-            elif response.status_code == 404:
-                if verb == 'DELETE':
-                    self.logger.error("Order not found: %s" % postdict['orderID'])
-                    return
-                self.logger.error("Unable to contact the BitMEX API (404). " +
-                                  "Request: %s \n %s" % (url, json.dumps(postdict)))
-                self.logger.error(response.json())
-                maybe_exit(e)
-
-            # 429, ratelimit
-            elif response.status_code == 429:
-                self.logger.error("Ratelimited on current request. Sleeping, then trying again. Try fewer " +
-                                  "order pairs or contact support@bitmex.com to raise your limits. " +
-                                  "Request: %s \n %s" % (url, json.dumps(postdict)))
-                if 'Retry-After' in response.headers:
-                    sleep(int(response.headers['Retry-After']) + 1)
-                else:
-                    self.logger.warn("no retry-after, sleeping 30s headers: %s" % response.headers)
-                    sleep(30)
-
-                sleep(1)
-                return self._curl_bitmex(api, query, postdict, timeout, verb)
-
-            # 503 - BitMEX temporary downtime, likely due to a deploy. Try again
-            elif response.status_code == 503:
-                self.logger.warning("Unable to contact the BitMEX API (503), retrying. " +
-                                    "Request: %s \n %s" % (url, json.dumps(postdict)))
-                sleep(1)
-                return self._curl_bitmex(api, query, postdict, timeout, verb)
-
-            # Duplicate clOrdID: that's fine, probably a deploy, go get the order and return it
-            elif (response.status_code == 400 and
-                      response.json()['error'] and
-                          response.json()['error']['message'] == 'Duplicate clOrdID'):
-
-                order = self._curl_bitmex('/order',
-                                          query={'filter': json.dumps({'clOrdID': postdict['clOrdID']})},
-                                          verb='GET')[0]
-                if (
-                                    order['orderQty'] != postdict['quantity'] or
-                                    order['price'] != postdict['price'] or
-                                order['symbol'] != postdict['symbol']):
-                    raise Exception('Attempted to recover from duplicate clOrdID, but order returned from API ' +
-                                    'did not match POST.\nPOST data: %s\nReturned order: %s' % (
-                                        json.dumps(postdict), json.dumps(order)))
-                # All good
-                return order
-
             # Unknown Error
             else:
                 self.logger.error("Unhandled Error: %s: %s" % (e, response.text))
                 self.logger.error("Endpoint was: %s %s: %s" % (verb, api, json.dumps(postdict)))
                 maybe_exit(e)
+                return response.text
 
-        except requests.exceptions.Timeout as e:
-            # Timeout, re-run this request
-            self.logger.warning("Timed out, retrying...")
-            return self._curl_bitmex(api, query, postdict, timeout, verb)
-
-        except requests.exceptions.ConnectionError as e:
-            self.logger.warning("Unable to contact the BitMEX API (ConnectionError). Please check the URL. Retrying. " +
-                                "Request: %s \n %s" % (url, json.dumps(postdict)))
-            sleep(1)
-            return self._curl_bitmex(api, query, postdict, timeout, verb)
+        except Exception as e:
+            return str(e)
         return response.json()

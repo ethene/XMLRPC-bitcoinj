@@ -109,6 +109,8 @@ mm_pnl_table = 'mm_pnl'
 fees_table = 'mercury_fees'
 transactions_table = 'bitcoinj_transactions'
 hold_balance_table = 'mercury_hold_balance'
+investments_table = 'mercury_investments'
+withdrawals_table = 'mercury_withdrawals'
 
 pic_folder = efsfolder + '/pictures'
 try:
@@ -230,6 +232,18 @@ if not db_engine.dialect.has_table(db_engine, transactions_table):
     metadata.create_all()
 else:
     bitcoinj_transactions = Table(transactions_table, metadata, autoload=True)
+
+if not db_engine.dialect.has_table(db_engine, investments_table):
+    logger.warn("investments table does not exist")
+    mercury_investments = Table(investments_table, metadata,
+                                Column('userID', Integer, ForeignKey(useraccounts.c.ID)),
+                                Column('timestamp', DateTime, default=datetime.utcnow(),
+                                       onupdate=func.utc_timestamp()),
+                                Column('value', BigInteger(), default=0),
+                                Column('ID', Integer, primary_key=True, autoincrement=True))
+    metadata.create_all()
+else:
+    mercury_investments = Table(investments_table, metadata, autoload=True)
 
 # TODO: load additional tables
 unhedge_pnl = Table(unhedge_pnl_table, metadata, autoload=True)
@@ -574,7 +588,7 @@ def getBTCPrice():
         btc_price = float(j['high'])
     except Exception as e:
         logger.error(e)
-        btc_price = 6500
+        btc_price = 11000
     return btc_price
 
 
@@ -587,16 +601,17 @@ def stats(bot, update):
     # separate procedure to reuse
     df = pd.read_sql_query(sql='SELECT * FROM ' + balance_table, con=db_engine, index_col='index')
     df_groupped = df.groupby(df.timestamp.dt.date)['totalbalance'].mean()
+    # df_projected = df.groupby(df.timestamp.dt.date)['projectedbalance'].mean()
     with db_engine.connect() as con:
         user_DB_ID, last_position_close = get_DB_user_ID(con, user_telegram_ID)
         logger.debug("user ID %s last_position_close %s" % (user_DB_ID, last_position_close))
         get_user_portfolio_stats(btc_price, bot, chat_id, user_DB_ID, last_position_close, df_groupped, con)
 
-    message = _("COMBINED_STATS")
+    message = _("COMBINED_STATS") + "\n\n"
     bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown',
                      reply_markup=ReplyKeyboardRemove())
 
-    send_stats2(bot, df_groupped, chat_id)
+    send_stats2(bot, df_groupped, chat_id, label='Absolute portfolio value, BTC')
     balance_profit = df_groupped[-1] - df_groupped[0]
     timedelta = df_groupped.index[-1] - df_groupped.index[0]
     yearly_pc = ((balance_profit / timedelta.days) * 365) / df_groupped[0] * 100
@@ -605,7 +620,10 @@ def stats(bot, update):
     d_diff = t_diff[1]
     absolute_profit_pc = (balance_profit / df_groupped[0]) * 100
     # message = _("CS_WHICH_IS") % yearly_pc + "\n\n"
-    message = _("CS_GREW_UP") % balance_profit + "\n\n"
+    message = _("CS_CURRENT_VALUE") % df_groupped[-1] + "\n"
+    message += _("EQUALS_TO") % (df_groupped[-1] * btc_price, btc_price) + "\n"
+
+    # message = _("CS_GREW_UP") % balance_profit + "\n\n"
     # message += _("CS_WAS_ACHIEVED") % (month_diff, d_diff) + "\n"
     message += _("CS_RUNNING_TIME") % (month_diff, d_diff) + "\n"
     # message += _("CS_ABSOLUTE_PROFIT_PC") % absolute_profit_pc + "\n\n"
@@ -625,21 +643,33 @@ def get_user_portfolio_stats(btc_price, bot, chat_id, user_DB_ID, last_position_
     logger.debug("position: %s" % position)
     if position > 0:
         balance_profit, df_groupped = get_user_balance_profit(user_DB_ID)
+        logger.debug("balance_profit: %s" % balance_profit)
         message = _("YOUR_FOLIO_PERFORMANCE")
         if TEST_MODE:
             message += "\n" + _("TESTING_STATS") + "\n"
         bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown',
                          reply_markup=ReplyKeyboardRemove())
-        send_stats(bot, df_groupped, chat_id)
+        send_stats2(bot, df_groupped / XBt_TO_XBT, chat_id, label="Current portfolio value, BTC")
         t_diff = monthdelta(df_groupped.index[0], df_groupped.index[-1])
         month_diff = t_diff[0]
         d_diff = t_diff[1]
         message = _("WAS_OPENED_AGO") % (month_diff, d_diff) + "\n"
-        message += _("YOUVE_INVESED") % (df_groupped[0] / XBt_TO_XBT) + "\n"
-        current_value = None
+        logger.debug(message)
+        inv_select = select([mercury_investments]).where(mercury_investments.c.userID == user_DB_ID)
+        rs = con.execute(inv_select)
+        investments = rs.fetchall()
+
+        message += _("YOUVE_INVESTED") + "\n\n"
+        logger.debug(message)
+        for i in investments:
+            message += _("YOUVE_INVESTED_ON") % ((i.value / XBt_TO_XBT), i.timestamp.strftime("%d %b %Y")) + "\n"
+
+        message += "\n"
+        # current_value = None
+        current_value = df_groupped[-1] / XBt_TO_XBT
+        message += _("NOW_WORTH") % (current_value) + "\n"
+        logger.debug(message)
         if balance_profit > 0:
-            current_value = df_groupped[-1] / XBt_TO_XBT
-            message += _("NOW_WORTH") % (current_value) + "\n"
             message += _("ABS_RETURN") % (balance_profit) + "\n"
             message += _("EQUALS_TO") % (balance_profit * btc_price, btc_price) + "\n"
             timedelta = df_groupped.index[-1] - df_groupped.index[0]
@@ -647,8 +677,6 @@ def get_user_portfolio_stats(btc_price, bot, chat_id, user_DB_ID, last_position_
             # logger.debug(balance_profit)
             yearly_pc = (((balance_profit / timedelta.days) * 365) / (df_groupped[0] / XBt_TO_XBT)) * 100
             message += _("CS_WHICH_IS") % yearly_pc + "\n\n"
-
-        '''{'pnl': pnl, 'minpnl': minpnl, 'max_daysleft': pnlminpnl[', 'swing': sum_basis}'''
         try:
             XMLRPCServer_mercurybot = getBotXMLRPC()
             pnlminpnl = XMLRPCServer_mercurybot.pnlminpnl()
@@ -663,18 +691,30 @@ def get_user_portfolio_stats(btc_price, bot, chat_id, user_DB_ID, last_position_
             max_days = None
             projected_profit = None
 
+        logger.debug(message)
+        portfolio_share = current_value / portfolio_df[-1]
+
+        # pd.read_sql_query(sql='SELECT * FROM ' + balance_table, con=db_engine, index_col='index')
+        df = pd.read_sql_query(
+            sql='SELECT * FROM ' + balance_table + ' WHERE `TIMESTAMP` > (SELECT LAST_POSITION_CLOSE from ' + useraccounts_table + ' WHERE `ID`= ' + str(
+                user_DB_ID) + ')', con=db_engine, index_col='index')
+
+        df = df[(df.projectedbalance >= (df_groupped[0] / XBt_TO_XBT))]
+        df_projected = df.groupby(df.timestamp.dt.date)['projectedbalance'].mean()
+        df_projected = df_projected * portfolio_share
+        # df_projected = df_projected[(df_projected != 0)]
+        # df_projected = df_projected[(df_projected >= (df_groupped[0] / XBt_TO_XBT))]
+        if len(df) > 2:
+            send_stats2(bot, df_projected, chat_id, label='Projected portfolio value, BTC')
+
         if projected_profit and current_value:
             # is a chunk of a whole projected profit
-            logger.debug(current_value)
-            logger.debug(portfolio_df[-1])
-            logger.debug(projected_profit)
-            projected_profit = (current_value / portfolio_df[-1]) * (projected_profit)
-            logger.debug(projected_profit)
+            projected_profit = portfolio_share * (projected_profit)
             projected_value = current_value + projected_profit
-            logger.debug(current_value)
-            logger.debug(projected_value)
             message += _("PROJECTED_PROFIT") % projected_profit + "\n"
             message += _("PROJECTED_VALUE") % projected_value + "\n"
+            # projected_pc = (projected_value - (df_groupped[0] / XBt_TO_XBT)) / (df_groupped[0] / XBt_TO_XBT) * 100
+            # message += _("PROJECTED_VALUE_PC") % projected_pc + "\n"
 
         if max_days:
             message += _("MAX_DAYS") % max_days + "\n"
@@ -696,12 +736,22 @@ def get_user_balance_profit(user_DB_ID):
                            con=db_engine, index_col='timestamp')
     df = df[(df.position != 0)]
     df_groupped = df.groupby(df.index)['position'].mean()
-    balance_profit = (df_groupped[-1] - df_groupped[0]) / XBt_TO_XBT
+
+    balance_profit = 0
+    with db_engine.connect() as con:
+        inv_select = select([mercury_investments]).where(mercury_investments.c.userID == user_DB_ID)
+        rs = con.execute(inv_select)
+        investments = rs.fetchall()
+        invested_value = 0
+        for i in investments:
+            invested_value += i.value
+
+        balance_profit = (df_groupped[-1] - invested_value) / XBt_TO_XBT
     return balance_profit, df_groupped
 
 
 def get_user_fees(user_DB_ID, balance_profit, con):
-    admin_fee = (balance_profit * float(settings.ADMIN_FEE)) / XBt_TO_XBT
+    admin_fee = balance_profit * float(settings.ADMIN_FEE)
     logger.debug("Balance profit %.8f" % balance_profit)
     logger.debug("Admin fee %.8f" % admin_fee)
 
@@ -714,6 +764,8 @@ def get_user_fees(user_DB_ID, balance_profit, con):
     withdrawal_fees = rs[0].withdrawal_fees / XBt_TO_XBT
     return round(admin_fee, ROUNDING_DIGITS), round(early_fee, ROUNDING_DIGITS), round(withdrawal_fees,
                                                                                        ROUNDING_DIGITS)  # send % return stats
+
+
 def send_stats(bot, df_groupped, chat_id):
     if len(df_groupped) > 0:
         # daily_pc = df_groupped.pct_change().dropna() * 365 * 100
@@ -727,12 +779,12 @@ def send_stats(bot, df_groupped, chat_id):
 
 
 # send absolute profit stats
-def send_stats2(bot, df_groupped, chat_id):
+def send_stats2(bot, df_groupped, chat_id, label='Absolute growth, BTC'):
     if len(df_groupped) > 0:
         # daily_pc = df_groupped.pct_change().dropna() * 365 * 100
         # cumulative_pc = ((df_groupped - df_groupped.ix[0]) / df_groupped.ix[0]) * 100
 
-        plot_graph(df_groupped, pic_2_filename, 'Absolute growth, BTC')
+        plot_graph(df_groupped, pic_2_filename, label)
         picture_2 = open(pic_folder + '/' + pic_2_filename, 'rb')
         keyboard = ReplyKeyboardRemove()
         bot.send_photo(chat_id=chat_id, photo=picture_2,
@@ -764,6 +816,8 @@ def OTP_command(bot, update):
             message = result['error']['message']
         elif 'transactID' in result:
             message = 'BitMEX -> Polo transfer created\nID: *%s*' % result['transactID']
+        else:
+            message = str(result)
     elif last_command == 'PW' and last_args > 0.05:
         logger.debug("Poloniex Withdraw")
         try:
@@ -935,6 +989,7 @@ def user_stats(bot, update):
 
     df = pd.read_sql_query(sql='SELECT * FROM ' + balance_table, con=db_engine, index_col='index')
     df_groupped = df.groupby(df.timestamp.dt.date)['totalbalance'].mean()
+    # df_projected = df.groupby(df.timestamp.dt.date)['projectedbalance'].mean()
 
     with db_engine.connect() as con:
         stm = select([useraccounts]).where(useraccounts.c.ID == stats_user_DB_ID)
@@ -942,6 +997,11 @@ def user_stats(bot, update):
         response = rs.fetchall()
         last_position_close = response[0].last_position_close
         get_user_portfolio_stats(btc_price, bot, chat_id, stats_user_DB_ID, last_position_close, df_groupped, con)
+
+    message = "^"
+    bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown',
+                     reply_markup=InlineKeyboardMarkup(
+                         inline_keyboard=admin_keyboard))
 
 
 # TODO: show users with positions
@@ -1109,6 +1169,7 @@ def action_approve(bot, update):
                 if not TEST_MODE:
                     df = pd.read_sql_table(balance_diff_table, con=db_engine, index_col='index')
                     transfer_record = df.to_dict(orient='records')
+                    logger.debug(transfer_record)
                     transfer_diff = round(transfer_record[0]['avg_balance_difference'], 6)
                     if transfer_diff > 0:
                         address = settings.POLO_ADDRESS
@@ -1140,6 +1201,11 @@ def action_approve(bot, update):
                             upd = useraccounts.update().values(withdrawn=(user_withdrawn + balance)).where(
                                 useraccounts.c.ID == user_DB_ID)
                             con.execute(upd)
+
+                            ins = mercury_investments.insert().values(userID=user_DB_ID, value=tx_value,
+                                                                      timestamp=datetime.utcnow())
+                            con.execute(ins)
+
                             msg_to_user = "\n" + _("ADDED_TO_PORTFOLIO") % (
                                 tx_value / XBt_TO_XBT, (balance - tx_value) / XBt_TO_XBT) + "\n"
                             bot.send_message(chat_id=user_telegram_ID, text=msg_to_user, parse_mode='Markdown',
@@ -1160,7 +1226,7 @@ def action_approve(bot, update):
             except Exception as e:
                 logger.error(traceback.format_exc())
                 logger.error(e)
-                message += '*cannot send coins*\n'
+                message += '*cannot send coins: %s *\n' % str(e)
         elif action == 'CLOSE':
             # TODO: CLOSE APPROVE
             logger.debug("close portfolio action started")
@@ -1303,6 +1369,35 @@ def get_chat_id(update):
     return chat_id
 
 
+# TODO: request unhedge
+def request_unhedge(bot, update):
+    global last_command
+    global last_args
+    isadmin = check_admin_privilege(update)
+    if not isadmin:
+        return
+    chat_id = get_chat_id(update)
+    command = update.message.text
+    unhedge_amount = float(str.split(command, "u")[1])
+    log_event = 'Requested for unhedge: %s' % unhedge_amount
+    user_telegram_ID = log_record(log_event, update)
+    try:
+        XMLRPCServer_mercurybot = getBotXMLRPC()
+        result = XMLRPCServer_mercurybot.request_unhedge(unhedge_amount)
+        result = json.loads(result)
+        logger.debug(result)
+
+        sum_btc = result['sum_btc']
+        sum_pnl = result['sum_pnl']
+        count = result['count']
+
+        message = "*%d* orders, %.6f _BTC_ sum PNL, %6f _BTC_ value" % (count, sum_pnl, sum_btc)
+    except Exception as e:
+        message = "Could not initiate: %s" % e
+    bot.send_message(chat_id=chat_id, text=message, reply_markup=InlineKeyboardMarkup(inline_keyboard=admin_keyboard),
+                     parse_mode='Markdown')
+
+
 # TODO: update hold balance
 def hold_balance_update(bot, update):
     global last_command
@@ -1343,6 +1438,37 @@ def show_hold_balance(bot, update):
                      parse_mode='Markdown')
 
 
+# TODO: cheapest
+def cheapest(bot, update):
+    chat_id = get_chat_id(update)
+    isadmin = check_admin_privilege(update)
+    if not isadmin:
+        return
+    try:
+        XMLRPCServer_mercurybot = getBotXMLRPC()
+        cheapest_trading_pairs = XMLRPCServer_mercurybot.cheapest_pairs()
+        cheapest_trading_pairs = json.loads(cheapest_trading_pairs)
+        logger.debug(cheapest_trading_pairs)
+        message = ""
+        sum_orders = 0
+        for p in cheapest_trading_pairs:
+            order_symbol = p['symbol']
+            order_qty = p['orderQty']
+            order_price = p['price']
+            partial_pnl = p['partial_pnl']
+            btc_value = order_qty * order_price
+            sum_orders += btc_value
+            message += "_%s_ %d PNL: *%.6f* V: *%.6f* _BTC_\n" % (order_symbol, order_qty, partial_pnl, btc_value)
+        message += "Sum: *%.6f* _BTC_\n" % (sum_orders)
+        message += "_Type ux.x to request unhedge for x.x BTC\n_"
+    except Exception as e:
+        logger.error(traceback.format_exc())
+        logger.error(e)
+        message = "Could not initiate: %s" % e
+    bot.send_message(chat_id=chat_id, text=message, reply_markup=ReplyKeyboardRemove(),
+                     parse_mode='Markdown')
+
+
 # TODO: pairs
 def pairs(bot, update):
     chat_id = get_chat_id(update)
@@ -1353,9 +1479,10 @@ def pairs(bot, update):
         XMLRPCServer_mercurybot = getBotXMLRPC()
         trading_pairs = XMLRPCServer_mercurybot.pairs()
         trading_pairs = json.loads(trading_pairs)
-        response = ""
         logger.debug(trading_pairs)
+        NoErrors = True
         for p in trading_pairs:
+            response = ""
             response += "*%s:* pnl: %.4f min: %.4f vol: %.4f T: %s \n" % (
                 p, trading_pairs[p]['pnl'], trading_pairs[p]['minpnl'], trading_pairs[p]['total_amount'],
                 trading_pairs[p]['trading'])
@@ -1363,73 +1490,104 @@ def pairs(bot, update):
                             trading_pairs[p]['volume_to_spot_hedge'] + trading_pairs[p]['volume_to_spread_hedge'] +
                         trading_pairs[p]['spot_hedged']) != 0:
                 response += "*not hedged correctly*\n"
+                response += "*F:* %s\n" % trading_pairs[p]['future_qty']
+                response += "*H:* %s\n" % trading_pairs[p]['volume_to_spread_hedge']
+                response += "*SH:* %s\n" % trading_pairs[p]['volume_to_spot_hedge']
+                response += "*S:* %s\n" % trading_pairs[p]['spot_hedged']
 
-            df = pd.read_sql_table(p + '_future', con=db_engine)
-            df = df.drop_duplicates()
-            sh2 = df.to_dict(orient='records')
+                NoErrors = False
+            try:
+                b_position = trading_pairs[p]['b_position']
+                p_position = trading_pairs[p]['p_position']
 
-            df = pd.read_sql_table(p + '_spot', con=db_engine)
-            df = df.drop_duplicates()
-            sh = df.to_dict(orient='records')
-            side_a = 'F'
-            side_b = 'S'
-            cf = 1 - 0.0025
+                if (b_position == 0) and (p_position == 0):
+                    continue
 
-            a = 0
-            nl = 0
-            response += ("%s  - > %s \n" % (side_b, side_a))
-            for s in sh2:  # future
-                found = False
+                df = pd.read_sql_table(p + '_future', con=db_engine)
+                df = df.drop_duplicates()
+                fh = df.to_dict(orient='records')
+
+                df = pd.read_sql_table(p + '_spot', con=db_engine)
+                df = df.drop_duplicates()
+                sh = df.to_dict(orient='records')
+                side_a = 'F'
+                side_b = 'S'
+                cf = 1 - 0.0025
+
+                sum_future = 0
+
+                nl = 0
+                response += ("%s  - > %s \n" % (side_b, side_a))
+                for s in fh:  # future
+                    found = False
+                    sum_spot = 0
+                    for s2 in sh:  # spot
+                        if s2['hedgeID'] == s['ID']:
+                            sum_spot += float(s2['amount']) * cf
+                            found = True
+                    if not found:
+                        response += ("*f hedge %s not linked ,q: %d* \n" % (s['ID'], s['orderQty']))
+                        nl += s['orderQty']
+                    else:
+                        sum_future += float(s['orderQty'])
+
+                    sum_spot = round(sum_spot)
+                    if s['orderQty'] < sum_spot:
+                        response += ("*problem with %s* \n" % s['ID'])
+                        response += (
+                            "*f %s f %d / s_s %d = %d*\n" % (
+                                s['ID'], s['orderQty'], sum_spot, sum_spot - s['orderQty']))
+
+                response += ("sum %s: %.2f\n" % (side_a, sum_future))
+                if nl > 0:
+                    response += ("nl: %d\n" % nl)
+
                 sum_spot = 0
-                for s2 in sh:  # spot
-                    if s2['hedgeID'] == s['ID']:
-                        sum_spot += float(s2['amount']) * cf
-                        found = True
-                if not found:
-                    response += ("*f hedge %s not linked ,q: %d* \n" % (s['ID'], s['orderQty']))
-                    nl += s['orderQty']
+                sum_spot_disount = 0
+                response += ("_%s  - > %s_\n" % (side_a, side_b))
+                for s in sh:
+                    found = False
+                    for s2 in fh:
+                        if s['hedgeID'] == s2['ID']:
+                            found = True
+                    if not found:
+                        response += ("*s hedge %s not linked*\n" % s['hedgeID'])
+                    else:
+                        vol = float(s['amount'])
+                        sum_spot += vol
+                        sum_spot_disount += vol * cf
+                response += ("sum %s: %.2f / %.2f\n" % (side_b, sum_spot, sum_spot_disount))
+
+                hedge_vol = trading_pairs[p]['hedge_vol']
+                balance_diff = abs(b_position - math.copysign(p_position, b_position)) - hedge_vol
+                if balance_diff != 0:
+                    response += "*Not correctly hedged:* b: %s h: %s p: %s\n" % (
+                        b_position, hedge_vol, p_position)
+                    diff_f = sum_future - (abs(b_position) - hedge_vol)
+                    diff_s = sum_spot_disount - abs(p_position)
+                    response += "*F diff: %d S diff: %d*" % (diff_f, diff_s)
+                    NoErrors = False
                 else:
-                    a += float(s['orderQty'])
+                    response += "_Correctly hedged_\n"
+            except Exception as e:
+                response = e
+            logger.debug(response)
+            bot.send_message(chat_id=chat_id, text=response, reply_markup=ReplyKeyboardRemove(),
+                             parse_mode='Markdown')
 
-                sum_spot = round(sum_spot)
-                if s['orderQty'] < sum_spot:
-                    response += ("*problem with %s* \n" % s['ID'])
-                    response += (
-                        "*f %s f %d / s_s %d = %d*\n" % (s['ID'], s['orderQty'], sum_spot, sum_spot - s['orderQty']))
-
-            response += ("sum %s: %.2f\n" % (side_b, a))
-            if nl > 0:
-                response += ("nl: %d\n" % nl)
-
-            a = 0
-            b = 0
-            response += ("_%s  - > %s_\n" % (side_a, side_b))
-            for s in sh:
-                found = False
-                for s2 in sh2:
-                    if s['hedgeID'] == s2['ID']:
-                        found = True
-                if not found:
-                    response += ("*s hedge %s not linked*\n" % s['hedgeID'])
-                else:
-                    vol = float(s['amount'])
-                    a += vol
-                    b += vol * cf
-            response += ("sum %s: %.2f / %.2f\n" % (side_a, a, b))
-            b_position = trading_pairs[p]['b_position']
-            p_position = trading_pairs[p]['p_position']
-            hedge_vol = trading_pairs[p]['hedge_vol']
-            if (abs(b_position - math.copysign(p_position, b_position)) - hedge_vol) != 0:
-                response += "*Not correctly hedged:* b: %s h: %s p: %s" % (b_position, hedge_vol, p_position)
-            else:
-                response += "_Correctly hedged_\n"
+        response = "*Errors detected*"
+        if NoErrors:
+            response = "*No errors detected*"
+        bot.send_message(chat_id=chat_id, text=response,
+                         reply_markup=InlineKeyboardMarkup(inline_keyboard=admin_keyboard),
+                         parse_mode='Markdown')
 
     except Exception as e:
         response = "Could not initiate: %s" % e
-
-    logger.debug(response)
-    bot.send_message(chat_id=chat_id, text=response, reply_markup=InlineKeyboardMarkup(inline_keyboard=admin_keyboard),
-                     parse_mode='Markdown')
+        bot.send_message(chat_id=chat_id, text=response,
+                         reply_markup=InlineKeyboardMarkup(inline_keyboard=admin_keyboard),
+                         parse_mode='Markdown')
+        return
 
 
 # TODO: bot restart
@@ -1623,6 +1781,9 @@ if __name__ == "__main__":
                              text="%s hold balance" % emoji.emojize(":anchor:", use_aliases=True),
                              callback_data="/hold_balance")],
                          [InlineKeyboardButton(
+                             text="%s cheapest pairs" % emoji.emojize(":top:", use_aliases=True),
+                             callback_data="/cheapest")],
+                         [InlineKeyboardButton(
                              text="%s check bot health" % emoji.emojize(":battery:", use_aliases=True),
                              callback_data="/health")]] + back_button
 
@@ -1637,6 +1798,7 @@ if __name__ == "__main__":
     handlers.append(CallbackQueryHandler(pattern='^/health', callback=health_check))
     handlers.append(CallbackQueryHandler(pattern='^/restart', callback=restart))
     handlers.append(CallbackQueryHandler(pattern='^/pairs', callback=pairs))
+    handlers.append(CallbackQueryHandler(pattern='^/cheapest', callback=cheapest))
     handlers.append(CallbackQueryHandler(pattern='^/hold_balance', callback=show_hold_balance))
     handlers.append(CallbackQueryHandler(pattern='^/actions', callback=unapproved_actions))
     handlers.append(CallbackQueryHandler(pattern='^/transfers', callback=transfers_show))
@@ -1648,6 +1810,7 @@ if __name__ == "__main__":
     handlers.append(CallbackQueryHandler(pattern='^ch\d{1,99}$', callback=user_stats))
     handlers.append(CallbackQueryHandler(pattern='^d\d{1,3}$', callback=action_disapprove))
     handlers.append(RegexHandler(pattern='^h\d{1,3}.\d{1,8}$', callback=hold_balance_update))
+    handlers.append(RegexHandler(pattern='^u\d{1,3}.\d{1,8}$', callback=request_unhedge))
     handlers.append(CallbackQueryHandler(pattern='^/readtc\d', callback=readtc))
 
     for h in handlers:

@@ -35,7 +35,7 @@ spec:
         name: bitcoinj
         env:
         - name: NETWORK
-          value: TEST
+          value: PROD
         - name: EFSFOLDER
           value: /mnt/efs
         ports:
