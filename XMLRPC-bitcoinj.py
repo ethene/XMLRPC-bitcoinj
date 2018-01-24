@@ -75,6 +75,7 @@ elif network == 'PROD':
 
 logger.info("Network: %s" % network)
 
+
 def loud_exceptions(*args):
     def _trace(func):
         def wrapper(*args, **kwargs):
@@ -101,6 +102,7 @@ def loud_exceptions(*args):
 class RequestHandler(SimpleXMLRPCRequestHandler):
     rpc_paths = ('/RPC2',)
 
+
 # Create server
 server = SimpleXMLRPCServer(("0.0.0.0", 8000),
                             requestHandler=RequestHandler)
@@ -120,7 +122,7 @@ class RPCFunctions:
         logger.debug("new address requested %s" % (address_string))
         return address_string
 
-    #TODO: getInputValue
+    # TODO: getInputValue
     def getInputValue(self, address):
         logger.debug("getting txs for %s" % (address))
         transactions = self.kit.wallet().getTransactions(True)
@@ -140,7 +142,7 @@ class RPCFunctions:
         logger.debug("address %s input value %.8f" % (address, invalue))
         return invalue
 
-    #TODO: isTXconfirmed
+    # TODO: isTXconfirmed
     def isTXconfirmed(self, tx_id):
         transactions = self.kit.wallet().getTransactions(True)
         result = False
@@ -153,7 +155,7 @@ class RPCFunctions:
                     break
         return result
 
-    #TODO: getUnconfirmedTransactions
+    # TODO: getUnconfirmedTransactions
     def getUnconfirmedTransactions(self, address):
         txs = []
         transactions = self.kit.wallet().getTransactions(True)
@@ -171,7 +173,7 @@ class RPCFunctions:
                         txs.append({'ID': tx_id, 'value': value})
         return txs
 
-    #TODO: sendCoins
+    # TODO: sendCoins
     def sendCoins(self, fromAddress, toAddress, amount):
         sr_tx = 0
         sent_value = 0
@@ -207,6 +209,7 @@ class RPCFunctions:
             sent_value = sr.tx.getValueSentFromMe(self.kit.wallet()).getValue()
             change_value = sr.tx.getValueSentToMe(self.kit.wallet()).getValue()
         return {'TX': sr_tx, 'value': sent_value - change_value}
+
 
 class SenderListener(AbstractWalletEventListener):
     def __init__(self, pg):
