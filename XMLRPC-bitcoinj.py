@@ -136,10 +136,6 @@ class RPCFunctions:
             confidence = t.getConfidence()
             depth = confidence.getDepthInBlocks()
             t_outputs = t.getOutputs()
-            # check unspent txs:
-            if depth < confirmationsRequired:
-                logger.debug("unspent: %s" % t.getHashAsString())
-
             for to in t_outputs:
                 toa = to.getAddressFromP2PKHScript(params)
                 if toa:
@@ -149,7 +145,6 @@ class RPCFunctions:
                         invalue += value
 
         logger.debug("address %s input value %.8f (%.8f BTC)" % (address, invalue, invalue / 1e8))
-
         return invalue
 
     # TODO: isTXconfirmed
@@ -206,7 +201,7 @@ class RPCFunctions:
             '''
             # new send procedure
             # max TX size (actually about 250)
-            tx_bytes = 700
+            tx_bytes = 800
             tx_deduct_fee = tx_bytes * satoshi_per_b
             default_tx_fee = org.bitcoinj.core.Coin.valueOf(tx_deduct_fee)
             logger.debug("deducted default fee: %d sat (%.8f BTC)" % (tx_deduct_fee, tx_deduct_fee / 1e8))
@@ -285,6 +280,9 @@ if __name__ == "__main__":
         confidence = t.getConfidence()
         depth = confidence.getDepthInBlocks()
         t_outputs = t.getOutputs()
+        # check unspent txs:
+        if depth < confirmationsRequired:
+            logger.debug("unspent: %s" % t.getHashAsString())
         for to in t_outputs:
             toa = to.getAddressFromP2PKHScript(params)
             to_address = None
