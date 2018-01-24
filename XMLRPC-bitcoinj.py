@@ -217,6 +217,10 @@ class RPCFunctions:
             change_value = sr.tx.getValueSentToMe(self.kit.wallet()).getValue()
         return {'TX': sr_tx, 'value': sent_value - change_value}
 
+    # TODO: getBalance
+    def getWalletBalance(self):
+        balance = self.kit.wallet().getBalance().getValue()
+        return balance
 
 class SenderListener(AbstractWalletEventListener):
     def __init__(self, pg):
