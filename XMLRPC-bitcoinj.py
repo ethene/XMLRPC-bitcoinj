@@ -276,13 +276,14 @@ if __name__ == "__main__":
         t_outputs = t.getOutputs()
         for to in t_outputs:
             toa = to.getAddressFromP2PKHScript(params)
+            to_address = None
             if toa:
-                to_addr = toa.toString()
+                to_address = toa.toString()
             value = int(to.getValue().toString())
-            if to_addr and (to_addr in addr_balance):
-                addr_balance[to_addr] += value
-            elif to_addr:
-                addr_balance[to_addr] = value
+            if to_address and (to_address in addr_balance):
+                addr_balance[to_address] += value
+            elif to_address:
+                addr_balance[to_address] = value
 
     for a in addr_balance:
         logger.debug("addr: %s value %s" % (a, addr_balance[a]))
