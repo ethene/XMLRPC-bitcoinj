@@ -224,14 +224,13 @@ class SenderListener(AbstractWalletEventListener):
 
         class myFutureCallback(FutureCallback):
             def __init__(self, tx):
-                self.tx = tx
+                self.trx = tx
 
             @loud_exceptions
             def onSuccess(self, txn):
                 valueConfirmed = v.getValue()
-                tx = self.tx
                 logger.debug("confirmed: %s" % valueConfirmed)
-                for to in tx.getOutputs():
+                for to in self.trx.getOutputs():
                     addr = to.getAddressFromP2PKHScript(params).toString()
                     logger.debug("confirmed receiver address: %s" % addr)
 
