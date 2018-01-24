@@ -127,7 +127,7 @@ class RPCFunctions:
         logger.debug("new address requested %s" % (address_string))
         return address_string
 
-    #TODO: getInputValue
+    # TODO: getInputValue
     def getInputValue(self, address):
         logger.debug("getting txs for %s" % (address))
         transactions = self.kit.wallet().getTransactions(True)
@@ -136,6 +136,10 @@ class RPCFunctions:
             confidence = t.getConfidence()
             depth = confidence.getDepthInBlocks()
             t_outputs = t.getOutputs()
+            # check unspent txs:
+            if depth < confirmationsRequired:
+                logger.debug("unspent: %s" % t.getHashAsString())
+
             for to in t_outputs:
                 toa = to.getAddressFromP2PKHScript(params)
                 if toa:
@@ -144,7 +148,8 @@ class RPCFunctions:
                         value = int(to.getValue().toString())
                         invalue += value
 
-        logger.debug("address %s input value %.8f" % (address, invalue))
+        logger.debug("address %s input value %.8f (%.8f BTC)" % (address, invalue, invalue / 1e8))
+
         return invalue
 
     # TODO: isTXconfirmed
@@ -221,6 +226,7 @@ class RPCFunctions:
     def getWalletBalance(self):
         balance = self.kit.wallet().getBalance().getValue()
         return balance
+
 
 class SenderListener(AbstractWalletEventListener):
     def __init__(self, pg):
