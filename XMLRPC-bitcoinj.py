@@ -227,8 +227,9 @@ class SenderListener(AbstractWalletEventListener):
                 self.tx = tx
 
             @loud_exceptions
-            def onSuccess(selfx, txn):
+            def onSuccess(self, txn):
                 valueConfirmed = v.getValue()
+                tx = self.tx
                 logger.debug("confirmed: %s" % valueConfirmed)
                 for to in tx.getOutputs():
                     addr = to.getAddressFromP2PKHScript(params).toString()
