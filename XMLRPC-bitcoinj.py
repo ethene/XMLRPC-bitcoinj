@@ -1,5 +1,5 @@
 #!/home/strky/jython/bin/jython
-# -*- coding: utf-8 -*-
+#  -*- coding: utf-8 -*-
 import sys
 
 sys.path.append("bitcoinj-core-0.14.5-bundled.jar")
@@ -64,6 +64,7 @@ logger.addHandler(log_handler)
 logger.setLevel(level)
 
 params = None
+filePrefix = None
 network = os.getenv('NETWORK', 'TEST')
 if network == 'TEST':
     params = org.bitcoinj.params.TestNet3Params.get()
