@@ -51,6 +51,11 @@ try:
 except:
     confirmationsRequired = 1
 
+try:
+    satoshi_per_b = int(os.getenv('SATOSHI_PER_B'))
+except:
+    satoshi_per_b = 300
+
 formatter = logging.Formatter(fmt='%(asctime)s - %(levelname)s - %(module)s - %(message)s')
 logger = logging.getLogger(script_name)
 log_handler = logging.StreamHandler()
@@ -122,7 +127,7 @@ class RPCFunctions:
         logger.debug("new address requested %s" % (address_string))
         return address_string
 
-    # TODO: getInputValue
+    #TODO: getInputValue
     def getInputValue(self, address):
         logger.debug("getting txs for %s" % (address))
         transactions = self.kit.wallet().getTransactions(True)
@@ -195,15 +200,17 @@ class RPCFunctions:
             change_value = sr.tx.getValueSentToMe(self.kit.wallet()).getValue()
             '''
             # new send procedure
-            fee_multiplier = 2
-            default_tx_fee = org.bitcoinj.core.Transaction.DEFAULT_TX_FEE.multiply(fee_multiplier)
-            logger.debug("deducted default fee: %d" % (default_tx_fee.getValue()))
+            # max TX size (actually about 250)
+            tx_bytes = 700
+            tx_deduct_fee = tx_bytes * satoshi_per_b
+            default_tx_fee = org.bitcoinj.core.Coin.valueOf(tx_deduct_fee)
+            logger.debug("deducted default fee: %d sat (%.8f BTC)" % (tx_deduct_fee, tx_deduct_fee / 1e8))
             c = org.bitcoinj.core.Coin.valueOf(amount).subtract(default_tx_fee)
             toAddr = org.bitcoinj.core.Address.fromBase58(params, toAddress)
             send_request = org.bitcoinj.wallet.SendRequest.to(toAddr, c)
-            fee_per_kb = org.bitcoinj.core.Transaction.REFERENCE_DEFAULT_MIN_TX_FEE.multiply(fee_multiplier)
+            fee_per_kb = satoshi_per_b * 1000
             send_request.feePerKb = fee_per_kb
-            logger.debug("set fee per kb: %d" % (fee_per_kb.getValue()))
+            logger.debug("set fee per kb: %d sat (%.8f BTC)" % (fee_per_kb, fee_per_kb / 1e8))
             sr = self.kit.wallet().sendCoins(pg, send_request)
             sr_tx = sr.tx.getHashAsString()
             sent_value = sr.tx.getValueSentFromMe(self.kit.wallet()).getValue()
