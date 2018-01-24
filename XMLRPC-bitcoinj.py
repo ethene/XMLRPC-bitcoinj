@@ -283,11 +283,6 @@ if __name__ == "__main__":
         # check unspent txs:
         if depth < confirmationsRequired:
             logger.debug("unspent: %s" % t.getHashAsString())
-            new_sr = org.bitcoinj.wallet.SendRequest.forTx(t)
-            new_sr.feePerKb = org.bitcoinj.core.Coin.valueOf(400000)
-            sr = kit.wallet().sendCoins(pg, new_sr)
-            sr_tx = sr.tx.getHashAsString()
-            logger.debug("new tx: %s" % sr_tx)
 
         for to in t_outputs:
             toa = to.getAddressFromP2PKHScript(params)
