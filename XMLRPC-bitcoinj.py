@@ -184,7 +184,7 @@ class RPCFunctions:
         sent_value = 0
         change_value = 0
         bl = self.kit.wallet().getBalance()
-        balance = bl.getValue()
+        # balance = bl.getValue()
         invalue = self.getInputValue(fromAddress)
         legal = invalue - amount >= 0
         logger.debug("invalue: %d, to_send: %d, legal: %s " % (invalue, amount, legal))
@@ -209,7 +209,7 @@ class RPCFunctions:
             toAddr = org.bitcoinj.core.Address.fromBase58(params, toAddress)
             send_request = org.bitcoinj.wallet.SendRequest.to(toAddr, c)
             fee_per_kb = satoshi_per_b * 1000
-            send_request.feePerKb = fee_per_kb
+            send_request.feePerKb = org.bitcoinj.core.Coin.valueOf(fee_per_kb)
             logger.debug("set fee per kb: %d sat (%.8f BTC)" % (fee_per_kb, fee_per_kb / 1e8))
             sr = self.kit.wallet().sendCoins(pg, send_request)
             sr_tx = sr.tx.getHashAsString()
