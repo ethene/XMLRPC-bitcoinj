@@ -194,7 +194,7 @@ class RPCFunctions:
             '''
             # new send procedure
             fee_multiplier = 2
-            default_tx_fee = org.bitcoinj.core.Transaction.DEFAULT_TX_FEE.muliply(fee_multiplier)
+            default_tx_fee = org.bitcoinj.core.Transaction.DEFAULT_TX_FEE.multiply(fee_multiplier)
             logger.debug("deducted default fee: %d" % (default_tx_fee.getValue()))
             c = org.bitcoinj.core.Coin.valueOf(amount).subtract(default_tx_fee)
             toAddr = org.bitcoinj.core.Address.fromBase58(params, toAddress)
