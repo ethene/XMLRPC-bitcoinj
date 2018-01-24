@@ -194,12 +194,14 @@ class RPCFunctions:
             '''
             # new send procedure
             fee_multiplier = 2
-            default_tx_fee = org.bitcoinj.core.Transaction.DEFAULT_TX_FEE
-            c = org.bitcoinj.core.Coin.valueOf(amount).subtract(default_tx_fee.multiply(fee_multiplier))
+            default_tx_fee = org.bitcoinj.core.Transaction.DEFAULT_TX_FEE.muliply(fee_multiplier)
+            logger.debug("deducted default fee: %d" % (default_tx_fee.getValue()))
+            c = org.bitcoinj.core.Coin.valueOf(amount).subtract(default_tx_fee)
             toAddr = org.bitcoinj.core.Address.fromBase58(params, toAddress)
             send_request = org.bitcoinj.wallet.SendRequest.to(toAddr, c)
-            fee = org.bitcoinj.core.Transaction.REFERENCE_DEFAULT_MIN_TX_FEE
-            send_request.feePerKb = fee.multiply(fee_multiplier)
+            fee_per_kb = org.bitcoinj.core.Transaction.REFERENCE_DEFAULT_MIN_TX_FEE.multiply(fee_multiplier)
+            send_request.feePerKb = fee_per_kb
+            logger.debug("set fee per kb: %d" % (fee_per_kb.getValue()))
             sr = self.kit.wallet().sendCoins(pg, send_request)
             sr_tx = sr.tx.getHashAsString()
             sent_value = sr.tx.getValueSentFromMe(self.kit.wallet()).getValue()
