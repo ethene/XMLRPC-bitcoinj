@@ -243,8 +243,8 @@ class SenderListener(AbstractWalletEventListener):
                 valueConfirmed = v.getValue()
                 logger.debug("confirmed: %s" % valueConfirmed)
                 for to in self.trx.getOutputs():
-                    addr = to.getAddressFromP2PKHScript(params).toString()
-                    logger.debug("confirmed receiver address: %s" % addr)
+                    addr = to.getAddressFromP2PKHScript(params)
+                    logger.debug("confirmed receiver address: %s" % addr.toString())
 
         Futures.addCallback(tx.getConfidence().getDepthFuture(confirmationsRequired), myFutureCallback(tx))
 
