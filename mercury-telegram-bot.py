@@ -600,7 +600,12 @@ def stats(bot, update):
     btc_price = getBTCPrice()
     # separate procedure to reuse
     df = pd.read_sql_query(sql='SELECT * FROM ' + balance_table, con=db_engine, index_col='index')
-    df_groupped = df.groupby(df.timestamp.dt.date)['totalbalance'].mean()
+
+    df_mean = df.groupby(df.timestamp.dt.date)['totalbalance'].mean()
+    df_groupped = df_mean
+
+    # pd.rolling_mean(df_mean, min(15, len(df_mean) // 6 ))
+    df_groupped = df_groupped.dropna()
     # df_projected = df.groupby(df.timestamp.dt.date)['projectedbalance'].mean()
     with db_engine.connect() as con:
         user_DB_ID, last_position_close = get_DB_user_ID(con, user_telegram_ID)
@@ -649,20 +654,28 @@ def get_user_portfolio_stats(btc_price, bot, chat_id, user_DB_ID, last_position_
             message += "\n" + _("TESTING_STATS") + "\n"
         bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown',
                          reply_markup=ReplyKeyboardRemove())
+
         send_stats2(bot, df_groupped / XBt_TO_XBT, chat_id, label="Current portfolio value, BTC")
         t_diff = monthdelta(df_groupped.index[0], df_groupped.index[-1])
         month_diff = t_diff[0]
         d_diff = t_diff[1]
         message = _("WAS_OPENED_AGO") % (month_diff, d_diff) + "\n"
-        logger.debug(message)
+        # logger.debug(message)
         inv_select = select([mercury_investments]).where(mercury_investments.c.userID == user_DB_ID)
         rs = con.execute(inv_select)
         investments = rs.fetchall()
 
         message += _("YOUVE_INVESTED") + "\n\n"
-        logger.debug(message)
+        # logger.debug(message)
+        total_investments = 0
+        no_inv = 0
         for i in investments:
             message += _("YOUVE_INVESTED_ON") % ((i.value / XBt_TO_XBT), i.timestamp.strftime("%d %b %Y")) + "\n"
+            no_inv += 1
+            total_investments += (i.value / XBt_TO_XBT)
+        if no_inv > 1:
+            message += "---\n"
+            message += _("TOTAL_INVESTED") % total_investments + "\n"
 
         message += "\n"
         # current_value = None
@@ -673,8 +686,6 @@ def get_user_portfolio_stats(btc_price, bot, chat_id, user_DB_ID, last_position_
             message += _("ABS_RETURN") % (balance_profit) + "\n"
             message += _("EQUALS_TO") % (balance_profit * btc_price, btc_price) + "\n"
             timedelta = df_groupped.index[-1] - df_groupped.index[0]
-            # logger.debug(timedelta.days)
-            # logger.debug(balance_profit)
             yearly_pc = (((balance_profit / timedelta.days) * 365) / (df_groupped[0] / XBt_TO_XBT)) * 100
             message += _("CS_WHICH_IS") % yearly_pc + "\n\n"
         try:
@@ -701,7 +712,13 @@ def get_user_portfolio_stats(btc_price, bot, chat_id, user_DB_ID, last_position_
 
         df = df[(df.projectedbalance >= (df_groupped[0] / XBt_TO_XBT))]
         df_projected = df.groupby(df.timestamp.dt.date)['projectedbalance'].mean()
-        df_projected = df_projected * portfolio_share
+
+        try:
+            df_projected = df_projected * portfolio_share
+        except Exception as e:
+            logger.error(e)
+            logger.error(traceback.format_exc())
+
         # df_projected = df_projected[(df_projected != 0)]
         # df_projected = df_projected[(df_projected >= (df_groupped[0] / XBt_TO_XBT))]
         if len(df) > 2:
@@ -730,23 +747,30 @@ def get_user_portfolio_stats(btc_price, bot, chat_id, user_DB_ID, last_position_
 
 
 def get_user_balance_profit(user_DB_ID):
+    logger.debug("GUP")
     df = pd.read_sql_query(sql='SELECT * FROM ' + positions_table + ' WHERE `USERID` = ' + str(
         user_DB_ID) + ' AND `TIMESTAMP` > (SELECT LAST_POSITION_CLOSE from ' + useraccounts_table + ' WHERE `ID`= ' + str(
-        user_DB_ID) + ')',
-                           con=db_engine, index_col='timestamp')
+        user_DB_ID) + ')', con=db_engine, index_col='timestamp')
+
     df = df[(df.position != 0)]
     df_groupped = df.groupby(df.index)['position'].mean()
 
+    # df_groupped = df[(df.position != 0)]['position']
+
     balance_profit = 0
+
     with db_engine.connect() as con:
         inv_select = select([mercury_investments]).where(mercury_investments.c.userID == user_DB_ID)
+
         rs = con.execute(inv_select)
         investments = rs.fetchall()
+
         invested_value = 0
         for i in investments:
             invested_value += i.value
-
         balance_profit = (df_groupped[-1] - invested_value) / XBt_TO_XBT
+
+    logger.debug(df_groupped)
     return balance_profit, df_groupped
 
 
@@ -781,6 +805,8 @@ def send_stats(bot, df_groupped, chat_id):
 # send absolute profit stats
 def send_stats2(bot, df_groupped, chat_id, label='Absolute growth, BTC'):
     if len(df_groupped) > 0:
+        df_groupped = pd.rolling_mean(df_groupped, min(len(df_groupped) // 10, 100))
+        df_groupped = df_groupped.dropna()
         # daily_pc = df_groupped.pct_change().dropna() * 365 * 100
         # cumulative_pc = ((df_groupped - df_groupped.ix[0]) / df_groupped.ix[0]) * 100
 
@@ -1411,9 +1437,39 @@ def hold_balance_update(bot, update):
     log_event = 'New hold balance: %s' % hold_balance
     user_telegram_ID = log_record(log_event, update)
     with db_engine.connect() as con:
-        ins = mercury_hold_balance.insert().values(index=getUTCtime(), hold_balance=hold_balance)
+        select_hold_balance = select([mercury_hold_balance]).order_by(desc(mercury_hold_balance.c.timestamp))
+        rs = con.execute(select_hold_balance).fetchall()
+        hold_loan = rs[0].hold_loan.__float__()
+        ins = mercury_hold_balance.insert().values(index=getUTCtime(), hold_balance=hold_balance, hold_loan=hold_loan)
         con.execute(ins)
-    message = "Updated hold balance as *%s*" % hold_balance
+    message = "Updated hold balance as *%s*\n" % hold_balance
+    message += "Hold loan balance is *%s*\n" % hold_loan
+    bot.send_message(chat_id=chat_id, text=message, reply_markup=InlineKeyboardMarkup(
+        inline_keyboard=admin_keyboard),
+                     parse_mode='Markdown')
+
+
+# TODO: update hold loan balance
+def hold_loan_balance_update(bot, update):
+    global last_command
+    global last_args
+    isadmin = check_admin_privilege(update)
+    if not isadmin:
+        return
+    chat_id = get_chat_id(update)
+    command = update.message.text
+    hold_loan_balance = float(str.split(command, "l")[1])
+    log_event = 'New hold loan balance: %s' % hold_loan_balance
+    user_telegram_ID = log_record(log_event, update)
+    with db_engine.connect() as con:
+        select_hold_balance = select([mercury_hold_balance]).order_by(desc(mercury_hold_balance.c.timestamp))
+        rs = con.execute(select_hold_balance).fetchall()
+        hold_balance = rs[0].hold_balance.__float__()
+        ins = mercury_hold_balance.insert().values(index=getUTCtime(), hold_balance=hold_balance,
+                                                   hold_loan=hold_loan_balance)
+        con.execute(ins)
+    message = "Updated hold loan balance as *%s*\n" % hold_loan_balance
+    message += "Hold balance is *%s*\n" % hold_balance
     bot.send_message(chat_id=chat_id, text=message, reply_markup=InlineKeyboardMarkup(
         inline_keyboard=admin_keyboard),
                      parse_mode='Markdown')
@@ -1430,8 +1486,11 @@ def show_hold_balance(bot, update):
             select_hold_balance = select([mercury_hold_balance]).order_by(desc(mercury_hold_balance.c.timestamp))
             rs = con.execute(select_hold_balance).fetchall()
             hold_balance = rs[0].hold_balance.__float__()
-            message = "Current hold balance: *%.8f* BTC\n" % hold_balance
+            hold_loan = rs[0].hold_loan.__float__()
+            message = "Current hold balance: *%.2f* BTC\n" % hold_balance
+            message += "Current hold loan balance: *%.2f* BTC\n" % hold_loan
             message += "_Type hx.x to update hold balance\n_"
+            message += "_Type lx.x to update loan hold balance\n_"
     except Exception as e:
         message = "Could not initiate: %s" % e
     bot.send_message(chat_id=chat_id, text=message, reply_markup=ReplyKeyboardRemove(),
@@ -1690,11 +1749,8 @@ def health_check(bot, update):
             message += "_fees updated %d m ago_\n" % fee_updated_min
             if (fee_updated_min > 70) or (pos_updated_min > 70):
                 message += "*Position and/or fees were updated too long ago*"
-
-                # message += "_updated %d m ago_\n" % ((getUTCtime() - health_record[0]['index']) / 60000)
-
     except Exception as e:
-        response = "Could not initiate: %s" % e
+        message = "Could not initiate: %s" % e
 
     logger.debug(message)
     query = update.callback_query
@@ -1810,6 +1866,7 @@ if __name__ == "__main__":
     handlers.append(CallbackQueryHandler(pattern='^ch\d{1,99}$', callback=user_stats))
     handlers.append(CallbackQueryHandler(pattern='^d\d{1,3}$', callback=action_disapprove))
     handlers.append(RegexHandler(pattern='^h\d{1,3}.\d{1,8}$', callback=hold_balance_update))
+    handlers.append(RegexHandler(pattern='^l\d{1,3}.\d{1,8}$', callback=hold_loan_balance_update))
     handlers.append(RegexHandler(pattern='^u\d{1,3}.\d{1,8}$', callback=request_unhedge))
     handlers.append(CallbackQueryHandler(pattern='^/readtc\d', callback=readtc))
 

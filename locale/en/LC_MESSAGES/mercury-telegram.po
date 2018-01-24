@@ -5,8 +5,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: mercury-telegram-bot\n"
-"POT-Creation-Date: 2017-12-04 13:32+1000\n"
-"PO-Revision-Date: 2017-12-04 13:32+1000\n"
+"POT-Creation-Date: 2018-01-24 00:11+1100\n"
+"PO-Revision-Date: 2018-01-24 00:12+1100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: en\n"
@@ -14,7 +14,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: pygettext.py 1.5\n"
-"X-Generator: Poedit 2.0.4\n"
+"X-Generator: Poedit 2.0.6\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Poedit-Basepath: ../../..\n"
 "X-Poedit-SearchPath-0: mercury-telegram-bot.py\n"
@@ -133,84 +133,84 @@ msgstr "Your address is %s"
 msgid "BALANCE_UNAV"
 msgstr "*Balance is unavailable*"
 
-#: mercury-telegram-bot.py:610
+#: mercury-telegram-bot.py:615
 msgid "COMBINED_STATS"
 msgstr "*Mercury combined portfolio performance:*"
 
-#: mercury-telegram-bot.py:623
+#: mercury-telegram-bot.py:628
 msgid "CS_CURRENT_VALUE"
 msgstr "Total portfolio value is *%.6f* _BTC_"
 
-#: mercury-telegram-bot.py:624 mercury-telegram-bot.py:672
+#: mercury-telegram-bot.py:629 mercury-telegram-bot.py:687
 msgid "EQUALS_TO"
 msgstr ""
 "It equals to\n"
 "*$%.2f*\n"
 "_(%.2f USD/BTC)_"
 
-#: mercury-telegram-bot.py:628
+#: mercury-telegram-bot.py:633
 msgid "CS_RUNNING_TIME"
 msgstr "Was opened *%d* months *%d* days ago"
 
-#: mercury-telegram-bot.py:647
+#: mercury-telegram-bot.py:652
 msgid "YOUR_FOLIO_PERFORMANCE"
 msgstr "*Your portfolio performance:*"
 
-#: mercury-telegram-bot.py:649
+#: mercury-telegram-bot.py:654
 msgid "TESTING_STATS"
 msgstr "is a sample as bot in testing mode"
 
-#: mercury-telegram-bot.py:656
+#: mercury-telegram-bot.py:662
 msgid "WAS_OPENED_AGO"
 msgstr "Was opened *%d* months *%d* days ago"
 
-#: mercury-telegram-bot.py:662
+#: mercury-telegram-bot.py:668
 msgid "YOUVE_INVESTED"
 msgstr "You've invested:"
 
-#: mercury-telegram-bot.py:664
+#: mercury-telegram-bot.py:673
 msgid "YOUVE_INVESTED_ON"
 msgstr ""
 "*%.6f* _BTC_\n"
 "on %s"
 
-#: mercury-telegram-bot.py:669
+#: mercury-telegram-bot.py:678
+msgid "TOTAL_INVESTED"
+msgstr "Invested in total: *%.6f* _BTC_"
+
+#: mercury-telegram-bot.py:683
 msgid "NOW_WORTH"
 msgstr ""
 "Now it worth:\n"
 "*%.6f* _BTC_"
 
-#: mercury-telegram-bot.py:671
+#: mercury-telegram-bot.py:686
 msgid "ABS_RETURN"
 msgstr ""
 "Absolute return:\n"
 "*%.6f* _BTC_"
 
-#: mercury-telegram-bot.py:677
+#: mercury-telegram-bot.py:690
 msgid "CS_WHICH_IS"
 msgstr "Which is a *%.2f%%* yearly return"
 
-#: mercury-telegram-bot.py:709
+#: mercury-telegram-bot.py:731
 msgid "PROJECTED_PROFIT"
 msgstr "Projected profit *%.6f* _BTC_"
 
-#: mercury-telegram-bot.py:710
+#: mercury-telegram-bot.py:732
 msgid "PROJECTED_VALUE"
 msgstr "Projected value *%.6f* _BTC_"
 
-#: mercury-telegram-bot.py:712
-msgid "PROJECTED_VALUE_PC"
-msgstr "Projected absolute return *%.2f %%*"
-
-#: mercury-telegram-bot.py:715
+#: mercury-telegram-bot.py:737
 msgid "MAX_DAYS"
 msgstr "Trade cycle is *%d* days left"
 
-#: mercury-telegram-bot.py:718
+#: mercury-telegram-bot.py:740
 msgid "CURRENT_SWING"
 msgstr "Average swing is *%.2f%%*"
 
-#: mercury-telegram-bot.py:721
+#: mercury-telegram-bot.py:743
 msgid "YOUR_FEES"
 msgstr ""
 "*Approximate fees*\n"
@@ -218,56 +218,56 @@ msgstr ""
 "Early withdrawal: *%.6f* _BTC_\n"
 "Transfer: *%.6f* _BTC_"
 
-#: mercury-telegram-bot.py:861 mercury-telegram-bot.py:866
+#: mercury-telegram-bot.py:892 mercury-telegram-bot.py:897
 msgid "SUPPORT_REQUEST_SENT"
 msgstr ""
 "Support request is sent.\n"
 "Please wait to be contacted."
 
-#: mercury-telegram-bot.py:899
+#: mercury-telegram-bot.py:930
 msgid "YOU_SENT_CLOSE"
 msgstr ""
 "You have sent the request already\n"
 "Please wait until we approve it"
 
-#: mercury-telegram-bot.py:904
+#: mercury-telegram-bot.py:935
 msgid "POSITION_CLOSE_SENT"
 msgstr ""
 "Position close request is sent for manual approval.\n"
 "It will be processed as soon as practically possible."
 
-#: mercury-telegram-bot.py:948
+#: mercury-telegram-bot.py:979
 msgid "YOU_SENT_INVEST"
 msgstr ""
 "You have sent the request already\n"
 "Please wait until we approve it"
 
-#: mercury-telegram-bot.py:958
+#: mercury-telegram-bot.py:989
 msgid "YOU_HAVE_AGREED"
 msgstr ""
 "You have agreed to proceed.\n"
 "We will send you a note you when your request is approved.\n"
 "Thank you for your patience."
 
-#: mercury-telegram-bot.py:962
+#: mercury-telegram-bot.py:993
 msgid "INSUFFICIENT_BALANCE"
 msgstr ""
 "*You have insufficient balance.\n"
 "Please top-up your wallet first and wait until your funds are confirmed.*"
 
-#: mercury-telegram-bot.py:1115
+#: mercury-telegram-bot.py:1146
 msgid "YOUR_ACTION_DISAPPROVED"
 msgstr ""
 "Your latest request was not approved\n"
 "*Please wait to be contacted*"
 
-#: mercury-telegram-bot.py:1204
+#: mercury-telegram-bot.py:1235
 msgid "ADDED_TO_PORTFOLIO"
 msgstr ""
 "Added to portfolio: *%.6f* _BTC_\n"
 "*%.8f* fee paid"
 
-#: mercury-telegram-bot.py:1261
+#: mercury-telegram-bot.py:1292
 msgid "POSITION_PENDING_WITHDRAW"
 msgstr ""
 "Pending position withdrawal: %.6f _BTC_\n"
@@ -276,9 +276,12 @@ msgstr ""
 "Early Withdrawal Fee %.6 BTCf\n"
 "Transfer Fee %.6f BTC"
 
-#: mercury-telegram-bot.py:1756
+#: mercury-telegram-bot.py:1818
 msgid "HOME_BUTTON"
 msgstr "%s go home"
+
+#~ msgid "PROJECTED_VALUE_PC"
+#~ msgstr "Projected absolute return *%.2f %%*"
 
 #~ msgid "CS_GREW_UP"
 #~ msgstr "Fund portfolio grew up %.6f BTC"

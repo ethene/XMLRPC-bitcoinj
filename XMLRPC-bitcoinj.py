@@ -32,9 +32,7 @@ import os
 level = logging.DEBUG
 
 script_name = 'XMLRPC-bitcoinj'
-
 efsfolder = os.getenv('EFSFOLDER', '.')
-
 walletFolder = efsfolder + '/wallet'
 logfolder = efsfolder + '/log/'
 
@@ -65,6 +63,7 @@ log_handler = SizedTimedRotatingFileHandler(log_filename, maxBytes=0, backupCoun
 logger.addHandler(log_handler)
 logger.setLevel(level)
 
+params = None
 network = os.getenv('NETWORK', 'TEST')
 if network == 'TEST':
     params = org.bitcoinj.params.TestNet3Params.get()
@@ -113,12 +112,14 @@ class RPCFunctions:
     def __init__(self, kit):
         self.kit = kit
 
+    # TODO: getNewAddress
     def getNewAddress(self):
         address = self.kit.wallet().freshReceiveAddress()
         address_string = address.toString()
         logger.debug("new address requested %s" % (address_string))
         return address_string
 
+    #TODO: getInputValue
     def getInputValue(self, address):
         logger.debug("getting txs for %s" % (address))
         transactions = self.kit.wallet().getTransactions(True)
@@ -138,6 +139,7 @@ class RPCFunctions:
         logger.debug("address %s input value %.8f" % (address, invalue))
         return invalue
 
+    #TODO: isTXconfirmed
     def isTXconfirmed(self, tx_id):
         transactions = self.kit.wallet().getTransactions(True)
         result = False
@@ -150,6 +152,7 @@ class RPCFunctions:
                     break
         return result
 
+    #TODO: getUnconfirmedTransactions
     def getUnconfirmedTransactions(self, address):
         txs = []
         transactions = self.kit.wallet().getTransactions(True)
@@ -167,6 +170,7 @@ class RPCFunctions:
                         txs.append({'ID': tx_id, 'value': value})
         return txs
 
+    #TODO: sendCoins
     def sendCoins(self, fromAddress, toAddress, amount):
         sr_tx = 0
         sent_value = 0
@@ -177,6 +181,8 @@ class RPCFunctions:
         legal = invalue - amount >= 0
         logger.debug("invalue: %d, to_send: %d, legal: %s " % (invalue, amount, legal))
         if legal:
+            # old send procedure
+            '''
             c = org.bitcoinj.core.Coin.valueOf(amount).subtract(org.bitcoinj.core.Transaction.DEFAULT_TX_FEE)
             pg = self.kit.peerGroup()
             toAddr = org.bitcoinj.core.Address.fromBase58(params, toAddress)
@@ -184,8 +190,20 @@ class RPCFunctions:
             sr_tx = sr.tx.getHashAsString()
             sent_value = sr.tx.getValueSentFromMe(self.kit.wallet()).getValue()
             change_value = sr.tx.getValueSentToMe(self.kit.wallet()).getValue()
+            '''
+            # new send procedure
+            fee_multiplier = 2
+            default_tx_fee = org.bitcoinj.core.Transaction.DEFAULT_TX_FEE
+            c = org.bitcoinj.core.Coin.valueOf(amount).subtract(default_tx_fee.multiply(fee_multiplier))
+            toAddr = org.bitcoinj.core.Address.fromBase58(params, toAddress)
+            send_request = org.bitcoinj.wallet.SendRequest.to(toAddr, c)
+            fee = org.bitcoinj.core.Transaction.REFERENCE_DEFAULT_MIN_TX_FEE
+            send_request.feePerKb = fee.multiply(fee_multiplier)
+            sr = self.kit.wallet().sendCoins(pg, send_request)
+            sr_tx = sr.tx.getHashAsString()
+            sent_value = sr.tx.getValueSentFromMe(self.kit.wallet()).getValue()
+            change_value = sr.tx.getValueSentToMe(self.kit.wallet()).getValue()
         return {'TX': sr_tx, 'value': sent_value - change_value}
-
 
 class SenderListener(AbstractWalletEventListener):
     def __init__(self, pg):
@@ -220,6 +238,9 @@ class SenderListener(AbstractWalletEventListener):
 
 # TODO: main loop
 if __name__ == "__main__":
+    if not params:
+        logger.error("no network params defined per NETWORK env")
+        sys.exit()
     f = File(walletFolder)
     kit = WalletAppKit(params, f, filePrefix)
     kit.setAutoSave(True)
