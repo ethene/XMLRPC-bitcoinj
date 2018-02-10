@@ -1340,6 +1340,22 @@ def change_action(action_id, approved):
         con.execute(upd)
 
 
+# TODO: get wallet_balance
+def wallet_balance(bot, update):
+    chat_id = get_chat_id(update)
+    isadmin = check_admin_privilege(update)
+    if not isadmin:
+        return
+    XMLRPCServer_bitcoinj = get_bitcoinj_XMLRPC()
+    try:
+        balance = XMLRPCServer_bitcoinj.getWalletBalance()
+        message = "Balance %.8f BTC" % (balance / XBt_TO_XBT)
+    except Exception as e:
+        message = "Could not initiate: %s" % e
+    bot.send_message(chat_id=chat_id, text=message, reply_markup=InlineKeyboardMarkup(inline_keyboard=admin_keyboard),
+                     parse_mode='Markdown')
+
+
 # TODO: transfers_show
 def transfers_show(bot, update):
     chat_id = get_chat_id(update)
@@ -1840,6 +1856,9 @@ if __name__ == "__main__":
                              text="%s cheapest pairs" % emoji.emojize(":top:", use_aliases=True),
                              callback_data="/cheapest")],
                          [InlineKeyboardButton(
+                             text="%s wallet balance" % emoji.emojize(":credit_card:", use_aliases=True),
+                             callback_data="/walletbalance")],
+                         [InlineKeyboardButton(
                              text="%s check bot health" % emoji.emojize(":battery:", use_aliases=True),
                              callback_data="/health")]] + back_button
 
@@ -1861,6 +1880,7 @@ if __name__ == "__main__":
     handlers.append(CallbackQueryHandler(pattern='^/admin', callback=admin_functions))
     handlers.append(CallbackQueryHandler(pattern='^/contact', callback=contact))
     handlers.append(CallbackQueryHandler(pattern='^/invest', callback=invest))
+    handlers.append(CallbackQueryHandler(pattern='^/walletbalance', callback=wallet_balance))
     handlers.append(CallbackQueryHandler(pattern='^/close_position', callback=close_position))
     handlers.append(CallbackQueryHandler(pattern='^a\d{1,3}$', callback=action_approve))
     handlers.append(CallbackQueryHandler(pattern='^ch\d{1,99}$', callback=user_stats))
