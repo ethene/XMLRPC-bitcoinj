@@ -134,6 +134,11 @@ logging.basicConfig(format='%(asctime)s - %(levelname)s - %(module)s - %(message
 logger = logging.getLogger(script_name)
 logfolder = efsfolder + '/log/'
 try:
+    os.stat(efsfolder)
+except:
+    os.mkdir(efsfolder)
+
+try:
     os.stat(logfolder)
 except:
     os.mkdir(logfolder)
@@ -505,7 +510,8 @@ def get_latest_user_position(con, last_position_close, user_DB_ID):
     response2 = rs.fetchall()
     try:
         position = response2[0].position
-    except:
+    except Exception as e:
+        logger.error("position error: %e")
         position = 0
     return position
 
@@ -696,13 +702,14 @@ def get_user_portfolio_stats(btc_price, bot, chat_id, user_DB_ID, last_position_
             max_days = int(pnlminpnl['max_daysleft'])
             swing = float(pnlminpnl['swing'])
         except Exception as e:
+            logger.error("shit happened here:")
             logger.error(e)
             logger.error(traceback.format_exc())
             swing = None
             max_days = None
             projected_profit = None
 
-        logger.debug(message)
+        # logger.debug(message)
         portfolio_share = current_value / portfolio_df[-1]
 
         # pd.read_sql_query(sql='SELECT * FROM ' + balance_table, con=db_engine, index_col='index')
@@ -742,12 +749,13 @@ def get_user_portfolio_stats(btc_price, bot, chat_id, user_DB_ID, last_position_
         admin_fee, early_fee, withdrawal_fees = get_user_fees(user_DB_ID, balance_profit, con)
         message += "\n" + _("YOUR_FEES") % (admin_fee, early_fee, withdrawal_fees) + "\n"
 
+        logger.debug("sending message:\n %s" % message)
         bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown',
                          reply_markup=ReplyKeyboardRemove())
 
 
 def get_user_balance_profit(user_DB_ID):
-    logger.debug("GUP")
+    #logger.debug("GUP")
     df = pd.read_sql_query(sql='SELECT * FROM ' + positions_table + ' WHERE `USERID` = ' + str(
         user_DB_ID) + ' AND `TIMESTAMP` > (SELECT LAST_POSITION_CLOSE from ' + useraccounts_table + ' WHERE `ID`= ' + str(
         user_DB_ID) + ')', con=db_engine, index_col='timestamp')
@@ -770,15 +778,13 @@ def get_user_balance_profit(user_DB_ID):
             invested_value += i.value
         balance_profit = (df_groupped[-1] - invested_value) / XBt_TO_XBT
 
-    logger.debug(df_groupped)
+    #logger.debug(df_groupped)
     return balance_profit, df_groupped
 
 
 def get_user_fees(user_DB_ID, balance_profit, con):
     admin_fee = balance_profit * float(settings.ADMIN_FEE)
     logger.debug("Balance profit %.8f" % balance_profit)
-    logger.debug("Admin fee %.8f" % admin_fee)
-
     admin_fee = max(0, admin_fee)
     logger.debug("Admin fee %.8f" % admin_fee)
     select_fees = select([mercury_fees]).where(mercury_fees.c.userID == user_DB_ID).order_by(
@@ -786,6 +792,7 @@ def get_user_fees(user_DB_ID, balance_profit, con):
     rs = con.execute(select_fees).fetchall()
     early_fee = rs[0].early_fee / XBt_TO_XBT
     withdrawal_fees = rs[0].withdrawal_fees / XBt_TO_XBT
+    logger.debug("Withdrawal fee %.8f" % withdrawal_fees)
     return round(admin_fee, ROUNDING_DIGITS), round(early_fee, ROUNDING_DIGITS), round(withdrawal_fees,
                                                                                        ROUNDING_DIGITS)  # send % return stats
 
