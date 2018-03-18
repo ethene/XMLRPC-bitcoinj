@@ -1419,6 +1419,33 @@ def get_chat_id(update):
 
 
 # TODO: request unhedge
+def request_trade(bot, update):
+    global last_command
+    global last_args
+    isadmin = check_admin_privilege(update)
+    if not isadmin:
+        return
+    chat_id = get_chat_id(update)
+    command = update.message.text
+    try:
+        t, market, symbol, side, amount, marginal = command.split('_')
+    except ValueError:
+        t, market, symbol, side, amount = command.split('_')
+        marginal = 'n'
+
+    log_event = 'Requested to trade: %s' % command
+    user_telegram_ID = log_record(log_event, update)
+    try:
+        XMLRPCServer_mercurybot = getBotXMLRPC()
+        result = XMLRPCServer_mercurybot.trade(market, symbol, side, amount, marginal)
+        logger.debug(result)
+        message = "trade result: %s" % result
+    except Exception as e:
+        message = "Could not initiate: %s" % e
+    bot.send_message(chat_id=chat_id, text=message, reply_markup=InlineKeyboardMarkup(inline_keyboard=admin_keyboard),
+                     parse_mode='Markdown')
+
+# TODO: request unhedge
 def request_unhedge(bot, update):
     global last_command
     global last_args
@@ -1895,6 +1922,7 @@ if __name__ == "__main__":
     handlers.append(RegexHandler(pattern='^h\d{1,3}.\d{1,8}$', callback=hold_balance_update))
     handlers.append(RegexHandler(pattern='^l\d{1,3}.\d{1,8}$', callback=hold_loan_balance_update))
     handlers.append(RegexHandler(pattern='^u\d{1,3}.\d{1,8}$', callback=request_unhedge))
+    handlers.append(RegexHandler(pattern='^t_(b|p)_([A-Z]{3,4})_(sell|buy)_(\d{1,9})(_*m*)$', callback=request_trade))
     handlers.append(CallbackQueryHandler(pattern='^/readtc\d', callback=readtc))
 
     for h in handlers:
