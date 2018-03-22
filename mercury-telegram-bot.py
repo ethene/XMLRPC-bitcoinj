@@ -604,6 +604,8 @@ def stats(bot, update):
     log_event = 'hedge fund stats checked'
     user_telegram_ID = log_record(log_event, update)
     btc_price = getBTCPrice()
+    logger.debug("btc price %s" % btc_price)
+    '''
     # separate procedure to reuse
     df = pd.read_sql_query(sql='SELECT * FROM ' + balance_table, con=db_engine, index_col='index')
 
@@ -648,12 +650,13 @@ def stats(bot, update):
                      reply_markup=InlineKeyboardMarkup(
                          inline_keyboard=keyboard))
 
+    '''
 
 # TODO: user portfolio stats
 def get_user_portfolio_stats(btc_price, bot, chat_id, user_DB_ID, last_position_close, portfolio_df, con):
     position = get_latest_user_position(con, last_position_close, user_DB_ID)
     logger.debug("position: %s" % position)
-    '''
+
     if position > 0:
         balance_profit, df_groupped = get_user_balance_profit(user_DB_ID)
         logger.debug("balance_profit: %s" % balance_profit)
@@ -758,7 +761,7 @@ def get_user_portfolio_stats(btc_price, bot, chat_id, user_DB_ID, last_position_
         logger.debug("sending message:\n %s" % message)
         bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown',
                          reply_markup=ReplyKeyboardRemove())
-    '''
+
 
 def get_user_balance_profit(user_DB_ID):
     # logger.debug("GUP")
