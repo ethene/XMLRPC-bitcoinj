@@ -604,8 +604,8 @@ def stats(bot, update):
     log_event = 'hedge fund stats checked'
     user_telegram_ID = log_record(log_event, update)
     btc_price = getBTCPrice()
-    logger.debug("btc price %s" % btc_price)
-    '''
+    logger.debug("BTC price %s" % btc_price)
+
     # separate procedure to reuse
     df = pd.read_sql_query(sql='SELECT * FROM ' + balance_table, con=db_engine, index_col='index')
 
@@ -614,6 +614,8 @@ def stats(bot, update):
 
     # pd.rolling_mean(df_mean, min(15, len(df_mean) // 6 ))
     df_groupped = df_groupped.dropna()
+    logger.debug(df_groupped)
+    '''
     # df_projected = df.groupby(df.timestamp.dt.date)['projectedbalance'].mean()
     with db_engine.connect() as con:
         user_DB_ID, last_position_close = get_DB_user_ID(con, user_telegram_ID)
