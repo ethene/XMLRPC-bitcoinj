@@ -53,3 +53,5 @@ spec:
       - name: bitcoinj-persistent-storage
         persistentVolumeClaim:
           claimName: efs
+      nodeSelector:
+        instance: ours

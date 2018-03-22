@@ -709,8 +709,8 @@ def get_user_portfolio_stats(btc_price, bot, chat_id, user_DB_ID, last_position_
             max_days = None
             projected_profit = None
 
-        # logger.debug(message)
         portfolio_share = current_value / portfolio_df[-1]
+        logger.debug("portfolio share: %.8f" % portfolio_share)
 
         # pd.read_sql_query(sql='SELECT * FROM ' + balance_table, con=db_engine, index_col='index')
         df = pd.read_sql_query(
@@ -728,8 +728,10 @@ def get_user_portfolio_stats(btc_price, bot, chat_id, user_DB_ID, last_position_
 
         # df_projected = df_projected[(df_projected != 0)]
         # df_projected = df_projected[(df_projected >= (df_groupped[0] / XBt_TO_XBT))]
+        logger.debug("sending stats 2")
         if len(df) > 2:
             send_stats2(bot, df_projected, chat_id, label='Projected portfolio value, BTC')
+
 
         if projected_profit and current_value:
             # is a chunk of a whole projected profit
@@ -746,6 +748,7 @@ def get_user_portfolio_stats(btc_price, bot, chat_id, user_DB_ID, last_position_
         if swing:
             message += _("CURRENT_SWING") % swing + "\n"
 
+        logger.debug("getting fees")
         admin_fee, early_fee, withdrawal_fees = get_user_fees(user_DB_ID, balance_profit, con)
         message += "\n" + _("YOUR_FEES") % (admin_fee, early_fee, withdrawal_fees) + "\n"
 
@@ -755,7 +758,7 @@ def get_user_portfolio_stats(btc_price, bot, chat_id, user_DB_ID, last_position_
 
 
 def get_user_balance_profit(user_DB_ID):
-    #logger.debug("GUP")
+    # logger.debug("GUP")
     df = pd.read_sql_query(sql='SELECT * FROM ' + positions_table + ' WHERE `USERID` = ' + str(
         user_DB_ID) + ' AND `TIMESTAMP` > (SELECT LAST_POSITION_CLOSE from ' + useraccounts_table + ' WHERE `ID`= ' + str(
         user_DB_ID) + ')', con=db_engine, index_col='timestamp')
@@ -778,7 +781,7 @@ def get_user_balance_profit(user_DB_ID):
             invested_value += i.value
         balance_profit = (df_groupped[-1] - invested_value) / XBt_TO_XBT
 
-    #logger.debug(df_groupped)
+    # logger.debug(df_groupped)
     return balance_profit, df_groupped
 
 
@@ -817,10 +820,13 @@ def send_stats2(bot, df_groupped, chat_id, label='Absolute growth, BTC'):
         # daily_pc = df_groupped.pct_change().dropna() * 365 * 100
         # cumulative_pc = ((df_groupped - df_groupped.ix[0]) / df_groupped.ix[0]) * 100
 
-        plot_graph(df_groupped, pic_2_filename, label)
-        picture_2 = open(pic_folder + '/' + pic_2_filename, 'rb')
-        keyboard = ReplyKeyboardRemove()
-        bot.send_photo(chat_id=chat_id, photo=picture_2,
+        logger.debug(df_groupped)
+        if len(df_groupped) > 0:
+            plot_graph(df_groupped, pic_2_filename, label)
+            picture_2 = open(pic_folder + '/' + pic_2_filename, 'rb')
+            logger.debug(picture_2.name)
+            keyboard = ReplyKeyboardRemove()
+            bot.send_photo(chat_id=chat_id, photo=picture_2,
                        reply_markup=keyboard)
 
 
@@ -1445,6 +1451,7 @@ def request_trade(bot, update):
     bot.send_message(chat_id=chat_id, text=message, reply_markup=InlineKeyboardMarkup(inline_keyboard=admin_keyboard),
                      parse_mode='Markdown')
 
+
 # TODO: request unhedge
 def request_unhedge(bot, update):
     global last_command
@@ -1769,30 +1776,34 @@ def health_check(bot, update):
 
             message += "_time is_ *%s* _UTC_\n" % (datetime.utcnow().strftime("%H:%M:%S"))
 
-            select_mm_pnl = select([mm_pnl]).order_by(desc(mm_pnl.c.timestamp))
-            rs = con.execute(select_mm_pnl).fetchall()
-            last_mm_symbol = rs[0].symbol
-            last_mm_pnl = rs[0].mm_pnl
-            max_mm_timestamp = rs[0].timestamp
-            max_mm_timestamp = calendar.timegm(max_mm_timestamp.utctimetuple()) * 1000
             utc_time = getUTCtime()
-            last_mm_s = (utc_time - max_mm_timestamp) / 1000
-            last_mm_m = math.floor(last_mm_s / 60.0)
-            last_mm_h = math.floor(last_mm_m / 60.0)
-            message += "_last mm %s %d h %d m ago\nlast pnl: %.6f_\n" % (
-                last_mm_symbol, last_mm_h, last_mm_m - (last_mm_h * 60), float(last_mm_pnl))
 
-            select_unh_pnl = select([unhedge_pnl]).order_by(desc(unhedge_pnl.c.timestamp))
-            rs = con.execute(select_unh_pnl).fetchall()
-            last_unh_symbol = rs[0].symbol
-            last_unhedge_pnl = rs[0].unhedge_pnl
-            max_unh_timestamp = rs[0].timestamp
-            max_unh_timestamp = calendar.timegm(max_unh_timestamp.utctimetuple()) * 1000
-            last_unh_s = (utc_time - max_unh_timestamp) / 1000
-            last_unh_m = math.floor(last_unh_s / 60.0)
-            last_unh_h = math.floor(last_unh_m / 60.0)
-            message += "_last unhedge %s %d h %d m ago\nlast pnl: %.6f_\n" % (
-                last_unh_symbol, last_unh_h, last_unh_m - (last_unh_h * 60), float(last_unhedge_pnl))
+            try:
+                select_mm_pnl = select([mm_pnl]).order_by(desc(mm_pnl.c.timestamp))
+                rs = con.execute(select_mm_pnl).fetchall()
+                last_mm_symbol = rs[0].symbol
+                last_mm_pnl = rs[0].mm_pnl
+                max_mm_timestamp = rs[0].timestamp
+                max_mm_timestamp = calendar.timegm(max_mm_timestamp.utctimetuple()) * 1000
+                last_mm_s = (utc_time - max_mm_timestamp) / 1000
+                last_mm_m = math.floor(last_mm_s / 60.0)
+                last_mm_h = math.floor(last_mm_m / 60.0)
+                message += "_last mm %s %d h %d m ago\nlast pnl: %.6f_\n" % (
+                    last_mm_symbol, last_mm_h, last_mm_m - (last_mm_h * 60), float(last_mm_pnl))
+
+                select_unh_pnl = select([unhedge_pnl]).order_by(desc(unhedge_pnl.c.timestamp))
+                rs = con.execute(select_unh_pnl).fetchall()
+                last_unh_symbol = rs[0].symbol
+                last_unhedge_pnl = rs[0].unhedge_pnl
+                max_unh_timestamp = rs[0].timestamp
+                max_unh_timestamp = calendar.timegm(max_unh_timestamp.utctimetuple()) * 1000
+                last_unh_s = (utc_time - max_unh_timestamp) / 1000
+                last_unh_m = math.floor(last_unh_s / 60.0)
+                last_unh_h = math.floor(last_unh_m / 60.0)
+                message += "_last unhedge %s %d h %d m ago\nlast pnl: %.6f_\n" % (
+                    last_unh_symbol, last_unh_h, last_unh_m - (last_unh_h * 60), float(last_unhedge_pnl))
+            except:
+                pass
             pos_updated_min = (utc_time - max_pos_timestamp) / 60000
             fee_updated_min = (utc_time - max_fee_timestamp) / 60000
             message += "_position updated %d m ago_\n" % pos_updated_min
@@ -1801,6 +1812,7 @@ def health_check(bot, update):
                 message += "*Position and/or fees were updated too long ago*"
     except Exception as e:
         message = "Could not initiate: %s" % e
+        logger.error(traceback.format_exc())
 
     logger.debug(message)
     query = update.callback_query
@@ -1930,4 +1942,4 @@ if __name__ == "__main__":
 
     dispatcher.add_error_handler(error_callback)
 
-    updater.start_polling()
+    updater.start_polling(timeout=20)

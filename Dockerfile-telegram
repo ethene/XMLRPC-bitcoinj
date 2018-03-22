@@ -1,0 +1,28 @@
+#FROM continuumio/anaconda3
+FROM alpine:3.6
+MAINTAINER Starky
+RUN echo "http://dl-8.alpinelinux.org/alpine/edge/community" >> /etc/apk/repositories
+RUN apk --no-cache --update-cache add python3 python3-dev gcc gfortran g++ make build-base openblas-dev ca-certificates libpng-dev freetype-dev
+RUN ln -s /usr/include/locale.h /usr/include/xlocale.h
+RUN pip3 install numpy==1.12.1
+RUN pip3 install pandas==0.19.2
+RUN pip3 install matplotlib==2.0.2
+RUN pip3 install sqlalchemy mysql-connector==2.1.4
+RUN pip3 install requests future coloredlogs python-telegram-bot emoji
+RUN pip3 install https://github.com/s4w3d0ff/python-poloniex/archive/v0.4.6.zip
+RUN mkdir -p /app/auth /app/locale /app/utils
+COPY ./auth/ /app/auth/
+COPY ./locale/ /app/locale/
+COPY ./utils/ /app/utils/
+COPY ./SizedTimedRotatingFileHandler.py /app/
+COPY ./bitmex.py /app/
+RUN apk add bash
+RUN apk add jpeg-dev
+RUN apk add zlib-dev
+RUN apk add cairo-dev
+RUN apk add libffi-dev
+RUN pip3 install cairocffi
+WORKDIR /app
+COPY ./XMLRPC-client.py /app/
+COPY ./mercury-telegram-bot.py /app/
+ENTRYPOINT python3 mercury-telegram-bot.py
