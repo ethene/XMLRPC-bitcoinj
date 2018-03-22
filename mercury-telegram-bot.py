@@ -1951,4 +1951,4 @@ if __name__ == "__main__":
 
     dispatcher.add_error_handler(error_callback)
 
-    updater.start_polling(timeout=20)
+    updater.start_polling()
