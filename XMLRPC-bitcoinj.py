@@ -75,7 +75,7 @@ logger.setLevel(level)
 
 params = None
 filePrefix = None
-network = os.getenv('NETWORK', 'TEST')
+network = os.getenv('BITCOIN_NETWORK', 'TEST')
 if network == 'TEST':
     params = org.bitcoinj.params.TestNet3Params.get()
     filePrefix = 'bitcoinj-service-testnet'
@@ -114,7 +114,7 @@ class RequestHandler(SimpleXMLRPCRequestHandler):
 
 
 # Create server
-rpc_port = os.getenv('EFSFOLDER', '8010')
+rpc_port = os.getenv('BTICOINJ_RPCPORT', '8010')
 server = SimpleXMLRPCServer(("0.0.0.0", rpc_port),
                             requestHandler=RequestHandler)
 server.register_introspection_functions()
