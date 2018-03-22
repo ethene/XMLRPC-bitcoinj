@@ -643,6 +643,7 @@ def stats(bot, update):
     # message += _("CS_ABS_PROFIT") % (balance_profit / df_groupped[0]) + "\n"
     # message += _("EQUALS_TO") % ((balance_profit / df_groupped[0]) * btc_price, btc_price) + "\n"
     keyboard = back_button
+    logger.debug('exiting stats')
     bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown',
                      reply_markup=InlineKeyboardMarkup(
                          inline_keyboard=keyboard))
@@ -820,7 +821,7 @@ def send_stats2(bot, df_groupped, chat_id, label='Absolute growth, BTC', pic_ix=
         df_groupped = df_groupped.dropna()
         # daily_pc = df_groupped.pct_change().dropna() * 365 * 100
         # cumulative_pc = ((df_groupped - df_groupped.ix[0]) / df_groupped.ix[0]) * 100
-        logger.debug(df_groupped)
+        # logger.debug(df_groupped)
         if len(df_groupped) > 0:
             plot_graph(df_groupped, pic_ix + pic_2_filename, label)
             picture_2 = open(pic_folder + '/' + pic_ix + pic_2_filename, 'rb')
@@ -1942,4 +1943,4 @@ if __name__ == "__main__":
 
     dispatcher.add_error_handler(error_callback)
 
-    updater.start_polling()
+    updater.start_polling(timeout=20)
