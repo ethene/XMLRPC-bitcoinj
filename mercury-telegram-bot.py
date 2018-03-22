@@ -653,6 +653,7 @@ def stats(bot, update):
 def get_user_portfolio_stats(btc_price, bot, chat_id, user_DB_ID, last_position_close, portfolio_df, con):
     position = get_latest_user_position(con, last_position_close, user_DB_ID)
     logger.debug("position: %s" % position)
+    '''
     if position > 0:
         balance_profit, df_groupped = get_user_balance_profit(user_DB_ID)
         logger.debug("balance_profit: %s" % balance_profit)
@@ -757,7 +758,7 @@ def get_user_portfolio_stats(btc_price, bot, chat_id, user_DB_ID, last_position_
         logger.debug("sending message:\n %s" % message)
         bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown',
                          reply_markup=ReplyKeyboardRemove())
-
+    '''
 
 def get_user_balance_profit(user_DB_ID):
     # logger.debug("GUP")
