@@ -114,7 +114,8 @@ class RequestHandler(SimpleXMLRPCRequestHandler):
 
 
 # Create server
-server = SimpleXMLRPCServer(("0.0.0.0", 8000),
+rpc_port = os.getenv('EFSFOLDER', '8010')
+server = SimpleXMLRPCServer(("0.0.0.0", rpc_port),
                             requestHandler=RequestHandler)
 server.register_introspection_functions()
 
