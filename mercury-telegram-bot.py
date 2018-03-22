@@ -51,7 +51,7 @@ def error_callback(bot, update, error):
 
 
 bitcoinj_host = os.getenv('BITCOINJ_HOST', 'localhost')
-bitcoinj_port = os.getenv('BITCOINJ_PORT', '8000')
+bitcoinj_port = os.getenv('BTICOINJ_RPCPORT', '8010')
 
 mercurybot_host = os.getenv('MERCURYBOT_HOST', 'localhost')
 mercurybot_port = os.getenv('MERCURYBOT_PORT', '8000')
