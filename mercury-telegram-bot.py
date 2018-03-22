@@ -622,7 +622,7 @@ def stats(bot, update):
     bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown',
                      reply_markup=ReplyKeyboardRemove())
 
-    send_stats2(bot, df_groupped, chat_id, label='Absolute portfolio value, BTC', pic_ix='_1')
+    send_stats2(bot, df_groupped, chat_id, label='Absolute portfolio value, BTC', pic_ix='1_')
     balance_profit = df_groupped[-1] - df_groupped[0]
     timedelta = df_groupped.index[-1] - df_groupped.index[0]
     yearly_pc = ((balance_profit / timedelta.days) * 365) / df_groupped[0] * 100
@@ -662,7 +662,7 @@ def get_user_portfolio_stats(btc_price, bot, chat_id, user_DB_ID, last_position_
                          reply_markup=ReplyKeyboardRemove())
 
         logger.debug("sending portfolio value")
-        send_stats2(bot, df_groupped / XBt_TO_XBT, chat_id, label="Current portfolio value, BTC", pic_ix='_2')
+        send_stats2(bot, df_groupped / XBt_TO_XBT, chat_id, label="Current portfolio value, BTC", pic_ix='2_')
         t_diff = monthdelta(df_groupped.index[0], df_groupped.index[-1])
         month_diff = t_diff[0]
         d_diff = t_diff[1]
@@ -731,7 +731,7 @@ def get_user_portfolio_stats(btc_price, bot, chat_id, user_DB_ID, last_position_
         # df_projected = df_projected[(df_projected >= (df_groupped[0] / XBt_TO_XBT))]
         logger.debug("sending stats 2")
         if len(df) > 2:
-            send_stats2(bot, df_projected, chat_id, label='Projected portfolio value, BTC', pic_ix='_3')
+            send_stats2(bot, df_projected, chat_id, label='Projected portfolio value, BTC', pic_ix='3_')
 
 
         if projected_profit and current_value:
@@ -814,7 +814,7 @@ def send_stats(bot, df_groupped, chat_id):
 
 
 # send absolute profit stats
-def send_stats2(bot, df_groupped, chat_id, label='Absolute growth, BTC', pic_ix='_1'):
+def send_stats2(bot, df_groupped, chat_id, label='Absolute growth, BTC', pic_ix='1_'):
     if len(df_groupped) > 0:
         df_groupped = pd.rolling_mean(df_groupped, min(len(df_groupped) // 10, 100))
         df_groupped = df_groupped.dropna()
@@ -822,8 +822,8 @@ def send_stats2(bot, df_groupped, chat_id, label='Absolute growth, BTC', pic_ix=
         # cumulative_pc = ((df_groupped - df_groupped.ix[0]) / df_groupped.ix[0]) * 100
         logger.debug(df_groupped)
         if len(df_groupped) > 0:
-            plot_graph(df_groupped, pic_2_filename + pic_ix, label)
-            picture_2 = open(pic_folder + '/' + pic_2_filename + pic_ix, 'rb')
+            plot_graph(df_groupped, pic_ix + pic_2_filename, label)
+            picture_2 = open(pic_folder + '/' + pic_ix + pic_2_filename, 'rb')
             logger.debug(picture_2.name)
             keyboard = ReplyKeyboardRemove()
             bot.send_photo(chat_id=chat_id, photo=picture_2,
