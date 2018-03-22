@@ -2,16 +2,17 @@
 # -*- coding: utf-8 -*-
 
 # TODO: imports
-import sys
-sys.path.insert(0, '../BitMEX-trader/db/')
+
+# sys.path.insert(0, '../BitMEX-trader/db/')
 import gettext
 import logging
-import xmlrpc.client
 import os
+import xmlrpc.client
 
 import coloredlogs
 import emoji
 import telebot
+
 # from settings import MYSQL_CONNECTION, TELEGRAM_BOT_TOKEN
 from sqlalchemy import (create_engine, Table, MetaData)
 from sqlalchemy.sql import select
