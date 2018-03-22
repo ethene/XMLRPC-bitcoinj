@@ -114,7 +114,7 @@ class RequestHandler(SimpleXMLRPCRequestHandler):
 
 
 # Create server
-rpc_port = os.getenv('BTICOINJ_RPCPORT', '8010')
+rpc_port = int(os.getenv('BTICOINJ_RPCPORT', 8010))
 server = SimpleXMLRPCServer(("0.0.0.0", rpc_port),
                             requestHandler=RequestHandler)
 server.register_introspection_functions()
