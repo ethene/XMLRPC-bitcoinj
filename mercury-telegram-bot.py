@@ -1950,12 +1950,10 @@ if __name__ == "__main__":
     handlers.append(RegexHandler(pattern='^t_(b|p)_([A-Z]{3,4})_(sell|buy)_(\d{1,9})(_*m*)$', callback=request_trade))
     handlers.append(CallbackQueryHandler(pattern='^/readtc\d', callback=readtc))
 
-    '''
     for h in handlers:
         dispatcher.add_handler(h)
-    '''
 
-    dispatcher.add_handler(CallbackQueryHandler(pattern='^/start', callback=start))
+    # dispatcher.add_handler(CallbackQueryHandler(pattern='^/start', callback=start))
 
     dispatcher.add_error_handler(error_callback)
 
