@@ -79,7 +79,7 @@ coloredlogs.install(level=level)
 
 XBt_TO_XBT = 100000000
 transactions_table = 'bitcoinj_transactions'
-useraccounts_table = 'telegram_useraccounts'
+useraccounts_table = 'mercury_useraccounts'
 bitcoinj_transactions = Table(transactions_table, metadata, autoload=True)
 useraccounts = Table(useraccounts_table, metadata, autoload=True)
 
