@@ -1953,5 +1953,5 @@ if __name__ == "__main__":
 
     dispatcher.add_error_handler(error_callback)
 
-    # updater.start_polling(clean=True, timeout=30, poll_interval=10, read_latency=5, bootstrap_retries=0)
-    updater.start_polling()
+    updater.start_polling(timeout=30, poll_interval=0, read_latency=5, bootstrap_retries=0)
+    # updater.start_polling()
