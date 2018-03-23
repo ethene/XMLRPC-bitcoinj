@@ -621,7 +621,6 @@ def stats(bot, update):
 
     # df_projected = df.groupby(df.timestamp.dt.date)['projectedbalance'].mean()
     logger.debug('stats processed')
-    '''
     with db_engine.connect() as con:
         user_DB_ID, last_position_close = get_DB_user_ID(con, user_telegram_ID)
         logger.debug("user ID %s last_position_close %s" % (user_DB_ID, last_position_close))
@@ -658,7 +657,6 @@ def stats(bot, update):
                      reply_markup=InlineKeyboardMarkup(
                          inline_keyboard=keyboard))
 
-    '''
 
 # TODO: user portfolio stats
 def get_user_portfolio_stats(btc_price, bot, chat_id, user_DB_ID, last_position_close, portfolio_df, con):
