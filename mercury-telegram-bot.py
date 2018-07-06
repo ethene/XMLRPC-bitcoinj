@@ -626,7 +626,6 @@ def stats(bot, update):
         logger.debug("user ID %s last_position_close %s" % (user_DB_ID, last_position_close))
         get_user_portfolio_stats(btc_price, bot, chat_id, user_DB_ID, last_position_close, df_groupped, con)
 
-
     message = _("COMBINED_STATS") + "\n\n"
     bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown',
                      reply_markup=ReplyKeyboardRemove())
@@ -744,7 +743,6 @@ def get_user_portfolio_stats(btc_price, bot, chat_id, user_DB_ID, last_position_
         if len(df) > 2:
             send_stats2(bot, df_projected, chat_id, label='Projected portfolio value, BTC', pic_ix='3_')
 
-
         if projected_profit and current_value:
             # is a chunk of a whole projected profit
             projected_profit = portfolio_share * (projected_profit)
@@ -838,7 +836,7 @@ def send_stats2(bot, df_groupped, chat_id, label='Absolute growth, BTC', pic_ix=
             logger.debug(picture_2.name)
             keyboard = ReplyKeyboardRemove()
             bot.send_photo(chat_id=chat_id, photo=picture_2,
-                       reply_markup=keyboard)
+                           reply_markup=keyboard)
 
 
 # TODO: OTP command
@@ -1182,6 +1180,32 @@ def action_disapprove(bot, update):
     bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown',
                      reply_markup=InlineKeyboardMarkup(
                          inline_keyboard=admin_keyboard))
+
+
+# TODO: add investment
+def add_investment(bot, update):
+    global last_command
+    global last_args
+    isadmin = check_admin_privilege(update)
+    if not isadmin:
+        return
+    chat_id = get_chat_id(update)
+    command = update.message.text
+    invest_balance = float(str.split(command, "invest ")[1])
+    log_event = 'Invested manually: %s' % invest_balance
+    user_telegram_ID = log_record(log_event, update)
+    invest_value = invest_balance * XBt_TO_XBT
+    with db_engine.connect() as con:
+        user_DB_ID, last_position_close = get_DB_user_ID(con, user_telegram_ID)
+
+        ins = mercury_investments.insert().values(userID=user_DB_ID, value=invest_value,
+                                                  timestamp=datetime.utcnow())
+        con.execute(ins)
+
+        msg_to_user = "Manually added investment: %s" % invest_balance
+        bot.send_message(chat_id=user_telegram_ID, text=msg_to_user, parse_mode='Markdown',
+                         reply_markup=InlineKeyboardMarkup(
+                             inline_keyboard=back_button))
 
 
 # TODO: action_approve
@@ -1945,6 +1969,7 @@ if __name__ == "__main__":
     handlers.append(RegexHandler(pattern='^h\d{1,3}.\d{1,8}$', callback=hold_balance_update))
     handlers.append(RegexHandler(pattern='^l\d{1,3}.\d{1,8}$', callback=hold_loan_balance_update))
     handlers.append(RegexHandler(pattern='^u\d{1,3}.\d{1,8}$', callback=request_unhedge))
+    handlers.append(RegexHandler(pattern='^invest\s\d{1,3}.\d{1,8}$', callback=add_investment))
     handlers.append(RegexHandler(pattern='^t_(b|p)_([A-Z]{3,4})_(sell|buy)_(\d{1,9})(_*m*)$', callback=request_trade))
     handlers.append(CallbackQueryHandler(pattern='^/readtc\d', callback=readtc))
 
