@@ -1202,6 +1202,18 @@ def add_investment(bot, update):
                                                   timestamp=datetime.utcnow())
         con.execute(ins)
 
+        select_positions = select([positions]).where(positions.c.userID == user_DB_ID).order_by(
+            desc(positions.c.timestamp))
+        rs = con.execute(select_positions)
+        response = rs.fetchall()
+
+        user_position = response[0].position
+        user_pos_timestamp = response[0].timestamp
+
+        upd = positions.update().values(position=(user_position + invest_value)).where(
+            positions.c.userID == user_DB_ID).where(positions.c.timestamp == user_pos_timestamp)
+        con.execute(upd)
+
         msg_to_user = "Manually added investment: %s" % invest_balance
         bot.send_message(chat_id=user_telegram_ID, text=msg_to_user, parse_mode='Markdown',
                          reply_markup=InlineKeyboardMarkup(
