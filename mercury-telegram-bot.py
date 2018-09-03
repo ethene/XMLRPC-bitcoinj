@@ -1253,6 +1253,7 @@ def action_approve(bot, update):
                 message += 'user balance: %.8f\n' % (balance / XBt_TO_XBT)
                 logger.debug("sending to polo")
                 if not TEST_MODE:
+                    '''
                     df = pd.read_sql_table(balance_diff_table, con=db_engine, index_col='index')
                     transfer_record = df.to_dict(orient='records')
                     logger.debug(transfer_record)
@@ -1261,6 +1262,8 @@ def action_approve(bot, update):
                         address = settings.POLO_ADDRESS
                     else:
                         address = settings.BITMEX_ADDRESS
+                    '''
+                    address = settings.POLO_ADDRESS
                 else:
                     address = '2N8hwP1WmJrFF5QWABn38y63uYLhnJYJYTF'
 
