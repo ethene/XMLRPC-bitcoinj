@@ -18,6 +18,8 @@ bitcoinj_port = os.getenv('BITCOINJ_PORT', '8010')
 # sr = s.sendCoins('mr8jVeCUr8gHMUzzs79PHoD5VG14oG3oPi', '2N8hwP1WmJrFF5QWABn38y63uYLhnJYJYTF', 10000000)
 # print("send: %s" % sr)
 
+# comment out
+
 b = get_bitcoinj_XMLRPC()
 
 # Print list of available methods
