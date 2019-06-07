@@ -59,7 +59,7 @@ except:
 try:
     satoshi_per_b = int(os.getenv('SATOSHI_PER_B'))
 except:
-    satoshi_per_b = 300
+    satoshi_per_b = 60
 
 formatter = logging.Formatter(fmt='%(asctime)s - %(levelname)s - %(module)s - %(message)s')
 logger = logging.getLogger(script_name)
@@ -221,6 +221,42 @@ class RPCFunctions:
             sr_tx = sr.tx.getHashAsString()
             sent_value = sr.tx.getValueSentFromMe(self.kit.wallet()).getValue()
             change_value = sr.tx.getValueSentToMe(self.kit.wallet()).getValue()
+        return {'TX': sr_tx, 'value': sent_value - change_value}
+
+    # TODO: sendCoinsAnyway
+    def sendCoinsAnyway(self, toAddress, amount):
+        sr_tx = 0
+        sent_value = 0
+        change_value = 0
+        bl = self.kit.wallet().getBalance()
+        # balance = bl.getValue()
+
+        # old send procedure
+        '''
+        c = org.bitcoinj.core.Coin.valueOf(amount).subtract(org.bitcoinj.core.Transaction.DEFAULT_TX_FEE)
+        pg = self.kit.peerGroup()
+        toAddr = org.bitcoinj.core.Address.fromBase58(params, toAddress)
+        sr = self.kit.wallet().sendCoins(pg, toAddr, c)
+        sr_tx = sr.tx.getHashAsString()
+        sent_value = sr.tx.getValueSentFromMe(self.kit.wallet()).getValue()
+        change_value = sr.tx.getValueSentToMe(self.kit.wallet()).getValue()
+        '''
+        # new send procedure
+        # max TX size (actually about 250)
+        tx_bytes = 500
+        tx_deduct_fee = tx_bytes * satoshi_per_b
+        default_tx_fee = org.bitcoinj.core.Coin.valueOf(tx_deduct_fee)
+        logger.debug("deducted default fee: %d sat (%.8f BTC)" % (tx_deduct_fee, tx_deduct_fee / 1e8))
+        c = org.bitcoinj.core.Coin.valueOf(amount).subtract(default_tx_fee)
+        toAddr = org.bitcoinj.core.Address.fromBase58(params, toAddress)
+        send_request = org.bitcoinj.wallet.SendRequest.to(toAddr, c)
+        fee_per_kb = satoshi_per_b * 1000
+        send_request.feePerKb = org.bitcoinj.core.Coin.valueOf(fee_per_kb)
+        logger.debug("set fee per kb: %d sat (%.8f BTC)" % (fee_per_kb, fee_per_kb / 1e8))
+        sr = self.kit.wallet().sendCoins(pg, send_request)
+        sr_tx = sr.tx.getHashAsString()
+        sent_value = sr.tx.getValueSentFromMe(self.kit.wallet()).getValue()
+        change_value = sr.tx.getValueSentToMe(self.kit.wallet()).getValue()
         return {'TX': sr_tx, 'value': sent_value - change_value}
 
     # TODO: getBalance

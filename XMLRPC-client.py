@@ -11,7 +11,7 @@ def get_bitcoinj_XMLRPC():
 
 
 bitcoinj_host = os.getenv('BITCOINJ_HOST', 'localhost')
-bitcoinj_port = os.getenv('BITCOINJ_PORT', '8000')
+bitcoinj_port = os.getenv('BITCOINJ_PORT', '8010')
 
 # print("New address: %s " % (s.getNewAddress()))
 # print("TX: %s " % (s.getUnconfirmedTransactions('myt8kNqVm6p8s1F9fp3e4vYQuLCZ8cw3mT')))
