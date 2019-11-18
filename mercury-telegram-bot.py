@@ -280,30 +280,39 @@ def admin_functions(bot, update):
                                reply_markup=InlineKeyboardMarkup(inline_keyboard=admin_keyboard))
 
 
+# # TODO: check_if_user_exists
+# def check_user_exists(update):
+#     admin_list = list(eval(settings.ADMIN_USERS))
+#     if (update.effective_user.id in admin_list) or admin_list[0] == 0:
+#         return True
+#     else:
+#         return False
+
 # TODO: start
 def start(bot, update):
     chat_id = get_chat_id(update)
 
     address, isadmin, keyboard, message = StartMessage(bot, update)
 
-    tc_button = [[InlineKeyboardButton(
-        text=_("TC_BUTTON") % (
-            emoji.emojize(':mag_right:', use_aliases=True)),
-        callback_data='/readtc1')]]
-    keyboard = tc_button + keyboard
-    keyboard += [[InlineKeyboardButton(
-        text=_("STATS_BUTTON") % (emoji.emojize(':chart_with_upwards_trend:', use_aliases=True)),
-        callback_data='/statistics')]]
-    keyboard += [[InlineKeyboardButton(
-        text=_("SUPPORT_BUTTON") % (
-            emoji.emojize(':warning:', use_aliases=True)),
-        callback_data='/contact')]]
-    if isadmin:
+    if address != '':
+        tc_button = [[InlineKeyboardButton(
+            text=_("TC_BUTTON") % (
+                emoji.emojize(':mag_right:', use_aliases=True)),
+            callback_data='/readtc1')]]
+        keyboard = tc_button + keyboard
         keyboard += [[InlineKeyboardButton(
-            text="%s admin functions" % (
-                emoji.emojize(':memo:', use_aliases=True)),
-            callback_data='/admin')]]
-    keyboard += back_button
+            text=_("STATS_BUTTON") % (emoji.emojize(':chart_with_upwards_trend:', use_aliases=True)),
+            callback_data='/statistics')]]
+        keyboard += [[InlineKeyboardButton(
+            text=_("SUPPORT_BUTTON") % (
+                emoji.emojize(':warning:', use_aliases=True)),
+            callback_data='/contact')]]
+        if isadmin:
+            keyboard += [[InlineKeyboardButton(
+                text="%s admin functions" % (
+                    emoji.emojize(':memo:', use_aliases=True)),
+                callback_data='/admin')]]
+        keyboard += back_button
     logger.debug(keyboard)
     logger.debug(message)
 
@@ -318,26 +327,37 @@ def start(bot, update):
                              reply_markup=InlineKeyboardMarkup(inline_keyboard=keyboard))
 
 
+def get_db_user(update, con):
+    userfrom = update.effective_user
+    user_telegram_ID = userfrom.id
+    stm = select([useraccounts]).where(useraccounts.c.telegram_ID == user_telegram_ID)
+    rs = con.execute(stm)
+    response = rs.fetchall()
+    return response
+
+
 def StartMessage(bot, update):
     with db_engine.connect() as con:
         userfrom = update.effective_user
         logger.debug("userfrom : %s" % userfrom)
-        user_telegram_ID = userfrom.id
         firstname = userfrom.first_name
         lastname = userfrom.last_name
         username = userfrom.username
+        userfrom = update.effective_user
+        user_telegram_ID = userfrom.id
 
-        stm = select([useraccounts]).where(useraccounts.c.telegram_ID == user_telegram_ID)
-        rs = con.execute(stm)
-        response = rs.fetchall()
         isadmin = False
         message = None
         keyboard = []
         address = None
         XMLRPCServer_bitcoinj = get_bitcoinj_XMLRPC()
 
+        response = get_db_user(update, con)
         # TODO: new user
         if len(response) == 0:
+            message = 'Sorry but you have no access to this area\n'
+            address = ''
+            '''
             # user not found in db
             logger.debug("user not found in db, creating new user %s" % userfrom)
             try:
@@ -371,6 +391,7 @@ def StartMessage(bot, update):
                 message = "Failed to create new user"
                 notify_action = "*Error:* failed to create user as"
                 notify_user_action(bot, notify_action, user_telegram_ID)
+            '''
         # TODO: existing user
         else:
             # user found in DB
@@ -603,6 +624,13 @@ def getBTCPrice():
 # TODO: statistics
 def stats(bot, update):
     chat_id = get_chat_id(update)
+    with db_engine.connect() as con:
+        response = get_db_user(update, con)
+        # TODO: new user
+        if len(response) == 0:
+            message = 'Sorry but you have no access to this area\n'
+            bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown')
+
     log_event = 'hedge fund stats checked'
     user_telegram_ID = log_record(log_event, update)
     btc_price = getBTCPrice()
@@ -1653,8 +1681,8 @@ def pairs(bot, update):
                 p, trading_pairs[p]['pnl'], trading_pairs[p]['minpnl'], trading_pairs[p]['total_amount'],
                 trading_pairs[p]['trading'])
             if trading_pairs[p]['future_qty'] - (
-                            trading_pairs[p]['volume_to_spot_hedge'] + trading_pairs[p]['volume_to_spread_hedge'] +
-                        trading_pairs[p]['spot_hedged']) != 0:
+                    trading_pairs[p]['volume_to_spot_hedge'] + trading_pairs[p]['volume_to_spread_hedge'] +
+                    trading_pairs[p]['spot_hedged']) != 0:
                 response += "*not hedged correctly*\n"
                 response += "*F:* %s\n" % trading_pairs[p]['future_qty']
                 response += "*H:* %s\n" % trading_pairs[p]['volume_to_spread_hedge']
@@ -1701,8 +1729,8 @@ def pairs(bot, update):
                     if s['orderQty'] < sum_spot:
                         response += ("*problem with %s* \n" % s['ID'])
                         response += (
-                            "*f %s f %d / s_s %d = %d*\n" % (
-                                s['ID'], s['orderQty'], sum_spot, sum_spot - s['orderQty']))
+                                "*f %s f %d / s_s %d = %d*\n" % (
+                            s['ID'], s['orderQty'], sum_spot, sum_spot - s['orderQty']))
 
                 response += ("sum %s: %.2f\n" % (side_a, sum_future))
                 if nl > 0:
